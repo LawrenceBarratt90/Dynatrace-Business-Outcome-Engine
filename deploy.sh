@@ -592,6 +592,7 @@ ECEOF
     EC_YAML_PATH="$(cd edgeconnect && pwd)/edgeConnect.yaml"
     sudo docker run -d --restart always \
       --name "$CONTAINER_NAME" \
+      --network host \
       --mount "type=bind,src=${EC_YAML_PATH},dst=/edgeConnect.yaml" \
       dynatrace/edgeconnect:latest 2>&1
 

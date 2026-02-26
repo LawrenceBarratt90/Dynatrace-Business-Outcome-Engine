@@ -56,6 +56,7 @@ sudo docker pull "$IMAGE"
 echo "🚀 Starting EdgeConnect..."
 sudo docker run -d --restart always \
   --name "$CONTAINER_NAME" \
+  --network host \
   --mount "type=bind,src=$YAML_FILE,dst=/edgeConnect.yaml" \
   "$IMAGE"
 
