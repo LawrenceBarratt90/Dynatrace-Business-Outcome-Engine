@@ -1,28 +1,31 @@
 #!/bin/bash
 # ============================================================
-#  Business Observability Forge — Full Deployment Script
+#  Business Observability Forge — Deploy Script
 # ============================================================
 #
-#  Usage:
+#  Usage (after git clone/pull):
 #    bash deploy.sh
+#    bash deploy.sh --skip-ollama
 #    bash deploy.sh --dt-url https://abc123.live.dynatrace.com \
 #                   --dt-token dt0c01.XXX \
 #                   --otel-token dt0c01.YYY
 #
 #  This script handles everything:
-#    1. Installs Node.js 20 (if missing)
-#    2. Installs Ollama + pulls the LLM model
-#    3. Clones the app repo (if not already cloned)
-#    4. Runs npm install + TypeScript build
-#    5. Configures .env and .dt-credentials.json
-#    6. Creates runtime directories
-#    7. Starts the server with OpenTelemetry instrumentation
-#    8. Deploys the Dynatrace AppEngine UI to your tenant
-#    9. Sets up EdgeConnect (Docker) for tenant ↔ server tunnel
+#    1. Checks Node.js (installs if missing)
+#    2. Installs Ollama + pulls the LLM model (or skip with --skip-ollama)
+#    3. Runs npm install + TypeScript build
+#    4. Prompts for Dynatrace credentials → .dt-credentials.json + .env
+#    5. Creates runtime directories
+#    6. Starts the server with OpenTelemetry instrumentation
+#    7. (Optional) Deploys the Dynatrace AppEngine UI
+#    8. (Optional) Sets up EdgeConnect Docker tunnel
 #
 # ============================================================
 
 set -e
+
+# ── Ensure we're in the repo directory ──
+cd "$(dirname "$0")"
 
 # ── Colors ──
 RED='\033[0;31m'
@@ -32,7 +35,7 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-TOTAL_STEPS=9
+TOTAL_STEPS=8
 step() { echo -e "\n${CYAN}${BOLD}[$1/$TOTAL_STEPS]${NC} ${BOLD}$2${NC}"; }
 ok()   { echo -e "  ${GREEN}✅ $1${NC}"; }
 warn() { echo -e "  ${YELLOW}⚠️  $1${NC}"; }
@@ -43,8 +46,6 @@ DT_URL=""
 DT_API_TOKEN=""
 DT_OTEL_TOKEN=""
 OLLAMA_MODEL="llama3.2"
-APP_DIR=""
-REPO_URL="https://github.com/lawrobar90/Dynatrace-AI-Business-Observability-Engine.git"
 EC_CLIENT_ID=""
 EC_CLIENT_SECRET=""
 EC_RESOURCE=""
@@ -58,7 +59,6 @@ while [[ $# -gt 0 ]]; do
     --dt-token)         DT_API_TOKEN="$2"; shift 2 ;;
     --otel-token)       DT_OTEL_TOKEN="$2"; shift 2 ;;
     --model)            OLLAMA_MODEL="$2"; shift 2 ;;
-    --dir)              APP_DIR="$2"; shift 2 ;;
     --ec-client-id)     EC_CLIENT_ID="$2"; shift 2 ;;
     --ec-client-secret) EC_CLIENT_SECRET="$2"; shift 2 ;;
     --ec-resource)      EC_RESOURCE="$2"; shift 2 ;;
@@ -73,26 +73,30 @@ while [[ $# -gt 0 ]]; do
       echo "  --dt-token TOKEN          Dynatrace API token (problems.read, metrics.read, etc.)"
       echo "  --otel-token TOKEN        Dynatrace OTel ingest token (traces, metrics, logs ingest)"
       echo "  --model MODEL             Ollama model to use (default: llama3.2)"
-      echo "  --dir PATH                App directory (default: auto)"
       echo "  --ec-client-id ID         EdgeConnect OAuth client ID"
       echo "  --ec-client-secret SECRET EdgeConnect OAuth client secret"
       echo "  --ec-resource URN         EdgeConnect OAuth resource (urn:dtenvironment:TENANT_ID)"
       echo "  --skip-appengine          Skip Dynatrace AppEngine UI deployment"
       echo "  --skip-edgeconnect        Skip EdgeConnect Docker setup"
-      echo "  --skip-ollama             Skip Ollama install (uses rule-based AI fallbacks)"
+      echo "  --skip-ollama             Skip Ollama install (Lite mode — rule-based AI fallbacks)"
       echo ""
-      echo "If values are not provided via CLI, the script will prompt for them."
+      echo "If credentials are not passed via CLI, the script will prompt for them."
       exit 0
       ;;
     *) echo "Unknown option: $1"; exit 1 ;;
   esac
 done
 
+# ── Validate we're in the right place ──
+if [[ ! -f "server.js" || ! -f "package.json" ]]; then
+  fail "server.js or package.json not found. Run this script from the repo root."
+fi
+
 echo -e "${BOLD}"
 echo "╔══════════════════════════════════════════════════════════╗"
-echo "║     Business Observability Forge — Full Deployment      ║"
+echo "║     Business Observability Forge — Deploy                ║"
 echo "╠══════════════════════════════════════════════════════════╣"
-echo "║  Server + OTel + AppEngine UI + EdgeConnect             ║"
+echo "║  Server + OTel + Ollama AI + AppEngine UI + EdgeConnect  ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
@@ -121,7 +125,7 @@ else
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 2: Ollama
+# Step 2: Ollama (local AI engine)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 step 2 "Ollama (local AI engine)"
 
@@ -171,36 +175,9 @@ else
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 3: App code
+# Step 3: Install dependencies & build
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 3 "Application code"
-
-# Figure out where the app should live
-if [[ -n "$APP_DIR" ]]; then
-  :
-elif [[ -f "server.js" && -f "package.json" ]]; then
-  APP_DIR="$(pwd)"
-  ok "Already in app directory"
-elif [[ -f "../server.js" && -f "../package.json" ]]; then
-  APP_DIR="$(cd .. && pwd)"
-else
-  APP_DIR="$(pwd)/Business Observability Forge"
-fi
-
-if [[ ! -f "$APP_DIR/server.js" ]]; then
-  echo "  Cloning repository..."
-  git clone "$REPO_URL" "$APP_DIR"
-  ok "Cloned to: $APP_DIR"
-else
-  ok "App found at: $APP_DIR"
-fi
-
-cd "$APP_DIR"
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 4: Dependencies
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 4 "Installing dependencies & building"
+step 3 "Installing dependencies & building"
 
 echo "  Running npm install (this may take a minute)..."
 npm install --loglevel=warn 2>&1 | tail -3
@@ -211,9 +188,9 @@ npx tsc --project tsconfig.json 2>&1 || warn "TypeScript build had warnings (may
 ok "Build complete — dist/ folder ready"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 5: Configuration
+# Step 4: Dynatrace configuration
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 5 "Dynatrace configuration"
+step 4 "Dynatrace configuration"
 
 # Create .env if missing
 if [[ ! -f .env ]]; then
@@ -247,8 +224,22 @@ else
   # Clean up URL
   DT_URL="${DT_URL%/}"
 
-  # Derive tenant ID from URL (e.g. abc12345 from https://abc12345.live.dynatrace.com)
+  # Derive tenant ID from URL
   DT_TENANT_ID=$(echo "$DT_URL" | sed -E 's|https?://||' | cut -d. -f1)
+
+  # Derive apps URL — handles sprint/live/managed environments
+  # e.g. abc123.live.dynatrace.com → abc123.apps.dynatrace.com
+  # e.g. abc123.sprint.dynatracelabs.com → abc123.sprint.apps.dynatracelabs.com
+  DT_STRIPPED=$(echo "$DT_URL" | sed -E 's|https?://[^.]+\.||')
+  if echo "$DT_STRIPPED" | grep -qE '^sprint\.|^dev\.'; then
+    # Sprint/dev environments: TENANT.sprint.apps.domain
+    DT_ENV_TYPE=$(echo "$DT_STRIPPED" | cut -d. -f1)
+    DT_BASE_DOMAIN=$(echo "$DT_STRIPPED" | sed -E 's|^[^.]+\.||')
+    DT_APPS_URL="https://${DT_TENANT_ID}.${DT_ENV_TYPE}.apps.${DT_BASE_DOMAIN}"
+  else
+    # Standard environments: TENANT.apps.domain
+    DT_APPS_URL="https://${DT_TENANT_ID}.apps.${DT_STRIPPED}"
+  fi
 
   if [[ -z "$DT_API_TOKEN" ]]; then
     echo ""
@@ -281,19 +272,17 @@ CREDSEOF
   ok "Created .dt-credentials.json"
   echo -e "  Environment: ${CYAN}$DT_URL${NC}"
 
-  # Update app.config.json with the correct tenant URL
+  # Update app.config.json with the correct tenant apps URL
   if [[ -f app.config.json ]]; then
-    DT_DOMAIN=$(echo "$DT_URL" | sed -E 's|https?://[^.]+\.||')
-    DT_APPS_URL="https://${DT_TENANT_ID}.apps.${DT_DOMAIN}"
-    sed -i "s|https://YOUR_TENANT_ID\.apps\.[^/\"]*|${DT_APPS_URL}|g" app.config.json 2>/dev/null || true
+    sed -i "s|https://YOUR_TENANT_ID[^\"]*|${DT_APPS_URL}/|g" app.config.json 2>/dev/null || true
     ok "Updated app.config.json → ${DT_APPS_URL}"
   fi
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 6: Create directories
+# Step 5: Prepare runtime
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 6 "Preparing runtime"
+step 5 "Preparing runtime"
 
 mkdir -p logs services/.dynamic-runners public/assets saved-configs
 ok "Directories created"
@@ -307,9 +296,9 @@ pkill -f "node.*server.js" 2>/dev/null || true
 sleep 1
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 7: Start server with OpenTelemetry
+# Step 6: Start server with OpenTelemetry
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 7 "Starting BizObs Engine with OpenTelemetry"
+step 6 "Starting BizObs Engine with OpenTelemetry"
 
 truncate -s 0 logs/server.log 2>/dev/null || true
 node --require ./otel.cjs server.js >> logs/server.log 2>&1 &
@@ -342,18 +331,15 @@ else
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 8: Deploy Dynatrace AppEngine UI
+# Step 7: Deploy Dynatrace AppEngine UI
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 8 "Deploying Dynatrace AppEngine UI"
+step 7 "Deploying Dynatrace AppEngine UI"
 
 if [[ -n "$SKIP_APPENGINE" ]]; then
   warn "Skipped (--skip-appengine flag)"
 elif [[ -z "$DT_URL" ]]; then
   warn "Skipped — no Dynatrace URL configured"
 else
-  DT_DOMAIN=$(echo "$DT_URL" | sed -E 's|https?://[^.]+\.||')
-  DT_APPS_URL="https://${DT_TENANT_ID}.apps.${DT_DOMAIN}"
-
   if ! npx dt-app --version &>/dev/null; then
     warn "dt-app CLI not found — installing..."
     npm install dt-app@latest --save-dev 2>&1 | tail -2
@@ -373,9 +359,9 @@ else
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 9: EdgeConnect (Docker tunnel)
+# Step 8: EdgeConnect (Docker tunnel)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 9 "EdgeConnect (Dynatrace ↔ server tunnel)"
+step 8 "EdgeConnect (Dynatrace ↔ server tunnel)"
 
 if [[ -n "$SKIP_EDGECONNECT" ]]; then
   warn "Skipped (--skip-edgeconnect flag)"
@@ -411,9 +397,16 @@ else
       echo -e "  Using resource: ${CYAN}${EC_RESOURCE}${NC}"
     fi
 
-    # Write the EdgeConnect YAML
-    DT_DOMAIN=$(echo "$DT_URL" | sed -E 's|https?://[^.]+\.||')
-    EC_API_HOST="${DT_TENANT_ID}.apps.${DT_DOMAIN}"
+    # Derive apps host for EdgeConnect
+    DT_STRIPPED=$(echo "$DT_URL" | sed -E 's|https?://[^.]+\.||')
+    if echo "$DT_STRIPPED" | grep -qE '^sprint\.|^dev\.'; then
+      DT_ENV_TYPE=$(echo "$DT_STRIPPED" | cut -d. -f1)
+      DT_BASE_DOMAIN=$(echo "$DT_STRIPPED" | sed -E 's|^[^.]+\.||')
+      EC_API_HOST="${DT_TENANT_ID}.${DT_ENV_TYPE}.apps.${DT_BASE_DOMAIN}"
+    else
+      EC_API_HOST="${DT_TENANT_ID}.apps.${DT_STRIPPED}"
+    fi
+
     cat > edgeconnect/edgeConnect.yaml << ECEOF
 name: bizobs-generator
 api_endpoint_host: ${EC_API_HOST}
@@ -467,7 +460,7 @@ ECEOF
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Done
+# Done!
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 echo ""
 echo -e "${GREEN}${BOLD}╔══════════════════════════════════════════════════════════╗${NC}"
@@ -477,8 +470,8 @@ echo ""
 echo -e "  ${BOLD}Server URL:${NC}     http://$(hostname -I 2>/dev/null | awk '{print $1}' || echo localhost):8080"
 echo -e "  ${BOLD}Health check:${NC}   curl http://localhost:8080/api/health"
 echo -e "  ${BOLD}Logs:${NC}           tail -f logs/server.log"
-echo -e "  ${BOLD}Stop:${NC}           kill \$(cat server.pid)"
-echo -e "  ${BOLD}Restart:${NC}        kill \$(cat server.pid); sleep 2; node --require ./otel.cjs server.js >> logs/server.log 2>&1 &"
+echo -e "  ${BOLD}Stop:${NC}           bash stop.sh"
+echo -e "  ${BOLD}Restart:${NC}        bash stop.sh && bash deploy.sh"
 echo ""
 if [[ -n "$DT_URL" ]]; then
   echo -e "  ${BOLD}Dynatrace:${NC}      $DT_URL"
