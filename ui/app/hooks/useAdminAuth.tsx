@@ -2,9 +2,9 @@
  * Admin Auth Context — identity-based access control for the Forge UI.
  *
  * Uses `getCurrentUserDetails()` from the Dynatrace AppEngine runtime
- * to identify the logged-in user. The admin user ID is persisted in the
- * shared app settings (Dynatrace Settings API), so all users of the app
- * see the same admin.
+ * to identify the logged-in user. Admin state is persisted in the shared
+ * app settings using the imperative SDK client (not React hooks) to avoid
+ * conflicts with the SettingsPage hooks.
  *
  * Roles:
  *   Admin  — the user whose ID matches `adminUserId` in app settings.
@@ -16,8 +16,8 @@
  *            save new templates. Cannot perform destructive actions.
  */
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback, type ReactNode } from 'react';
-import { getCurrentUserDetails, getEnvironmentUrl } from '@dynatrace-sdk/app-environment';
-import { useSettingsV2, useSettingsObjectsV2, useUpdateSettingsV2, useCreateSettingsV2 } from '@dynatrace-sdk/react-hooks';
+import { getCurrentUserDetails } from '@dynatrace-sdk/app-environment';
+import { appSettingsObjectsClient } from '@dynatrace-sdk/client-app-settings-v2';
 
 // ── Types ────────────────────────────────────────────────────
 export interface AppUser {
@@ -71,51 +71,37 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
   // Admin state
   const [adminId, setAdminId] = useState<string | null>(null);
   const [adminName, setAdminName] = useState<string | null>(null);
-  const [settingsObjId, setSettingsObjId] = useState<string | null>(null);
-  const [settingsVersion, setSettingsVersion] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // SDK hooks
-  const settingsEffective = useSettingsV2({ schemaId: SCHEMA_ID, addFields: 'value' });
-  const settingsObjects = useSettingsObjectsV2(
-    { schemaId: SCHEMA_ID, addFields: 'value,objectId,version' },
-    { autoFetch: true, autoFetchOnUpdate: true },
-  );
-  const updateSettings = useUpdateSettingsV2();
-  const createSettings = useCreateSettingsV2();
-
-  // Sync admin info from settings
+  // Load admin state from DT app settings using imperative client (no hooks)
   const loadedRef = useRef(false);
   useEffect(() => {
     if (loadedRef.current) return;
-    if (settingsEffective.isLoading) return;
+    loadedRef.current = true;
 
-    if (settingsEffective.data?.items?.[0]?.value) {
-      const val = settingsEffective.data.items[0].value as any;
-      setAdminId(val.adminUserId || null);
-      setAdminName(val.adminUserName || null);
-    }
-
-    if (settingsObjects.data?.items?.[0]) {
-      const obj = settingsObjects.data.items[0] as any;
-      setSettingsObjId(obj.objectId || null);
-      setSettingsVersion(obj.version || null);
-    }
-
-    if (settingsEffective.isSuccess || settingsEffective.isError) {
-      loadedRef.current = true;
-      setIsLoading(false);
-    }
-  }, [
-    settingsEffective.isLoading,
-    settingsEffective.data,
-    settingsEffective.isSuccess,
-    settingsEffective.isError,
-    settingsObjects.data,
-  ]);
+    (async () => {
+      try {
+        const result = await appSettingsObjectsClient.getEffectiveAppSettingsValues({
+          schemaId: SCHEMA_ID,
+          addFields: 'value',
+        });
+        const val = (result?.items?.[0] as any)?.value;
+        if (val?.adminUserId) {
+          setAdminId(val.adminUserId);
+          setAdminName(val.adminUserName || '');
+        }
+      } catch (err) {
+        console.warn('[AdminAuth] Could not load admin state:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+  }, []);
 
   const isDev = currentUser.id === DEV_USER_ID;
-  const isAdmin = isDev || (!!adminId && currentUser.id === adminId);
+  // When no admin is claimed yet, everyone is effectively admin (first-use bootstrap).
+  // Once someone claims admin, only that user has admin powers.
+  const isAdmin = isDev || !adminId || currentUser.id === adminId;
   const adminUser = adminId ? { id: adminId, name: adminName || 'Unknown' } : null;
 
   const isOwner = useCallback(
@@ -131,47 +117,44 @@ export const AdminAuthProvider: React.FC<{ children: ReactNode }> = ({ children 
   /** Persist admin user into the shared app settings */
   const persistAdmin = useCallback(
     async (userId: string, userName: string) => {
-      // Read existing settings value so we don't overwrite other fields
-      const currentVal = settingsEffective.data?.items?.[0]?.value as any || {};
-      const newVal = {
-        ...currentVal,
-        adminUserId: userId,
-        adminUserName: userName,
-      };
-
       try {
-        const obj = settingsObjects.data?.items?.[0] as any;
-        const objId = obj?.objectId || settingsObjId;
-        const version = obj?.version || settingsVersion;
+        // Fetch the current settings object (need objectId + version for update)
+        const objects = await appSettingsObjectsClient.getAppSettingsObjects({
+          schemaId: SCHEMA_ID,
+          addFields: 'value,objectId,version',
+        });
 
-        if (objId && version) {
-          await updateSettings.execute({
-            objectId: objId,
-            optimisticLockingVersion: version,
+        const existing = objects?.items?.[0] as any;
+        const currentVal = existing?.value || {};
+        const newVal = {
+          ...currentVal,
+          adminUserId: userId,
+          adminUserName: userName,
+        };
+
+        if (existing?.objectId && existing?.version) {
+          await appSettingsObjectsClient.putAppSettingsObjectByObjectId({
+            objectId: existing.objectId,
+            optimisticLockingVersion: existing.version,
             body: { value: newVal },
           });
         } else {
-          await createSettings.execute({
+          await appSettingsObjectsClient.postAppSettingsObject({
             body: { schemaId: SCHEMA_ID, value: newVal },
           });
         }
-
-        // Refetch
-        settingsEffective.refetch();
-        settingsObjects.refetch();
         return true;
       } catch (err) {
         console.error('[AdminAuth] Failed to persist admin:', err);
         return false;
       }
     },
-    [settingsEffective, settingsObjects, settingsObjId, settingsVersion, updateSettings, createSettings],
+    [],
   );
 
   const claimAdmin = useCallback(async () => {
     if (adminId && adminId !== currentUser.id) {
-      // Admin already claimed by someone else
-      return false;
+      return false; // Already claimed by someone else
     }
     const ok = await persistAdmin(currentUser.id, currentUser.name || currentUser.email);
     if (ok) {
