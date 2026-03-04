@@ -221,6 +221,7 @@ oauth:
 ```bash
 cd edgeconnect
 ./run-edgeconnect.sh
+cd ..   # ← important: go back to the project root for the next steps
 ```
 
 This runs a Docker container with `--network host` so it shares your server's network.
@@ -256,9 +257,12 @@ If you see OAuth errors, double-check your `client_id`, `client_secret`, and `re
 This deploys the Forge UI as a Dynatrace App. Run this **from the same repo you cloned in Step 1** — it's a unified repo containing both the Engine and the Forge UI.
 
 ```bash
-# From the project root (Dynatrace-Business-Observability-Forge/)
+# From the project root (Dynatrace-Business-Observability-Forge/) — NOT from edgeconnect/
+pwd   # should show .../Dynatrace-Business-Observability-Forge
 npx dt-app deploy
 ```
+
+> **"Validating manifest" error?** You're probably in the wrong directory. Run `cd ..` to get back to the project root. `dt-app deploy` needs `app.config.json` which is in the root, not in `edgeconnect/`.
 
 **What happens:**
 1. First time: it opens a **browser window** for Dynatrace SSO login (Credential C from Step 2)
