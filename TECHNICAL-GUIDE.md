@@ -88,13 +88,12 @@ Before you start, make sure you have **all of these** ready:
 Follow these steps **in order**. Each step depends on the one before it.
 
 ```
-Step 1: Clone & Install          ← Get the code
-Step 2: Create DT Credentials    ← So the Engine can talk to Dynatrace
-Step 3: Create OAuth Client      ← So EdgeConnect can authenticate
-Step 4: Deploy EdgeConnect       ← So the Forge UI can reach your server
-Step 5: Deploy the AppEngine UI  ← Install the Forge app in Dynatrace
-Step 6: Start the Engine Server  ← The server that does the work
-Step 7: Configure from Forge UI  ← Wire everything together
+Step 1: Clone & Install            ← Get the code
+Step 2: Create DT Credentials      ← API Token (for Engine) + OAuth Client (for EdgeConnect)
+Step 3: Deploy EdgeConnect          ← So the Forge UI can reach your server
+Step 4: Deploy the AppEngine UI     ← Install the Forge app in Dynatrace
+Step 5: Start the Engine Server     ← The server that does the work
+Step 6: Configure from Forge UI     ← Wire everything together
 ```
 
 ---
@@ -113,14 +112,31 @@ npm install
 
 ### Step 2: Create Dynatrace Credentials
 
-You need a **Dynatrace API Token**. This is how the Engine sends business events, deployment events, and metrics to your tenant.
+You need **exactly 2 credentials** — they're different types and created in different places:
 
-**Create the token in Dynatrace:**
+| # | Credential | Type | Where To Create | What Uses It |
+|---|-----------|------|----------------|--------------|
+| A | **API Token** | `dt0c01.*` | Dynatrace tenant → Settings → Access Tokens | The **Engine server** uses this to send events/metrics to Dynatrace |
+| B | **OAuth Client** | `dt0s10.*` | Account Management → OAuth Clients | The **EdgeConnect binary** uses this to establish its tunnel |
+
+> **Why can't I use just one?** They're completely separate credential systems. API Tokens are tenant-level keys for REST APIs. OAuth Clients are account-level credentials for platform services like EdgeConnect. They can't be combined.
+>
+> The **Forge UI** (AppEngine app) doesn't need any manual credentials — its permissions are declared in `app.config.json` and granted automatically when you deploy.
+
+---
+
+#### Credential A: API Token (for the Engine server)
+
+**Create it in Dynatrace:**
 1. Go to your Dynatrace tenant
-2. Settings → Access Tokens → Generate new token
-3. Name it something like `BizObs Engine`
-4. Add these scopes: `events.ingest`, `metrics.ingest`, `openTelemetryTrace.ingest`, `entities.read`
-5. Click Generate → **copy the token immediately** (you can't see it again)
+2. Settings → Access Tokens → **Generate new token**
+3. Name: `BizObs Engine`
+4. Add these scopes:
+   - `events.ingest`
+   - `metrics.ingest`
+   - `openTelemetryTrace.ingest`
+   - `entities.read`
+5. Click **Generate** → **copy the token immediately** (you can't see it again)
 
 **Save it on your host** — create `.dt-credentials.json` in the Engine project root:
 
@@ -145,17 +161,15 @@ export DT_PLATFORM_TOKEN="dt0c01.XXXX..."
 
 ---
 
-### Step 3: Create an OAuth Client for EdgeConnect
+#### Credential B: OAuth Client (for EdgeConnect)
 
-EdgeConnect needs its own OAuth credentials to connect to Dynatrace. This is a **different credential** from the API Token above.
-
-**Create in Dynatrace:**
+**Create it in Dynatrace:**
 1. Go to **Account Management** (top-right user menu → Account Settings)
 2. Identity & Access Management → **OAuth Clients**
 3. Click **Create client**
 4. Name: `BizObs EdgeConnect`
 5. Scope: `app-engine:edge-connects:connect`
-6. Click Create → **copy the Client ID and Client Secret immediately**
+6. Click **Create** → **copy the Client ID and Client Secret immediately**
 
 You'll get values like:
 - Client ID: `dt0s10.XXXXX`
@@ -163,15 +177,15 @@ You'll get values like:
 
 **Also note your tenant/environment ID** — it's the subdomain of your tenant URL. For `https://abc12345.sprint.dynatracelabs.com`, the ID is `abc12345`.
 
-> **Hold on to these values.** You'll need them in the next step.
+> **Hold on to these values.** You'll need them in the next step (EdgeConnect config).
 
 ---
 
-### Step 4: Deploy EdgeConnect
+### Step 3: Deploy EdgeConnect
 
 EdgeConnect is a lightweight binary (runs in Docker) that creates a **secure tunnel** from Dynatrace to your server. Without it, the Forge UI has no way to reach the Engine.
 
-**4a. Edit the config file:**
+**3a. Edit the config file:**
 
 Open `edgeconnect/edgeConnect.yaml` and fill in your values:
 
@@ -179,15 +193,15 @@ Open `edgeconnect/edgeConnect.yaml` and fill in your values:
 name: bizobs-generator
 api_endpoint_host: YOUR_TENANT.sprint.apps.dynatracelabs.com
 oauth:
-  client_id: dt0s10.XXXXX          # ← from Step 3
-  client_secret: dt0s10.XXXXX.YYYYY...  # ← from Step 3
+  client_id: dt0s10.XXXXX          # ← from Credential B above
+  client_secret: dt0s10.XXXXX.YYYYY...  # ← from Credential B above
   resource: urn:dtenvironment:YOUR_TENANT_ID  # ← e.g. urn:dtenvironment:abc12345
   endpoint: https://sso-sprint.dynatracelabs.com/sso/oauth2/token
 ```
 
 > **Watch the `api_endpoint_host`!** It uses `.apps.dynatracelabs.com` (with `.apps.`), not just `.dynatracelabs.com`. This is the AppEngine URL, not your regular tenant URL.
 
-**4b. Start EdgeConnect:**
+**3b. Start EdgeConnect:**
 
 ```bash
 cd edgeconnect
@@ -196,7 +210,7 @@ cd edgeconnect
 
 This runs a Docker container with `--network host` so it shares your server's network.
 
-**4c. Verify EdgeConnect is connected:**
+**3c. Verify EdgeConnect is connected:**
 
 ```bash
 docker logs edgeconnect-bizobs 2>&1 | tail -5
@@ -222,7 +236,7 @@ If you see OAuth errors, double-check your `client_id`, `client_secret`, and `re
 
 ---
 
-### Step 5: Deploy the AppEngine UI (Forge)
+### Step 4: Deploy the AppEngine UI (Forge)
 
 This deploys the Forge UI as a Dynatrace App.
 
@@ -242,7 +256,7 @@ The deploy command will ask you to authenticate with your Dynatrace tenant (SSO 
 
 ---
 
-### Step 6: Start the Engine Server
+### Step 5: Start the Engine Server
 
 ```bash
 cd Dynatrace-AI-Business-Observability-Engine
@@ -270,11 +284,11 @@ The `childServices` array is empty — that's correct. **No services are spawned
 
 ---
 
-### Step 7: Configure from the Forge UI
+### Step 6: Configure from the Forge UI
 
 Open the Forge app in Dynatrace (**Apps → Business Observability Forge**).
 
-**7a. Go to Settings (gear icon) → Config tab:**
+**6a. Go to Settings (gear icon) → Config tab:**
 
 | Field | Value | Example |
 |-------|-------|---------|
@@ -285,27 +299,27 @@ Open the Forge app in Dynatrace (**Apps → Business Observability Forge**).
 Click **Save**, then click **Test**.
 
 > **If the test fails:**
-> - Make sure the Engine server is running (Step 6)
-> - Make sure EdgeConnect is running and connected (Step 4c)
+> - Make sure the Engine server is running (Step 5)
+> - Make sure EdgeConnect is running and connected (Step 3c)
 > - Make sure you're using the **private IP**, not the public Elastic IP
 > - Wait 15 seconds and try again (EdgeConnect routing can take a moment to propagate)
 
-**7b. Go to Settings → EdgeConnect tab:**
+**6b. Go to Settings → EdgeConnect tab:**
 
-If EdgeConnect is already running (Step 4), you should see a green "EdgeConnect Connected" status. The host pattern should show your **private IP**.
+If EdgeConnect is already running (Step 3), you should see a green "EdgeConnect Connected" status. The host pattern should show your **private IP**.
 
 If it shows your public IP, click the EdgeConnect tab and update the **Host Pattern / Server IP** to your private IP.
 
-**7c. Go to Settings → Get Started tab:**
+**6c. Go to Settings → Get Started tab:**
 
 This is a checklist that auto-detects your setup and lets you deploy Dynatrace configuration with one click per step:
 
 | Step | What It Does | What To Do |
 |------|-------------|------------|
 | **Configure Server IP** | Set the IP/hostname of your engine server | Should be green if you did 7a |
-| **Create EdgeConnect** | Registers EdgeConnect config in Dynatrace | Should be green if you did Step 4 |
+| **Create EdgeConnect** | Registers EdgeConnect config in Dynatrace | Should be green if you did Step 3 |
 | **Deploy EdgeConnect** | Instructions for running EdgeConnect on your host | Should be green if EdgeConnect is up |
-| **Verify EdgeConnect Online** | Polls DT to confirm tunnel is active | Should be green if Step 4c passed |
+| **Verify EdgeConnect Online** | Polls DT to confirm tunnel is active | Should be green if Step 3c passed |
 | **OneAgent Installed** | Verifies OneAgent is reporting from your host | Green if OneAgent is running |
 | **Test Connection** | Pings the engine through the EdgeConnect tunnel | Click to test — should go green |
 | **OpenPipeline Pipeline** | Creates the BizEvents processing pipeline | Click **Deploy** |
@@ -508,8 +522,8 @@ Welcome Tab → Step 1: Company Details → Step 2: Generate Prompts → Step 3:
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| **"Cannot reach X.X.X.X:8080"** on Config tab | You're using the **public** Elastic IP | Change to your **private IP** (`hostname -I \| awk '{print $1}'`). AWS doesn't support NAT hairpin — see Step 7a |
-| **EdgeConnect shows offline** | OAuth creds expired, wrong, or EdgeConnect not running | Check `docker logs edgeconnect-bizobs`. Re-run `./run-edgeconnect.sh`. Double-check `client_id`, `client_secret`, `resource` in YAML |
+| **"Cannot reach X.X.X.X:8080"** on Config tab | You're using the **public** Elastic IP | Change to your **private IP** (`hostname -I \| awk '{print $1}'`). AWS doesn't support NAT hairpin — see Step 6a |
+| **EdgeConnect shows offline** | OAuth creds expired, wrong, or EdgeConnect not running | Check `docker logs edgeconnect-bizobs`. Re-run `./run-edgeconnect.sh`. Double-check `client_id`, `client_secret`, `resource` in YAML (Step 2B → Step 3a) |
 | **Test connection fails but EdgeConnect is green** | Server not running, or host pattern not registered | 1) Verify server: `curl http://localhost:8080/api/health` 2) Wait 15s and retry (propagation delay) 3) Ensure private IP is the host pattern |
 | **No services in Dynatrace** | OneAgent not installed or feature flags not enabled | Run Get Started checklist in Forge UI — deploy OneAgent Feature Flags step |
 | **Forge UI shows "Connection failed"** | Server IP not configured or EdgeConnect not tunneling | Settings → Config tab → set private IP + Test. Settings → EdgeConnect tab → verify green |
