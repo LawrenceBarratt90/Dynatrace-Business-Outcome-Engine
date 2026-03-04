@@ -73,8 +73,29 @@ if [ "$NEED_PROMPT" = true ]; then
   prompt_if_missing "OAUTH_CLIENT_ID" "OAuth Client ID (dt0s10.*):" "dt0s10.XXXX"
   prompt_if_missing "OAUTH_CLIENT_SECRET" "OAuth Client Secret (dt0s10.*.*):" "dt0s10.XXXX.YYYY..."
   echo ""
+fi
 
-  # Save for future runs
+# ── Validate credential formats (always, even from setup.conf) ──
+if [[ ! "$API_TOKEN" == dt0c01.* ]]; then
+  fail "API Token must start with 'dt0c01.' — you entered '${API_TOKEN:0:10}...'. Delete setup.conf and re-run ./setup.sh"
+fi
+if [[ ! "$OAUTH_CLIENT_ID" == dt0s10.* ]]; then
+  echo -e "  ${RED}✗ OAuth Client ID must start with 'dt0s10.' (environment-level)${NC}"
+  echo -e "  ${YELLOW}  You entered '${OAUTH_CLIENT_ID:0:12}...' which looks like an account-level token (dt0s02).${NC}"
+  echo -e "  ${YELLOW}  Create it in: Dynatrace → Settings → General → External Requests → Add EdgeConnect${NC}"
+  echo -e "  ${YELLOW}  Then delete setup.conf and re-run ./setup.sh${NC}"
+  exit 1
+fi
+if [[ ! "$OAUTH_CLIENT_SECRET" == dt0s10.* ]]; then
+  echo -e "  ${RED}✗ OAuth Client Secret must start with 'dt0s10.' (environment-level)${NC}"
+  echo -e "  ${YELLOW}  You entered '${OAUTH_CLIENT_SECRET:0:12}...' — this looks like an account-level secret.${NC}"
+  echo -e "  ${YELLOW}  The secret comes from the same EdgeConnect page as the Client ID.${NC}"
+  echo -e "  ${YELLOW}  Delete setup.conf and re-run ./setup.sh${NC}"
+  exit 1
+fi
+
+# Save valid credentials for future runs
+if [ "$NEED_PROMPT" = true ]; then
   cat > "$CONF_FILE" << EOF
 TENANT_ID="$TENANT_ID"
 API_TOKEN="$API_TOKEN"
@@ -96,12 +117,43 @@ echo -e "  Private IP: ${BOLD}$PRIVATE_IP${NC}"
 # ── Step 1: Prerequisites ──────────────────────────────────
 step "Step 1/6: Checking prerequisites"
 
+install_node22() {
+  echo "  Installing Node.js v22..."
+  if command -v dnf &>/dev/null || command -v yum &>/dev/null; then
+    # Amazon Linux / RHEL / CentOS
+    curl -fsSL https://rpm.nodesource.com/setup_22.x | sudo bash - 2>&1 | tail -1
+    sudo yum install -y nodejs 2>&1 | tail -1
+  elif command -v apt-get &>/dev/null; then
+    # Ubuntu / Debian
+    curl -fsSL https://deb.nodesource.com/setup_22.x | sudo bash - 2>&1 | tail -1
+    sudo apt-get install -y nodejs 2>&1 | tail -1
+  else
+    fail "Cannot auto-install Node.js — install v22+ manually: https://nodejs.org"
+  fi
+  # Refresh path
+  hash -r 2>/dev/null || true
+}
+
+NEED_NODE=false
 if ! command -v node &>/dev/null; then
-  fail "Node.js not found. Install v22+: https://nodejs.org"
+  NEED_NODE=true
+else
+  NODE_VER=$(node --version | sed 's/v//' | cut -d. -f1)
+  if [ "$NODE_VER" -lt 22 ]; then
+    warn "Node.js $(node --version) found but v22+ required — upgrading..."
+    NEED_NODE=true
+  fi
 fi
-NODE_VER=$(node --version | sed 's/v//' | cut -d. -f1)
-if [ "$NODE_VER" -lt 22 ]; then
-  fail "Node.js v22+ required (found $(node --version))"
+
+if [ "$NEED_NODE" = true ]; then
+  install_node22
+  if ! command -v node &>/dev/null; then
+    fail "Node.js installation failed. Install v22+ manually: https://nodejs.org"
+  fi
+  NODE_VER=$(node --version | sed 's/v//' | cut -d. -f1)
+  if [ "$NODE_VER" -lt 22 ]; then
+    fail "Node.js v22+ required but got $(node --version) after install. Install manually."
+  fi
 fi
 ok "Node.js $(node --version)"
 
