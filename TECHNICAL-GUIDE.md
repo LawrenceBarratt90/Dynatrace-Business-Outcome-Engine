@@ -114,20 +114,14 @@ npm install
 
 ### Step 2: Create Dynatrace Credentials
 
-You need **2 credentials you create manually**, plus a 3rd that's handled automatically:
+You need **exactly 2 credentials** — an API Token and an OAuth Client:
 
 | # | Credential | Type | Where To Create | What Uses It |
 |---|-----------|------|----------------|--------------|
 | A | **API Token** | `dt0c01.*` | Dynatrace tenant → Settings → Access Tokens | The **Engine server** uses this to send events/metrics to Dynatrace |
-| B | **OAuth Client** | `dt0s10.*` | Dynatrace tenant → Settings → General → External Requests → EdgeConnect | The **EdgeConnect binary** uses this to establish its tunnel |
-| C | **Deploy Token** | `dt0s08.*` (SSO) | **Automatic** — `dt-app deploy` opens a browser login | `dt-app deploy` uses this to push the app to AppEngine |
+| B | **OAuth Client** | `dt0s10.*` | Dynatrace tenant → Settings → General → External Requests → EdgeConnect | **Both** EdgeConnect (tunnel) **and** `dt-app deploy` (app deployment) |
 
-> **Why 3 credentials?**
-> - **A (API Token)** — tenant-level REST API key. Created in your DT tenant's Settings.
-> - **B (OAuth Client)** — created in your DT tenant under Settings → General → External Requests when you configure an EdgeConnect.
-> - **C (Deploy Token)** — you don't create this manually. When you run `npx dt-app deploy`, it opens a browser for you to log in with SSO. The token is cached in `.dt-app/.tokens.json` and automatically refreshed on subsequent deploys.
->
-> The **Forge UI** (AppEngine app) doesn't need any manual credentials at runtime — its permissions are declared in `app.config.json` and granted automatically when you deploy.
+> **That's it — just 2.** Credential B is used for both EdgeConnect and deploying the app. No SSO browser dance, no extra tokens. The Forge UI itself doesn't need manual credentials — its permissions come from `app.config.json` automatically.
 
 ---
 
@@ -167,9 +161,9 @@ export DT_PLATFORM_TOKEN="dt0c01.XXXX..."
 
 ---
 
-#### Credential B: OAuth Client (for EdgeConnect)
+#### Credential B: OAuth Client (for EdgeConnect + App Deploy)
 
-This is created directly in your Dynatrace tenant when you set up an EdgeConnect — **not** in Account Management.
+This **single client** handles both the EdgeConnect tunnel and deploying the app. It's an **environment-level** OAuth client (`dt0s10.*`), created in your Dynatrace tenant — **not** in Account Management.
 
 **Create it in Dynatrace:**
 1. Go to your Dynatrace tenant
@@ -184,7 +178,17 @@ This is created directly in your Dynatrace tenant when you set up an EdgeConnect
 
 > **Important:** The client secret is only shown once. Copy it or download the YAML immediately.
 
-**Save these values.** You'll use them in the next step.
+**Then add the deploy scope to this same client:**
+1. Go to **Account Management** → **Identity & Access Management** → **OAuth clients**
+2. Find the client you just created (`dt0s10.XXXXX`)
+3. Edit it and **add these scopes**:
+   - `app-engine:apps:install` (required to deploy the app)
+   - `app-engine:apps:run` (required to run the app)
+4. Save
+
+> **Why one client?** The External Requests page creates the client with `app-engine:edge-connects:connect` for EdgeConnect. By adding the deploy scopes to the same client, you use **one set of credentials for everything** — no SSO browser dance, no headless-server workarounds.
+
+**Save the client ID and secret.** You'll use them for both EdgeConnect (Step 3) and deploying the app (Step 4).
 
 ---
 
@@ -256,35 +260,38 @@ If you see OAuth errors, double-check your `client_id`, `client_secret`, and `re
 
 This deploys the Forge UI as a Dynatrace App. Run this **from the same repo you cloned in Step 1** — it's a unified repo containing both the Engine and the Forge UI.
 
-> **Before you deploy:** Make sure your Dynatrace account has the `app-engine:apps:install` scope. Without it, the deploy will fail at the upload step. Your account admin can grant this in **Account Management → Identity & Access Management → Policies**.
+We use the **same OAuth client** from Credential B (Step 2) — set as environment variables so `dt-app deploy` authenticates automatically. **No browser needed, works on headless servers.**
 
 ```bash
 # From the project root (Dynatrace-Business-Observability-Forge/) — NOT from edgeconnect/
 pwd   # should show .../Dynatrace-Business-Observability-Forge
+
+# Set the OAuth credentials from Credential B (same client used for EdgeConnect)
+export DT_APP_OAUTH_CLIENT_ID="dt0s10.XXXXX"           # ← your client ID from Step 2B
+export DT_APP_OAUTH_CLIENT_SECRET="dt0s10.XXXXX.YYYYY"  # ← your client secret from Step 2B
+
+# Deploy
 npx dt-app deploy
 ```
 
+That's it. The CLI detects the env vars and uses the **client_credentials** flow — no browser popup, no SSO dance.
+
 > **"Validating manifest" error?** You're probably in the wrong directory. Run `cd ..` to get back to the project root. `dt-app deploy` needs `app.config.json` which is in the root, not in `edgeconnect/`.
 
-**What happens:**
-1. First time: it opens a **browser window** for Dynatrace SSO login (Credential C from Step 2)
-2. You log in → the token is cached in `.dt-app/.tokens.json`
-3. Subsequent deploys reuse the cached token (auto-refreshes until it expires)
-4. If the token expires, it'll prompt you to log in again
+> **Deploy fails with "insufficient scopes"?** Your OAuth client is missing the `app-engine:apps:install` scope. Go back to Step 2B and add it in **Account Management → Identity & Access Management → OAuth clients**.
 
-> **Headless server (SSH without VS Code)?** The SSO flow tries to open a browser, which won't work on a bare EC2 terminal. Two options:
->
-> **Option A (recommended):** Run `npx dt-app deploy` from **VS Code's integrated terminal** (Remote-SSH). VS Code handles the browser redirect automatically.
->
-> **Option B (manual):** When the terminal prints a URL like `https://sso-sprint.dynatracelabs.com/sso/oauth2/authorize?...`:
-> 1. Copy the full URL from the terminal
-> 2. Paste it into your **local browser** (on your laptop)
-> 3. Log in with your Dynatrace SSO credentials
-> 4. The browser will redirect to a `localhost:...` URL — this will show an error (can't connect) in your browser, **that's expected**
-> 5. Copy the **full URL from your browser's address bar** (including the `?code=...` part)
-> 6. Paste it back into the EC2 terminal when prompted
->
-> After the first successful auth, the token is cached and you won't need to do this again until it expires.
+**What happens:**
+1. `dt-app` reads `DT_APP_OAUTH_CLIENT_ID` and `DT_APP_OAUTH_CLIENT_SECRET`
+2. It authenticates using **OAuth client_credentials** grant (fully automated, no browser)
+3. It bundles the app, uploads it, and installs it on your Dynatrace environment
+4. The token is cached in `.dt-app/.tokens.json` for subsequent deploys
+
+> **Tip:** To avoid setting env vars every time, add them to your shell profile:
+> ```bash
+> echo 'export DT_APP_OAUTH_CLIENT_ID="dt0s10.XXXXX"' >> ~/.bashrc
+> echo 'export DT_APP_OAUTH_CLIENT_SECRET="dt0s10.XXXXX.YYYYY"' >> ~/.bashrc
+> source ~/.bashrc
+> ```
 
 **Verify:** Go to your Dynatrace tenant → **Apps** → you should see **Business Observability Forge** in the list. Click it to open.
 
@@ -563,8 +570,7 @@ Welcome Tab → Step 1: Company Details → Step 2: Generate Prompts → Step 3:
 | **Forge UI shows "Connection failed"** | Server IP not configured or EdgeConnect not tunneling | Settings → Config tab → set private IP + Test. Settings → EdgeConnect tab → verify green |
 | **Chaos injection sends 200+ events** | `entitySelector` too broad (old bug) | Fixed in v2.9.10+ — now scoped to target service name |
 | **AI agents don't respond** | Ollama not running or model not pulled | `ollama pull llama3.2` and `curl http://localhost:11434/api/tags` to verify |
-| **`npx dt-app deploy` fails** | SSO token expired, missing scope, or npm not installed | Re-authenticate when prompted (browser SSO login). Ensure your account has `app-engine:apps:install` scope. Run `npm install` first if you haven't |
-| **SSO won't open on headless EC2** | No browser available on bare SSH terminal | Use VS Code Remote-SSH (integrated terminal handles auth), or copy the SSO URL → open in local browser → paste redirect URL back. See Step 4 |
+| **`npx dt-app deploy` fails** | Missing env vars, wrong scope, or wrong directory | Set `DT_APP_OAUTH_CLIENT_ID` and `DT_APP_OAUTH_CLIENT_SECRET` env vars (Step 4). Ensure the OAuth client has `app-engine:apps:install` scope (Step 2B). Run from project root, not `edgeconnect/` |
 | **Settings won't save (400 error)** | Sprint environment app-settings API limitation | App falls back to localStorage automatically — safe to ignore |
 | **`api_endpoint_host` rejected** | Using tenant URL instead of AppEngine URL | Use `YOUR_TENANT.sprint.apps.dynatracelabs.com` (with `.apps.`), not `YOUR_TENANT.sprint.dynatracelabs.com` |
 
@@ -580,7 +586,7 @@ Welcome Tab → Step 1: Company Details → Step 2: Generate Prompts → Step 3:
 | Observability | Dynatrace OneAgent + OpenTelemetry SDK |
 | Config-as-Code | Monaco v2 (Settings API deployment) |
 | Tunnel | Dynatrace EdgeConnect |
-| Auth | OAuth 2.0 (SSO), API Token |
+| Auth | OAuth 2.0 (client_credentials), API Token |
 
 ---
 

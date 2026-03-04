@@ -41,13 +41,12 @@ A full-stack business observability platform that dynamically creates microservi
 
 ### Credentials You Need
 
-You need **2 manual credentials** + 1 automatic:
+You need **exactly 2 credentials**:
 
 | # | Credential | Type | Where To Create | What Uses It |
-|---|-----------|------|----------------|--------------|
+|---|-----------|------|-----------------|--------------|
 | A | **API Token** | `dt0c01.*` | DT tenant → Settings → Access Tokens | Engine server (events/metrics) |
-| B | **OAuth Client** | `dt0s10.*` | DT tenant → Settings → General → External Requests → EdgeConnect | EdgeConnect (tunnel auth) |
-| C | **Deploy Token** | `dt0s08.*` | **Automatic** — SSO browser login | `dt-app deploy` (push app to AppEngine) |
+| B | **OAuth Client** | `dt0s10.*` | DT tenant → Settings → General → External Requests → EdgeConnect | **Both** EdgeConnect (tunnel) **and** `dt-app deploy` (app deployment) |
 
 > See [TECHNICAL-GUIDE.md](TECHNICAL-GUIDE.md) for detailed step-by-step instructions on creating each credential.
 
@@ -74,7 +73,9 @@ cp ~/Downloads/edgeConnect.yaml edgeconnect/edgeConnect.yaml
 bash edgeconnect/run-edgeconnect.sh
 
 # 3. Deploy Forge UI to Dynatrace AppEngine
-#    First time: opens browser for SSO login (Credential C — automatic)
+#    Uses the SAME OAuth client from Credential B — no browser needed
+export DT_APP_OAUTH_CLIENT_ID="dt0s10.XXXXX"          # ← your client ID
+export DT_APP_OAUTH_CLIENT_SECRET="dt0s10.XXXXX.YYYYY" # ← your client secret
 npx dt-app deploy
 
 # 4. Start the Engine server
