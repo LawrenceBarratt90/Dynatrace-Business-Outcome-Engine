@@ -87,12 +87,15 @@ if [ "$NEED_PROMPT" = true ]; then
   echo -e "  ${YELLOW}Dynatrace → Settings → General → External Requests → Add EdgeConnect${NC}"
   echo -e "  ${YELLOW}DT generates the OAuth credentials — copy the Client ID${NC}"
   echo -e "  ${YELLOW}Starts with: dt0s10.  (NOT dt0s02 — that's account-level, won't work)${NC}"
+  echo -e "  ${YELLOW}${BOLD}THEN:${NC}${YELLOW} Account Management → IAM → OAuth clients → find this client → add scopes:${NC}"
+  echo -e "  ${YELLOW}  • app-engine:apps:install${NC}"
+  echo -e "  ${YELLOW}  • app-engine:apps:run${NC}"
   prompt_if_missing "OAUTH_CLIENT_ID" "OAuth Client ID:" "dt0s10.XXXX"
   echo ""
 
   # 4. OAuth Client Secret
   echo -e "  ${CYAN}─── 4/4: OAuth Client Secret ───${NC}"
-  echo -e "  ${YELLOW}Same page as above — shown only once when you create the EdgeConnect!${NC}"
+  echo -e "  ${YELLOW}Same page as Step 3 — shown only once when you create the EdgeConnect!${NC}"
   echo -e "  ${YELLOW}Starts with: dt0s10.  (longer than the ID, contains a dot in the middle)${NC}"
   prompt_if_missing "OAUTH_CLIENT_SECRET" "OAuth Client Secret:" "dt0s10.XXXX.YYYY..."
   echo ""
@@ -270,10 +273,24 @@ export DT_APP_OAUTH_CLIENT_ID="$OAUTH_CLIENT_ID"
 export DT_APP_OAUTH_CLIENT_SECRET="$OAUTH_CLIENT_SECRET"
 
 echo "  Building and deploying (this takes ~30 seconds)..."
-if npx dt-app deploy --non-interactive 2>&1 | tail -3; then
-  ok "Forge UI deployed"
+DEPLOY_OUTPUT=$(npx dt-app deploy --non-interactive 2>&1)
+DEPLOY_EXIT=$?
+echo "$DEPLOY_OUTPUT" | tail -5
+
+if echo "$DEPLOY_OUTPUT" | grep -qi 'forbidden\|unauthorized\|403\|401'; then
+  echo ""
+  echo -e "  ${RED}✗ Deploy failed — 'Forbidden' means your OAuth client is missing deploy scopes.${NC}"
+  echo -e "  ${YELLOW}  Go to: Account Management → IAM → OAuth clients → find ${OAUTH_CLIENT_ID}${NC}"
+  echo -e "  ${YELLOW}  Add these scopes:${NC}"
+  echo -e "  ${YELLOW}    • app-engine:apps:install${NC}"
+  echo -e "  ${YELLOW}    • app-engine:apps:run${NC}"
+  echo -e "  ${YELLOW}  Then re-run: ./setup.sh${NC}"
+  echo ""
+  warn "Continuing with EdgeConnect + server (you can deploy the app later)"
+elif [ $DEPLOY_EXIT -ne 0 ] || echo "$DEPLOY_OUTPUT" | grep -qi 'error\|failed'; then
+  warn "Deploy may have failed — check output above. Retry: npx dt-app deploy"
 else
-  warn "Deploy may have failed — you can retry: npx dt-app deploy"
+  ok "Forge UI deployed"
 fi
 
 # ── Step 6: Build & start server ───────────────────────────
