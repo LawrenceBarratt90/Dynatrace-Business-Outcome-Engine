@@ -115,9 +115,9 @@ npm start
 
 The server will:
 - Start Express on port 8080
-- Load 14 core services (ports 8081–8094)
-- Begin auto-generating journeys (~30–60/min per company)
-- Initialize AI agents (if Ollama is available)
+- Initialize route modules and AI agents (if Ollama is available)
+- Wait for journeys to be launched from the Forge UI
+- **No services are spawned by default** — the server starts clean
 
 ### 4. Deploy EdgeConnect
 
