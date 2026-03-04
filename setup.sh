@@ -65,13 +65,36 @@ if [ -z "$TENANT_ID" ] || [ "$TENANT_ID" = "YOUR_TENANT_ID" ] || \
 fi
 
 if [ "$NEED_PROMPT" = true ]; then
-  echo -e "${BOLD}  Enter your Dynatrace credentials:${NC}"
-  echo -e "  ${YELLOW}(See TECHNICAL-GUIDE.md Step 2 for how to create these)${NC}"
+  echo -e "${BOLD}  We need 4 values. The prompts below tell you where to find each one.${NC}"
   echo ""
-  prompt_if_missing "TENANT_ID" "Tenant ID (e.g. abc12345):" "YOUR_TENANT_ID"
-  prompt_if_missing "API_TOKEN" "API Token (dt0c01.*):" "dt0c01.XXXX..."
-  prompt_if_missing "OAUTH_CLIENT_ID" "OAuth Client ID (dt0s10.*):" "dt0s10.XXXX"
-  prompt_if_missing "OAUTH_CLIENT_SECRET" "OAuth Client Secret (dt0s10.*.*):" "dt0s10.XXXX.YYYY..."
+
+  # 1. Tenant ID
+  echo -e "  ${CYAN}─── 1/4: Tenant ID ───${NC}"
+  echo -e "  ${YELLOW}Look at your Dynatrace URL: https://${BOLD}<THIS-PART>${NC}${YELLOW}.sprint.dynatracelabs.com${NC}"
+  prompt_if_missing "TENANT_ID" "Tenant ID:" "YOUR_TENANT_ID"
+  echo ""
+
+  # 2. API Token
+  echo -e "  ${CYAN}─── 2/4: API Token ───${NC}"
+  echo -e "  ${YELLOW}Dynatrace → Settings → Access Tokens → Generate new token${NC}"
+  echo -e "  ${YELLOW}Scopes: events.ingest, metrics.ingest, openTelemetryTrace.ingest, entities.read${NC}"
+  echo -e "  ${YELLOW}Starts with: dt0c01.${NC}"
+  prompt_if_missing "API_TOKEN" "API Token:" "dt0c01.XXXX..."
+  echo ""
+
+  # 3. OAuth Client ID
+  echo -e "  ${CYAN}─── 3/4: OAuth Client ID ───${NC}"
+  echo -e "  ${YELLOW}Dynatrace → Settings → General → External Requests → Add EdgeConnect${NC}"
+  echo -e "  ${YELLOW}DT generates the OAuth credentials — copy the Client ID${NC}"
+  echo -e "  ${YELLOW}Starts with: dt0s10.  (NOT dt0s02 — that's account-level, won't work)${NC}"
+  prompt_if_missing "OAUTH_CLIENT_ID" "OAuth Client ID:" "dt0s10.XXXX"
+  echo ""
+
+  # 4. OAuth Client Secret
+  echo -e "  ${CYAN}─── 4/4: OAuth Client Secret ───${NC}"
+  echo -e "  ${YELLOW}Same page as above — shown only once when you create the EdgeConnect!${NC}"
+  echo -e "  ${YELLOW}Starts with: dt0s10.  (longer than the ID, contains a dot in the middle)${NC}"
+  prompt_if_missing "OAUTH_CLIENT_SECRET" "OAuth Client Secret:" "dt0s10.XXXX.YYYY..."
   echo ""
 fi
 
