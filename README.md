@@ -80,8 +80,7 @@ cp ~/Downloads/edgeConnect.yaml edgeconnect/edgeConnect.yaml
 bash edgeconnect/run-edgeconnect.sh
 
 # 3. Deploy Forge UI to Dynatrace AppEngine
-export DT_APP_OAUTH_CLIENT_ID="dt0s10.XXXXX"
-export DT_APP_OAUTH_CLIENT_SECRET="dt0s10.XXXXX.YYYYY"
+#    (setup.sh handles credentials automatically — for manual deploy, run ./setup.sh)
 npx dt-app deploy
 
 # 4. Build agents & start the Engine server

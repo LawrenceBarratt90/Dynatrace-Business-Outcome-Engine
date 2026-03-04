@@ -180,42 +180,28 @@ This **single client** handles both the EdgeConnect tunnel and deploying the app
 > **Using `setup.sh`?** It handles all of this automatically. The steps below are only needed if you're doing a manual setup.
 
 <details>
-<summary><strong>Manual Steps 3–5 (click to expand)</strong></summary>
+<summary><strong>Manual Steps 3–5 (click to expand — not needed if you ran setup.sh)</strong></summary>
 
-#### Step 3: Deploy EdgeConnect
-
-EdgeConnect creates a **secure tunnel** from Dynatrace to your server.
+If you prefer to do things manually instead of `./setup.sh`:
 
 ```bash
-# Edit the EdgeConnect YAML with your OAuth values from Credential B
-vi edgeconnect/edgeConnect.yaml
+# 1. Copy the EdgeConnect YAML downloaded from DT External Requests page
+#    (or edit edgeconnect/edgeConnect.yaml with your OAuth client values)
+cp ~/Downloads/edgeConnect.yaml edgeconnect/edgeConnect.yaml
 
-# Start EdgeConnect
-cd edgeconnect && ./run-edgeconnect.sh && cd ..
-```
+# 2. Start EdgeConnect tunnel
+bash edgeconnect/run-edgeconnect.sh
 
-Verify: `docker logs edgeconnect-bizobs 2>&1 | tail -5` → should show `Connection established`.
-
-#### Step 4: Deploy the AppEngine UI
-
-```bash
-export DT_APP_OAUTH_CLIENT_ID="dt0s10.XXXXX"
-export DT_APP_OAUTH_CLIENT_SECRET="dt0s10.XXXXX.YYYYY"
+# 3. Deploy Forge UI (setup.sh passes creds automatically;
+#    for manual deploy, re-run: ./setup.sh)
 npx dt-app deploy
-```
 
-Verify: Dynatrace → Apps → **Business Observability Forge** appears.
-
-#### Step 5: Start the Engine Server
-
-```bash
-npm run build:agents   # compile TypeScript agents → dist/
+# 4. Build agents & start server
+npm run build:agents
 npm start
 ```
 
-Verify: `curl http://localhost:8080/api/health` returns `{"status":"ok",...}`
-
-> **"Cannot find module dist/routes/gremlin.js"?** Run `npm run build:agents` first.
+> **Note:** `npx dt-app deploy` requires OAuth credentials in the environment. The easiest way is to run `./setup.sh` which sets them automatically. If you must deploy manually, source the credentials from `setup.conf` first: `. <(grep '^OAUTH' setup.conf | sed 's/^OAUTH_CLIENT_ID/export DT_APP_OAUTH_CLIENT_ID/' | sed 's/^OAUTH_CLIENT_SECRET/export DT_APP_OAUTH_CLIENT_SECRET/')`
 
 </details>
 
@@ -485,7 +471,7 @@ Welcome Tab → Step 1: Company Details → Step 2: Generate Prompts → Step 3:
 | **Forge UI shows "Connection failed"** | Server IP not configured or EdgeConnect not tunneling | Settings → Config tab → set private IP + Test. Settings → EdgeConnect tab → verify green |
 | **Chaos injection sends 200+ events** | `entitySelector` too broad (old bug) | Fixed in v2.9.10+ — now scoped to target service name |
 | **AI agents don't respond** | Ollama not running or model not pulled | `ollama pull llama3.2` and `curl http://localhost:11434/api/tags` to verify |
-| **`npx dt-app deploy` fails** | Missing env vars, wrong scope, or wrong directory | Set `DT_APP_OAUTH_CLIENT_ID` and `DT_APP_OAUTH_CLIENT_SECRET` env vars (Step 4). Ensure the OAuth client has `app-engine:apps:install` scope (Step 2B). Run from project root, not `edgeconnect/` |
+| **`npx dt-app deploy` fails** | Missing credentials, wrong scope, or wrong directory | Re-run `./setup.sh` (it sets credentials automatically). Ensure the OAuth client has `app-engine:apps:install` + `app-engine:apps:run` scopes (Step 2B). Run from project root, not `edgeconnect/` |
 | **Settings won't save (400 error)** | Sprint environment app-settings API limitation | App falls back to localStorage automatically — safe to ignore |
 | **`api_endpoint_host` rejected** | Using tenant URL instead of AppEngine URL | Use `YOUR_TENANT.sprint.apps.dynatracelabs.com` (with `.apps.`), not `YOUR_TENANT.sprint.dynatracelabs.com` |
 
