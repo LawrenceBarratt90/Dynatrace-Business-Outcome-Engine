@@ -2,11 +2,11 @@
   "dynatrace": "1",
   "schemaId": "app:my.bizobs.generator.test:api-config",
   "displayName": "BizObs Generator API Configuration",
-  "version": "1.2",
+  "version": "1.1",
   "multiObject": false,
   "maxObjects": 1,
   "allowedScopes": ["app"],
-  "description": "API connection settings, admin ownership, and checklist state for the BizObs Generator service",
+  "description": "API connection settings and checklist state for the BizObs Generator service",
   "properties": {
     "apiHost": {
       "displayName": "API Host",
@@ -39,22 +39,6 @@
       "type": "boolean",
       "default": false,
       "nullable": false
-    },
-    "adminUserId": {
-      "displayName": "Admin User ID",
-      "description": "Dynatrace user ID of the app admin/owner who can manage settings and perform destructive actions",
-      "type": "text",
-      "default": "",
-      "maxLength": 255,
-      "nullable": true
-    },
-    "adminUserName": {
-      "displayName": "Admin User Name",
-      "description": "Display name of the app admin",
-      "type": "text",
-      "default": "",
-      "maxLength": 255,
-      "nullable": true
     },
     "checklistState": {
       "displayName": "Checklist State",

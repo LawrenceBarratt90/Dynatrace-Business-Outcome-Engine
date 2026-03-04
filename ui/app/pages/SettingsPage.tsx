@@ -9,7 +9,6 @@ import { TitleBar } from '@dynatrace/strato-components-preview/layouts';
 import Colors from '@dynatrace/strato-design-tokens/colors';
 import { useSettingsV2, useSettingsObjectsV2, useUpdateSettingsV2, useCreateSettingsV2 } from '@dynatrace-sdk/react-hooks';
 import { functions } from '@dynatrace-sdk/app-utils';
-import { useAdminAuth } from '../hooks/useAdminAuth';
 
 const SCHEMA_ID = 'app:my.bizobs.generator.test:api-config';
 
@@ -32,7 +31,6 @@ const DEFAULT_SETTINGS: ApiSettings = {
 
 export const SettingsPage = () => {
   const navigate = useNavigate();
-  const { currentUser, isAdmin, adminUser, claimAdmin, releaseAdmin, isLoading: isAdminLoading } = useAdminAuth();
   const [settings, setSettings] = useState<ApiSettings>(DEFAULT_SETTINGS);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -105,10 +103,6 @@ export const SettingsPage = () => {
   };
 
   const saveSettings = async () => {
-    if (!isAdmin) {
-      setStatusMessage('🔒 Only the app admin can save settings.');
-      return;
-    }
     setIsSaving(true);
     setStatusMessage('💾 Saving...');
 
@@ -192,10 +186,6 @@ export const SettingsPage = () => {
   };
 
   const resetToDefaults = () => {
-    if (!isAdmin) {
-      setStatusMessage('🔒 Only the app admin can reset settings.');
-      return;
-    }
     setSettings(DEFAULT_SETTINGS);
     setStatusMessage('🔄 Reset to defaults. Click Save to persist.');
   };
@@ -258,130 +248,22 @@ export const SettingsPage = () => {
             </div>
           )}
 
-          {/* Storage Info + Role Badges */}
-          <Flex gap={8} style={{ marginBottom: 24, flexWrap: 'wrap' }}>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '6px 14px',
-              borderRadius: 20,
-              background: settingsEffective.isError
-                ? 'rgba(255, 210, 63, 0.15)'
-                : 'rgba(115, 190, 40, 0.15)',
-              border: `1px solid ${settingsEffective.isError ? 'rgba(255, 210, 63, 0.6)' : Colors.Theme.Success['70']}`,
-              fontSize: 12,
-            }}>
-              <span>{settingsEffective.isError ? '💾' : '☁️'}</span>
-              <span>{settingsEffective.isError ? 'Local Storage' : 'Dynatrace App Settings'}</span>
-            </div>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '6px 14px',
-              borderRadius: 20,
-              background: isAdmin ? 'rgba(108, 44, 156, 0.15)' : 'rgba(0, 161, 201, 0.12)',
-              border: `1px solid ${isAdmin ? 'rgba(108, 44, 156, 0.6)' : 'rgba(0, 161, 201, 0.5)'}`,
-              fontSize: 12,
-            }}>
-              <span>{isAdmin ? '🛡️' : '👤'}</span>
-              <span>{isAdmin ? 'Admin' : 'Viewer'} — {currentUser.name || currentUser.email}</span>
-            </div>
-          </Flex>
-
-          {/* App Admin Ownership Card */}
+          {/* Storage Info Badge */}
           <div style={{
-            background: Colors.Background.Surface.Default,
-            borderRadius: 16,
-            border: `2px solid ${isAdmin ? 'rgba(108, 44, 156, 0.5)' : Colors.Border.Neutral.Default}`,
-            overflow: 'hidden',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            padding: '6px 14px',
+            borderRadius: 20,
+            background: settingsEffective.isError
+              ? 'rgba(255, 210, 63, 0.15)'
+              : 'rgba(115, 190, 40, 0.15)',
+            border: `1px solid ${settingsEffective.isError ? 'rgba(255, 210, 63, 0.6)' : Colors.Theme.Success['70']}`,
+            fontSize: 12,
             marginBottom: 24,
           }}>
-            <div style={{
-              padding: '20px 24px',
-              background: isAdmin
-                ? 'linear-gradient(135deg, rgba(108, 44, 156, 0.9), rgba(156, 44, 108, 0.9))'
-                : 'linear-gradient(135deg, rgba(100,100,100,0.7), rgba(80,80,80,0.9))',
-              color: 'white',
-            }}>
-              <Flex alignItems="center" gap={12}>
-                <div style={{ fontSize: 28 }}>🛡️</div>
-                <div>
-                  <Heading level={4} style={{ marginBottom: 0, color: 'white' }}>App Admin</Heading>
-                  <Paragraph style={{ fontSize: 12, marginBottom: 0, color: 'rgba(255,255,255,0.8)', marginTop: 4 }}>
-                    The admin can manage settings, stop services, inject chaos, and delete configs
-                  </Paragraph>
-                </div>
-              </Flex>
-            </div>
-            <div style={{ padding: 24 }}>
-              {isAdminLoading ? (
-                <Paragraph>Loading admin state...</Paragraph>
-              ) : adminUser?.id ? (
-                <div>
-                  <Flex alignItems="center" gap={12} style={{ marginBottom: 16 }}>
-                    <div style={{
-                      width: 48, height: 48, borderRadius: '50%',
-                      background: 'linear-gradient(135deg, rgba(108,44,156,0.2), rgba(0,161,201,0.2))',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                      fontSize: 24, border: '2px solid rgba(108,44,156,0.3)',
-                    }}>
-                      🛡️
-                    </div>
-                    <div>
-                      <Strong style={{ fontSize: 15 }}>{adminUser.name}</Strong>
-                      <Paragraph style={{ fontSize: 12, margin: 0, opacity: 0.7 }}>App Admin</Paragraph>
-                    </div>
-                  </Flex>
-                  {isAdmin && (
-                    <Button
-                      onClick={async () => {
-                        if (confirm('Release admin ownership? Anyone will be able to claim it.')) {
-                          const ok = await releaseAdmin();
-                          setStatusMessage(ok ? '✅ Admin ownership released' : '❌ Failed to release admin');
-                        }
-                      }}
-                      style={{ fontSize: 12 }}
-                    >
-                      Release Admin Ownership
-                    </Button>
-                  )}
-                  {!isAdmin && (
-                    <div style={{
-                      padding: 12, borderRadius: 8,
-                      background: 'rgba(255, 210, 63, 0.1)',
-                      border: '1px solid rgba(255, 210, 63, 0.4)',
-                      fontSize: 13,
-                    }}>
-                      🔒 Settings are managed by <Strong>{adminUser.name}</Strong>. Contact them for changes.
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div>
-                  <Paragraph style={{ marginBottom: 16, fontSize: 13 }}>
-                    No admin has been set. The first user to claim ownership becomes the app admin and can manage settings, stop services, and perform other administrative actions.
-                  </Paragraph>
-                  <Paragraph style={{ marginBottom: 16, fontSize: 13 }}>
-                    You are logged in as: <Strong>{currentUser.name || currentUser.email}</Strong>
-                  </Paragraph>
-                  <Button
-                    variant="emphasized"
-                    onClick={async () => {
-                      const ok = await claimAdmin();
-                      setStatusMessage(ok ? '✅ You are now the app admin!' : '❌ Failed to claim admin');
-                    }}
-                    style={{
-                      background: 'linear-gradient(135deg, rgba(108,44,156,0.9), rgba(156,44,108,0.9))',
-                      padding: '12px 24px',
-                    }}
-                  >
-                    🛡️ Claim Admin Ownership
-                  </Button>
-                </div>
-              )}
-            </div>
+            <span>{settingsEffective.isError ? '💾' : '☁️'}</span>
+            <span>{settingsEffective.isError ? 'Local Storage' : 'Dynatrace App Settings'}</span>
           </div>
 
           {/* API Connection Settings Card */}
@@ -523,10 +405,10 @@ export const SettingsPage = () => {
             <Button
               variant="emphasized"
               onClick={saveSettings}
-              disabled={isSaving || !isAdmin}
-              style={{ flex: 2, padding: '14px', fontSize: 14, fontWeight: 600, opacity: isAdmin ? 1 : 0.5 }}
+              disabled={isSaving}
+              style={{ flex: 2, padding: '14px', fontSize: 14, fontWeight: 600 }}
             >
-              {!isAdmin ? '🔒 Save Settings (Admin Only)' : isSaving ? '💾 Saving...' : '💾 Save Settings'}
+              {isSaving ? '💾 Saving...' : '💾 Save Settings'}
             </Button>
             <Button
               onClick={testConnection}

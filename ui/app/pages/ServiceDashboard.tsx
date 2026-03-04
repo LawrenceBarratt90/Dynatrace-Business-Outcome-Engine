@@ -6,7 +6,6 @@ import { Button } from '@dynatrace/strato-components/buttons';
 import { TitleBar } from '@dynatrace/strato-components-preview/layouts';
 import Colors from '@dynatrace/strato-design-tokens/colors';
 import { getEnvironmentUrl } from '@dynatrace-sdk/app-environment';
-import { useAdminAuth } from '../hooks/useAdminAuth';
 
 const API_BASE = 'http://YOUR_SERVER_IP:8080/api';
 
@@ -35,7 +34,6 @@ interface Service {
 }
 
 export const ServiceDashboard = () => {
-  const { isAdmin } = useAdminAuth();
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
@@ -63,7 +61,6 @@ export const ServiceDashboard = () => {
   };
 
   const stopService = async (company: string, service: string) => {
-    if (!isAdmin) { alert('🔒 Only the app admin can stop services.'); return; }
     try {
       await fetch(`${API_BASE}/admin/services/stop`, {
         method: 'POST',
@@ -90,7 +87,6 @@ export const ServiceDashboard = () => {
   };
 
   const stopAllServices = async () => {
-    if (!isAdmin) { alert('🔒 Only the app admin can stop all services.'); return; }
     if (!confirm('Stop all running services?')) return;
     try {
       await fetch(`${API_BASE}/admin/services/stop-all`, { method: 'POST' });

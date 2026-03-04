@@ -6,7 +6,6 @@ import { Button } from '@dynatrace/strato-components/buttons';
 import { TitleBar } from '@dynatrace/strato-components-preview/layouts';
 import { SelectV2 } from '@dynatrace/strato-components-preview/forms';
 import Colors from '@dynatrace/strato-design-tokens/colors';
-import { useAdminAuth } from '../hooks/useAdminAuth';
 
 const API_BASE = 'http://YOUR_SERVER_IP:8080/api';
 
@@ -24,7 +23,6 @@ interface ChaosConfig {
 }
 
 export const ChaosControl = () => {
-  const { isAdmin } = useAdminAuth();
   const [services, setServices] = useState<Service[]>([]);
   const [selectedService, setSelectedService] = useState('all');
   const [errorRate, setErrorRate] = useState(50);
@@ -65,7 +63,6 @@ export const ChaosControl = () => {
   };
 
   const injectChaos = async () => {
-    if (!isAdmin) { alert('🔒 Only the app admin can inject chaos.'); return; }
     try {
       const config: ChaosConfig = {
         errorRate: errorRate
@@ -90,7 +87,6 @@ export const ChaosControl = () => {
   };
 
   const revertChaos = async (service?: string) => {
-    if (!isAdmin) { alert('🔒 Only the app admin can revert chaos.'); return; }
     try {
       const endpoint = service ? `${API_BASE}/gremlin/revert/${service}` : `${API_BASE}/gremlin/revert-all`;
       await fetch(endpoint, { method: 'POST' });
