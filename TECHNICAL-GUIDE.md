@@ -2,6 +2,8 @@
 
 > A hands-on guide for engineers, SEs, and developers who want to get the platform running and understand what's under the hood.
 
+> **Want the fast path?** Just run `./setup.sh` — it walks you through 6 guided prompts and does everything automatically. This guide explains what the script does and how to do it manually.
+
 ---
 
 ## What Is This?
@@ -72,7 +74,7 @@ Before you start, make sure you have **all of these** ready:
 |---|-----------|---------|-----------------|--------------|
 | 1 | **Dynatrace Tenant** | Sprint or Managed | Receives all telemetry | You should have a `*.sprint.dynatracelabs.com` or `*.live.dynatrace.com` URL |
 | 2 | **Dynatrace API Token** | — | Engine sends events to DT | Create in DT: Settings → Access Tokens → Generate. Scopes: `events.ingest`, `metrics.ingest`, `openTelemetryTrace.ingest`, `entities.read` |
-| 3 | **OAuth Client** | — | EdgeConnect authenticates to DT | Create in DT: Account Management → Identity & Access → OAuth Clients. Scope: `app-engine:edge-connects:connect` |
+| 3 | **OAuth Client(s)** | — | EdgeConnect + app deploy | Create in DT: Settings → General → External Requests → Add EdgeConnect. It generates the OAuth creds. Optionally add deploy scopes or use a separate client. |
 | 4 | **EC2 / VM / Host** | Linux recommended | Runs the Engine server | SSH access, ports 8080–8200 open in Security Group (inbound not strictly required — EdgeConnect tunnels inbound) |
 | 5 | **Node.js** | v22+ | Server runtime | `node --version` → should show v22.x+ |
 | 6 | **Docker** | Latest | Runs EdgeConnect | `docker --version` |
@@ -88,21 +90,23 @@ Before you start, make sure you have **all of these** ready:
 Follow these steps **in order**. Each step depends on the one before it.
 
 ```
-Step 1: Clone & Install            ← Get the code
-Step 2: Create DT Credentials      ← API Token (for Engine) + OAuth Client (for EdgeConnect)
-Step 3: Deploy EdgeConnect          ← So the Forge UI can reach your server
-Step 4: Deploy the AppEngine UI     ← Install the Forge app in Dynatrace
-Step 5: Start the Engine Server     ← The server that does the work
-Step 6: Configure from Forge UI     ← Wire everything together
+Step 1: Clone & Install            ← Get the code (single unified repo)
+Step 2: Create DT Credentials      ← A: API Token  +  B: OAuth Client (2 things to create in DT)
+Step 3–5: ./setup.sh               ← Handles EdgeConnect, app deploy, build, and server start
+Step 6: Configure from Forge UI    ← Wire everything together (private IP + Get Started checklist)
 ```
+
+> **Shortest path:** Do Steps 1–2, then just run `./setup.sh` — it walks you through 6 guided prompts and does Steps 3–5 automatically.
 
 ---
 
-### Step 1: Clone & Install the Engine
+### Step 1: Clone & Install
+
+This is a **single unified repo** — it contains both the Engine (server) and the Forge UI (AppEngine app).
 
 ```bash
-git clone https://github.com/lawrobar90/Dynatrace-AI-Business-Observability-Engine.git
-cd Dynatrace-AI-Business-Observability-Engine
+git clone https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge.git
+cd Dynatrace-Business-Observability-Forge
 npm install
 ```
 
@@ -112,16 +116,15 @@ npm install
 
 ### Step 2: Create Dynatrace Credentials
 
-You need **exactly 2 credentials** — they're different types and created in different places:
+You need **2–3 credentials** — an API Token, an EdgeConnect OAuth Client, and optionally a separate Deploy OAuth Client:
 
 | # | Credential | Type | Where To Create | What Uses It |
-|---|-----------|------|----------------|--------------|
+|---|-----------|------|----------------|---------------|
 | A | **API Token** | `dt0c01.*` | Dynatrace tenant → Settings → Access Tokens | The **Engine server** uses this to send events/metrics to Dynatrace |
-| B | **OAuth Client** | `dt0s10.*` | Account Management → OAuth Clients | The **EdgeConnect binary** uses this to establish its tunnel |
+| B | **EdgeConnect OAuth** | `dt0s10.*` or `dt0s02.*` | Dynatrace tenant → Settings → General → External Requests → EdgeConnect | **EdgeConnect** (tunnel). Can also be used for deploy if you add the right scopes. |
+| C | **Deploy OAuth** *(optional)* | `dt0s10.*` or `dt0s02.*` | Same as B (with added scopes), or a separate client from Account Management → IAM → OAuth clients | **`dt-app deploy`** (app deployment to Dynatrace AppEngine) |
 
-> **Why can't I use just one?** They're completely separate credential systems. API Tokens are tenant-level keys for REST APIs. OAuth Clients are account-level credentials for platform services like EdgeConnect. They can't be combined.
->
-> The **Forge UI** (AppEngine app) doesn't need any manual credentials — its permissions are declared in `app.config.json` and granted automatically when you deploy.
+> **Simplest setup:** Use **one OAuth client** (B) for both EdgeConnect and deploy by adding deploy scopes to it. `setup.sh` will ask if you want to use the same or a different client.
 
 ---
 
@@ -136,132 +139,78 @@ You need **exactly 2 credentials** — they're different types and created in di
    - `metrics.ingest`
    - `openTelemetryTrace.ingest`
    - `entities.read`
-5. Click **Generate** → **copy the token immediately** (you can't see it again)
-
-**Save it on your host** — create `.dt-credentials.json` in the Engine project root:
-
-```json
-{
-  "environmentUrl": "https://YOUR_TENANT.sprint.dynatracelabs.com",
-  "apiToken": "dt0c01.XXXX...",
-  "otelToken": "dt0c01.YYYY..."
-}
-```
-
-Or set environment variables instead:
-
-```bash
-export DT_ENVIRONMENT="https://YOUR_TENANT.sprint.dynatracelabs.com"
-export DT_PLATFORM_TOKEN="dt0c01.XXXX..."
-```
-
-**Verify:** `cat .dt-credentials.json` shows your tenant URL and token (not placeholder text).
-
-> **Common mistake:** Copying the tenant URL with a trailing `/` — don't include it. Use `https://abc12345.sprint.dynatracelabs.com` not `https://abc12345.sprint.dynatracelabs.com/`.
+5. Click **Generate** → **copy the token** (you can't see it again)
+> 📸 **Screenshot: Access Tokens Page** — *Dynatrace Settings → Access Tokens → Generate new token dialog, with the 4 required scopes (events.ingest, metrics.ingest, openTelemetryTrace.ingest, entities.read) checked. Show the token name "BizObs Engine" in the name field.*
+> **You don't need to save this to a file.** `setup.sh` will ask for this token and create `.dt-credentials.json` automatically.
 
 ---
 
-#### Credential B: OAuth Client (for EdgeConnect)
+#### Credential B: EdgeConnect OAuth Client
+
+This client is used for the EdgeConnect tunnel. Depending on your tenant, it may generate a `dt0s10.*` (environment-level) or `dt0s02.*` (account-level) client.
 
 **Create it in Dynatrace:**
-1. Go to **Account Management** (top-right user menu → Account Settings)
-2. Identity & Access Management → **OAuth Clients**
-3. Click **Create client**
-4. Name: `BizObs EdgeConnect`
-5. Scope: `app-engine:edge-connects:connect`
-6. Click **Create** → **copy the Client ID and Client Secret immediately**
+1. Go to your Dynatrace tenant
+2. **Settings → General → External Requests**
+3. Click **Add EdgeConnect** (or select an existing one)
+4. Name it (e.g. `bizobs-forge`) — **remember this name, it must match what the script generates**
+5. DT will generate the OAuth credentials for you and show:
+   - **OAuth client ID**: `dt0s10.XXXXX` or `dt0s02.XXXXX`
+   - **OAuth client secret**: shown only once!
+   - **OAuth client resource**: `urn:dtenvironment:YOUR_TENANT_ID`
+6. **Click "Download edgeConnect.yaml"** — this gives you a pre-filled YAML with all the values
 
-You'll get values like:
-- Client ID: `dt0s10.XXXXX`
-- Client Secret: `dt0s10.XXXXX.YYYYY...`
+> 📸 **Screenshot: EdgeConnect Setup Page** — *Dynatrace Settings → General → External Requests showing the EdgeConnect entry named "bizobs-forge" with status indicator. Below it, the OAuth credentials panel showing client_id (dt0s10.* or dt0s02.*), the resource URN, and the "Download edgeConnect.yaml" button.*
 
-**Also note your tenant/environment ID** — it's the subdomain of your tenant URL. For `https://abc12345.sprint.dynatracelabs.com`, the ID is `abc12345`.
+> **Important:** The client secret is only shown once. Copy it or download the YAML immediately.
 
-> **Hold on to these values.** You'll need them in the next step (EdgeConnect config).
+**Optionally, make this same client work for deploy too:**
+1. Go to **Account Management** → **Identity & Access Management** → **OAuth clients**
+2. Find the client you just created
+3. Edit it and **add these scopes**:
+   - `app-engine:apps:install` (required to deploy the app)
+   - `app-engine:apps:run` (required to run the app)
+4. Save
 
----
-
-### Step 3: Deploy EdgeConnect
-
-EdgeConnect is a lightweight binary (runs in Docker) that creates a **secure tunnel** from Dynatrace to your server. Without it, the Forge UI has no way to reach the Engine.
-
-**3a. Edit the config file:**
-
-Open `edgeconnect/edgeConnect.yaml` and fill in your values:
-
-```yaml
-name: bizobs-generator
-api_endpoint_host: YOUR_TENANT.sprint.apps.dynatracelabs.com
-oauth:
-  client_id: dt0s10.XXXXX          # ← from Credential B above
-  client_secret: dt0s10.XXXXX.YYYYY...  # ← from Credential B above
-  resource: urn:dtenvironment:YOUR_TENANT_ID  # ← e.g. urn:dtenvironment:abc12345
-  endpoint: https://sso-sprint.dynatracelabs.com/sso/oauth2/token
-```
-
-> **Watch the `api_endpoint_host`!** It uses `.apps.dynatracelabs.com` (with `.apps.`), not just `.dynatracelabs.com`. This is the AppEngine URL, not your regular tenant URL.
-
-**3b. Start EdgeConnect:**
-
-```bash
-cd edgeconnect
-./run-edgeconnect.sh
-```
-
-This runs a Docker container with `--network host` so it shares your server's network.
-
-**3c. Verify EdgeConnect is connected:**
-
-```bash
-docker logs edgeconnect-bizobs 2>&1 | tail -5
-```
-
-You should see:
-```
-Connection established.
-Connection verified.
-```
-
-If you see OAuth errors, double-check your `client_id`, `client_secret`, and `resource` values.
-
-> **Critical — use the PRIVATE IP, not the public IP:**
->
-> When the Forge UI in Dynatrace sends a request to your server, the traffic flows:
-> ```
-> Forge UI → Dynatrace Platform → EdgeConnect tunnel → EdgeConnect on your host → localhost:8080
-> ```
-> EdgeConnect receives the request **on the same machine** as your server and connects locally. If you tell it to route to the **public/Elastic IP** (e.g. `35.95.28.64`), it will fail because **AWS does not support NAT hairpin** — an EC2 instance cannot reach its own public IP from inside itself.
->
-> **Always use the private IP** (e.g. `172.31.x.x`). Find it with: `hostname -I | awk '{print $1}'`
+> **If you can't add deploy scopes** (e.g. the client type doesn't allow it), use a separate account-level OAuth client for deploy. `setup.sh` will ask at prompt 6/6.
 
 ---
 
-### Step 4: Deploy the AppEngine UI (Forge)
+### Steps 3–5: Deploy Everything
 
-This deploys the Forge UI as a Dynatrace App.
+> **Using `setup.sh`?** It handles all of this automatically. The steps below are only needed if you're doing a manual setup.
+
+<details>
+<summary><strong>Manual Steps 3–5 (click to expand — not needed if you ran setup.sh)</strong></summary>
+
+If you prefer to do things manually instead of `./setup.sh`:
 
 ```bash
-# You need the Forge repo (separate from the Engine repo)
-git clone https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge.git
-cd Dynatrace-Business-Observability-Forge
-npm install
+# 1. Copy the EdgeConnect YAML downloaded from DT External Requests page
+#    (or edit edgeconnect/edgeConnect.yaml with your OAuth client values)
+cp ~/Downloads/edgeConnect.yaml edgeconnect/edgeConnect.yaml
+
+# 2. Start EdgeConnect tunnel
+bash edgeconnect/run-edgeconnect.sh
+
+# 3. Deploy Forge UI (setup.sh passes creds automatically;
+#    for manual deploy, re-run: ./setup.sh)
 npx dt-app deploy
-```
 
-The deploy command will ask you to authenticate with your Dynatrace tenant (SSO browser flow).
-
-**Verify:** Go to your Dynatrace tenant → **Apps** → you should see **Business Observability Forge** in the list. Click it to open.
-
-> **Common mistake:** Running `npx dt-app deploy` from the Engine repo instead of the Forge repo. The Engine is the server. The Forge is the UI. You deploy the **Forge**.
-
----
-
-### Step 5: Start the Engine Server
-
-```bash
-cd Dynatrace-AI-Business-Observability-Engine
+# 4. Build agents & start server
+npm run build:agents
 npm start
 ```
+
+> **Note:** `npx dt-app deploy` requires OAuth credentials in the environment. The easiest way is to run `./setup.sh` which sets them automatically. If you must deploy manually, export the deploy credentials:
+> ```bash
+> source setup.conf
+> export DT_APP_OAUTH_CLIENT_ID="$DEPLOY_OAUTH_CLIENT_ID"
+> export DT_APP_OAUTH_CLIENT_SECRET="$DEPLOY_OAUTH_CLIENT_SECRET"
+> npx dt-app deploy
+> ```
+
+</details>
 
 **Verify:**
 ```bash
@@ -298,6 +247,8 @@ Open the Forge app in Dynatrace (**Apps → Business Observability Forge**).
 
 Click **Save**, then click **Test**.
 
+> 📸 **Screenshot: Forge UI Settings → Config Tab** — *The Settings page Config tab showing: Protocol dropdown set to "HTTP", Host/IP field with a private IP like "172.31.37.182", Port field with "8080", and the Save + Test buttons. Ideally show a green "Connection successful" toast after testing.*
+
 > **If the test fails:**
 > - Make sure the Engine server is running (Step 5)
 > - Make sure EdgeConnect is running and connected (Step 3c)
@@ -328,7 +279,7 @@ This is a checklist that auto-detects your setup and lets you deploy Dynatrace c
 | **OneAgent Feature Flags** | Enables required OneAgent feature flags | Click **Deploy** |
 
 Work through from top to bottom. Each green checkmark means that step is configured correctly.
-
+> 📸 **Screenshot: Get Started Checklist** — *The Settings → Get Started tab showing all 10 checklist items with green checkmarks. Highlight the one-click "Deploy" buttons next to OpenPipeline Pipeline, Routing, Capture Rule, and Feature Flags steps. This is the "everything is ready" state.*
 **Once all steps are green, you're ready.** Go to the **Home** tab, pick a template from the Template Library, and click **Run** to launch your first journey simulation.
 
 ---
@@ -378,6 +329,8 @@ Work through from top to bottom. Each green checkmark means that step is configu
 | **Financial Services** | Account Opening, ISA Transfer, Support Request |
 
 Each template includes: company name, domain, industry type, journey steps with substeps, business metadata (revenue, category, KPIs), and customer profiles.
+
+> 📸 **Screenshot: Template Library Detail** — *The Home page with the Template Library sidebar open on the left, showing template cards grouped by industry. In the main panel, a selected template (e.g. Healthcare — Patient Care Journey) with its journey steps listed: PatientRegistration → TriageAndAssessment → ClinicalConsultation → Treatment → DischargeAndFollowUp.*
 
 ### Per-Service Chaos Injection
 
@@ -450,7 +403,7 @@ Every chaos injection and remediation action sends a `CUSTOM_DEPLOYMENT` event t
 }
 ```
 
-These events appear as deployment markers on the affected service in Dynatrace, enabling root cause correlation with Davis AI.
+These events appear as deployment markers on the affected service in Dynatrace, enabling root cause correlation with Dynatrace Intelligence.
 
 ---
 
@@ -485,6 +438,8 @@ The Dynatrace AppEngine app has 5 pages:
 | **Chaos Control** | `/chaos` | Select a service, pick a chaos type, inject — with live active faults list |
 | **Fix-It Agent** | `/fixit` | Trigger automated diagnosis and remediation |
 | **Settings** | `/settings` | Configure server IP, API tokens, EdgeConnect credentials |
+
+> 📸 **Screenshot: Chaos Control Page** — *The Forge UI Chaos Control page showing: the service selector dropdown with a healthcare service selected, the chaos type picker (enable_errors, slow_responses, etc.), the intensity slider, and below it the "Active Faults" list showing one or two injected faults with their target service, type, and a "Revert" button.*
 
 ### Home Page Flow
 
@@ -523,13 +478,13 @@ Welcome Tab → Step 1: Company Details → Step 2: Generate Prompts → Step 3:
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | **"Cannot reach X.X.X.X:8080"** on Config tab | You're using the **public** Elastic IP | Change to your **private IP** (`hostname -I \| awk '{print $1}'`). AWS doesn't support NAT hairpin — see Step 6a |
-| **EdgeConnect shows offline** | OAuth creds expired, wrong, or EdgeConnect not running | Check `docker logs edgeconnect-bizobs`. Re-run `./run-edgeconnect.sh`. Double-check `client_id`, `client_secret`, `resource` in YAML (Step 2B → Step 3a) |
+| **EdgeConnect shows offline** | OAuth creds wrong, name mismatch, or EdgeConnect not running | Check `docker logs edgeconnect-bizobs`. The `name:` in `edgeConnect.yaml` must match the EdgeConnect name in DT UI (e.g. `bizobs-forge`). Re-run `./setup.sh`. Double-check `client_id`, `client_secret`, `resource` in YAML (Step 2B → Step 3a) |
 | **Test connection fails but EdgeConnect is green** | Server not running, or host pattern not registered | 1) Verify server: `curl http://localhost:8080/api/health` 2) Wait 15s and retry (propagation delay) 3) Ensure private IP is the host pattern |
 | **No services in Dynatrace** | OneAgent not installed or feature flags not enabled | Run Get Started checklist in Forge UI — deploy OneAgent Feature Flags step |
 | **Forge UI shows "Connection failed"** | Server IP not configured or EdgeConnect not tunneling | Settings → Config tab → set private IP + Test. Settings → EdgeConnect tab → verify green |
 | **Chaos injection sends 200+ events** | `entitySelector` too broad (old bug) | Fixed in v2.9.10+ — now scoped to target service name |
 | **AI agents don't respond** | Ollama not running or model not pulled | `ollama pull llama3.2` and `curl http://localhost:11434/api/tags` to verify |
-| **`npx dt-app deploy` fails** | Wrong directory, or SSO token expired | Make sure you're in the **Forge** repo (not Engine). Re-authenticate if prompted |
+| **`npx dt-app deploy` fails** | Missing credentials, wrong scope, or wrong directory | Re-run `./setup.sh` (it sets credentials automatically). Ensure the OAuth client has `app-engine:apps:install` + `app-engine:apps:run` scopes (Step 2B). Run from project root, not `edgeconnect/` |
 | **Settings won't save (400 error)** | Sprint environment app-settings API limitation | App falls back to localStorage automatically — safe to ignore |
 | **`api_endpoint_host` rejected** | Using tenant URL instead of AppEngine URL | Use `YOUR_TENANT.sprint.apps.dynatracelabs.com` (with `.apps.`), not `YOUR_TENANT.sprint.dynatracelabs.com` |
 
@@ -545,7 +500,7 @@ Welcome Tab → Step 1: Company Details → Step 2: Generate Prompts → Step 3:
 | Observability | Dynatrace OneAgent + OpenTelemetry SDK |
 | Config-as-Code | Monaco v2 (Settings API deployment) |
 | Tunnel | Dynatrace EdgeConnect |
-| Auth | OAuth 2.0 (SSO), API Token |
+| Auth | OAuth 2.0 (client_credentials), API Token |
 
 ---
 

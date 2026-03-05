@@ -1,11 +1,9 @@
-# BizObs Application .gitignore
+# Business Observability Forge .gitignore
 
-# Node.js dependencies and runtime
+# Node.js
 node_modules/
 npm-debug.log*
 yarn-error.log*
-yarn-debug.log*
-.npm
 package-lock.json
 
 # TypeScript compiled output
@@ -13,85 +11,59 @@ dist/
 
 # Environment and secrets
 .env
-.env.*
-*.env
+.env.local
+.env.production
+.dt-credentials.json
+setup.conf
 
 # Logs, PIDs, and runtime files
 *.log
 logs/
-server.log
 server.pid
 nohup.out
 
-# Ollama (installed via quick-deploy.sh, not committed)
-ollama
-.ollama/
-/usr/local/bin/ollama
+# Runtime state (generated at runtime, not source)
+.chaos-state.json
+.port-allocations.json
 
-# AI Models (4.9 GB - downloaded on deploy, too large for git)
+# Ollama / AI models (downloaded at deploy time)
 *.gguf
 *.bin
 models/
-/tmp/ollama-pull.log
 
-# Dynatrace and sensitive configuration (SECURITY)
+# Dynatrace AppEngine tokens (NEVER commit)
+.dt-app/.tokens.json
+.dt-app/tokens.json
+.dt-app/build/
+.dt-app/logs/
+
+# Dynatrace OneAgent installer
+Dynatrace-OneAgent-Linux-*.sh
 *oneagent*
-*dynatrace*config*
-*.dt-config
-configure-dynatrace.*
-apply-dynatrace-config.*
-*api-token*
-*secret*
-*key*
-*credential*
 
-# Runtime artifacts and temporary files
+# Dynamic service runners (spawned at runtime)
 services/.dynamic-runners/
-.DS_Store
-*.swp
-*.swo
-*~
 
 # IDE and editor files
 .vscode/
 .idea/
 *.iml
 
-# Coverage and testing
-coverage/
-*.lcov
-.nyc_output/
+# OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
 
 # Build outputs
-dist/
 build/
 out/
 
-# OS generated files
-Thumbs.db
-ehthumbs.db
-
-# External projects (not part of BizObs)
-../vegas-casino/
-../vegas-casino*/
-vegas-casino/
-
-# Backup directories and backup files
+# Backups and temp
 *-backup/
 *.backup*
 *.bak*
 .tmp-*/
 temp/
 tmp/
-Dynatrace-OneAgent-Linux-*.sh
-
-# External knowledge base downloads
-ai-agent-knowledge-base-main*/
-.dt-credentials.json
-.port-allocations.json
-
-# Dynatrace AppEngine tokens and runtime state (NEVER commit)
-.dt-app/.tokens.json
-.dt-app/tokens.json
-.chaos-state.json
-edgeconnect/edgeConnect.yaml

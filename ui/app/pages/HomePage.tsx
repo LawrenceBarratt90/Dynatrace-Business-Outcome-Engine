@@ -118,7 +118,7 @@ export const HomePage = () => {
   });
 
   // ── Settings SDK hooks ──────────────────────────────────
-  const SETTINGS_SCHEMA_ID = 'app:my.bizobs.generator.test:api-config';
+  const SETTINGS_SCHEMA_ID = 'app:my.bizobs.generator.master:api-config';
   const settingsEffective = useSettings({ schemaId: SETTINGS_SCHEMA_ID, addFields: 'value' });
   const settingsObjects = useSettingsObjects(
     { schemaId: SETTINGS_SCHEMA_ID, addFields: 'value,objectId,version' },

@@ -28,7 +28,7 @@
 
 | Field | Description | Example |
 |---|---|---|
-| `name` | Must match config name in Dynatrace (RFC 1123) | `bizobs-generator` |
+| `name` | Must match config name in Dynatrace (RFC 1123) | `bizobs-forge` |
 | `api_endpoint_host` | Environment URL without `https://` | `abc12345.apps.dynatrace.com` |
 | `oauth.endpoint` | SSO token URL (Production or Sprint) | `https://sso.dynatrace.com/sso/oauth2/token` |
 | `oauth.client_id` | From EdgeConnect config download | `dt0s02.XXXXXXXX` |

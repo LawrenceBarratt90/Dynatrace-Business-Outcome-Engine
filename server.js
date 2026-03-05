@@ -1394,50 +1394,22 @@ app.post('/api/admin/reset-ports', async (req, res) => {
   }
 });
 
-// New endpoint for reset and restart
+// Reset endpoint — stops everything, leaves server clean (no default services)
 app.post('/api/admin/reset-and-restart', async (req, res) => {
   try {
-    // First stop all services and free ports
+    // Stop all services and free ports
     stopAllServices();
     console.log('🔄 All dynamic services stopped and ports freed.');
     
     // Wait a moment for cleanup to complete
     await new Promise(resolve => setTimeout(resolve, 1000));
     
-    // Restart essential services for UI functionality
-    const coreServices = [
-      'Discovery',      // Most common first step in journeys
-      'Purchase',       // Most common transaction step
-      'DataPersistence' // Always needed for data storage
-    ];
-    
-    const companyContext = {
-      companyName: process.env.DEFAULT_COMPANY || 'DefaultCompany',
-      domain: process.env.DEFAULT_DOMAIN || 'default.com',
-      industryType: process.env.DEFAULT_INDUSTRY || 'general'
-    };
-    
-    console.log(`🚀 Restarting ${coreServices.length} essential services after reset...`);
-    
-    // Start services with proper error handling
-    const serviceResults = [];
-    for (const stepName of coreServices) {
-      try {
-        ensureServiceRunning(stepName, companyContext);
-        console.log(`✅ Essential service "${stepName}" restarted successfully.`);
-        serviceResults.push({ stepName, status: 'restarted' });
-      } catch (err) {
-        console.error(`❌ Failed to restart essential service "${stepName}":`, err.message);
-        serviceResults.push({ stepName, status: 'failed', error: err.message });
-      }
-    }
-    
-    const successCount = serviceResults.filter(r => r.status === 'restarted').length;
+    // No default services — everything starts on-demand from the Forge UI
+    console.log('✅ Reset complete — server is clean, launch journeys from the Forge UI');
     
     res.json({ 
       ok: true, 
-      message: `Services reset complete. ${successCount}/${coreServices.length} essential services restarted.`,
-      serviceResults
+      message: 'Reset complete. All services stopped. Launch journeys from the Forge UI to start services.'
     });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
@@ -2055,7 +2027,7 @@ global.recordTraceValidation = recordTraceValidation;
 // --- Admin endpoint to restart all core services ---
 app.post('/api/admin/services/restart-all', async (req, res) => {
   try {
-    console.log('🔄 Restarting all core services...');
+    console.log('🔄 Stopping all services (clean restart)...');
     
     // Stop auto-load generators
     stopAllAutoLoads();
@@ -2066,29 +2038,10 @@ app.post('/api/admin/services/restart-all', async (req, res) => {
     // Wait a moment for cleanup
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Start all core services again
-    const coreServices = [
-      'Discovery', 'Awareness', 'Consideration', 'Purchase', 'Completion', 
-      'Retention', 'Advocacy', 'DataPersistence', 'PolicySelection', 
-      'QuotePersonalization', 'PolicyActivation', 'CoverageExploration',
-      'SecureCheckout', 'OngoingEngagement'
-    ];
+    // No default services — everything starts on-demand from the Forge UI
+    console.log('✅ All services stopped — server is clean, launch journeys from the Forge UI');
     
-    const companyContext = {
-      companyName: process.env.DEFAULT_COMPANY || 'DefaultCompany',
-      domain: process.env.DEFAULT_DOMAIN || 'default.com',
-      industryType: process.env.DEFAULT_INDUSTRY || 'general'
-    };
-    
-    for (const stepName of coreServices) {
-      try {
-        ensureServiceRunning(stepName, companyContext);
-      } catch (err) {
-        console.error(`Failed to restart service ${stepName}:`, err.message);
-      }
-    }
-    
-    res.json({ ok: true, message: 'All core services restart initiated', servicesCount: coreServices.length });
+    res.json({ ok: true, message: 'All services stopped. Launch journeys from the Forge UI to start services.' });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
   }

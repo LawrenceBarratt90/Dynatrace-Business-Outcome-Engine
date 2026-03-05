@@ -5,6 +5,7 @@ import { ServiceDashboard } from './pages/ServiceDashboard';
 import { ChaosControl } from './pages/ChaosControl';
 import { FixItAgent } from './pages/FixItAgent';
 import { SettingsPage } from './pages/SettingsPage';
+import { DemoGuide } from './pages/DemoGuide';
 
 export const App = () => {
   return (
@@ -14,6 +15,7 @@ export const App = () => {
         <Route path="/chaos" element={<ChaosControl />} />
         <Route path="/fixit" element={<FixItAgent />} />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/guide" element={<DemoGuide />} />
       </Routes>
   );
 };

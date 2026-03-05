@@ -1,7 +1,7 @@
 /**
  * Dynatrace Workflow Webhook Integration
  * Receives problem notifications from Dynatrace workflows and triggers Fix-It agent
- * with enhanced root cause analysis from Davis AI via MCP server.
+ * with enhanced root cause analysis from Dynatrace Intelligence via MCP server.
  */
 
 import { Router, Request, Response } from 'express';
@@ -36,7 +36,7 @@ interface DynatraceWorkflowPayload {
     entity_name: string;
     entity_type: string;
   };
-  // Davis AI insights (from MCP server)
+  // Dynatrace Intelligence insights (from MCP server)
   davis_insights?: {
     root_cause: string;
     confidence: number;
@@ -57,14 +57,14 @@ interface FixItWebhookResponse {
 // ─── MCP Server Integration ───────────────────────────────────
 
 /**
- * Query Dynatrace MCP server for enhanced Davis AI root cause analysis.
+ * Query Dynatrace MCP server for enhanced Dynatrace Intelligence root cause analysis.
  * Falls back gracefully if MCP server is not available.
  */
 async function getDavisRootCause(problemId: string): Promise<any> {
   try {
     const mcpServerUrl = process.env.MCP_SERVER_URL || 'http://localhost:3000';
     
-    log.info('Querying Davis AI via MCP server', { problemId, mcpServerUrl });
+    log.info('Querying Dynatrace Intelligence via MCP server', { problemId, mcpServerUrl });
 
     // Call MCP server's problem analysis endpoint
     const response = await fetch(`${mcpServerUrl}/mcp/dynatrace/problems/${problemId}/root-cause`, {
@@ -81,17 +81,17 @@ async function getDavisRootCause(problemId: string): Promise<any> {
     }
 
     const davisAnalysis = await response.json();
-    log.info('Davis AI root cause received', { confidence: davisAnalysis.confidence });
+    log.info('Dynatrace Intelligence root cause received', { confidence: davisAnalysis.confidence });
     
     return davisAnalysis;
   } catch (err) {
-    log.warn('Failed to query Davis AI via MCP server', { error: String(err) });
+    log.warn('Failed to query Dynatrace Intelligence via MCP server', { error: String(err) });
     return null;
   }
 }
 
 /**
- * Enrich problem data with Davis AI insights from MCP server.
+ * Enrich problem data with Dynatrace Intelligence insights from MCP server.
  */
 async function enrichProblemWithDavis(payload: DynatraceWorkflowPayload): Promise<DynatraceWorkflowPayload> {
   if (!payload.problem_id) {
@@ -164,7 +164,7 @@ router.post('/problem', async (req: Request, res: Response): Promise<void> => {
       entitySelector: payload.entity_id ? `entityId("${payload.entity_id}")` : undefined,
     });
 
-    // Enrich with Davis AI insights from MCP server
+    // Enrich with Dynatrace Intelligence insights from MCP server
     const enrichedPayload = await enrichProblemWithDavis(payload);
 
     // Trigger autonomous Fix-It agent
@@ -230,13 +230,13 @@ router.post('/problem', async (req: Request, res: Response): Promise<void> => {
 
 /**
  * POST /workflow-webhook/problem-with-davis
- * Enhanced endpoint that requires Davis AI analysis in the payload.
- * Use this when Dynatrace workflow includes Davis AI problem analysis.
+ * Enhanced endpoint that requires Dynatrace Intelligence analysis in the payload.
+ * Use this when Dynatrace workflow includes Dynatrace Intelligence problem analysis.
  */
 router.post('/problem-with-davis', async (req: Request, res: Response): Promise<void> => {
   const payload = req.body as DynatraceWorkflowPayload;
   
-  log.info('Received problem with Davis insights', {
+  log.info('Received problem with Dynatrace Intelligence insights', {
     problem_id: payload.problem_id,
     has_davis_insights: !!payload.davis_insights,
   });
@@ -258,7 +258,7 @@ router.post('/problem-with-davis', async (req: Request, res: Response): Promise<
     // Send acknowledgement event
     await sendDynatraceEvent({
       eventType: 'CUSTOM_INFO',
-      title: '🔧 Fix-It Agent: Davis-enhanced problem received',
+      title: '🔧 Fix-It Agent: Dynatrace Intelligence-enhanced problem received',
       properties: {
         'fixit.source': 'dynatrace_workflow_davis',
         'fixit.problem_id': problemId,
@@ -292,16 +292,16 @@ router.post('/problem-with-davis', async (req: Request, res: Response): Promise<
       });
       
       fixPromise.catch((err) => {
-        log.error('Davis-enhanced fix failed', { error: String(err) });
+        log.error('Dynatrace Intelligence-enhanced fix failed', { error: String(err) });
       });
     }
   } catch (err) {
-    log.error('Davis-enhanced webhook failed', { error: String(err) });
+    log.error('Dynatrace Intelligence-enhanced webhook failed', { error: String(err) });
     res.status(500).json({
       success: false,
       runId: `error-${startTime}`,
       problemId: 'unknown',
-      message: 'Failed to process Davis-enhanced webhook',
+      message: 'Failed to process Dynatrace Intelligence-enhanced webhook',
       error: String(err),
     });
   }

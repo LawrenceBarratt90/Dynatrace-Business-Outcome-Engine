@@ -1,0 +1,32 @@
+# ============================================================
+#  Business Observability Forge — Setup Configuration
+# ============================================================
+#  Fill in the values below, then run:  ./setup.sh
+# ============================================================
+
+# Environment type: "sprint" or "prod"
+#   sprint → abc12345.sprint.dynatracelabs.com
+#   prod   → abc12345.live.dynatrace.com / abc12345.apps.dynatrace.com
+ENV_TYPE="sprint"
+
+# Your Dynatrace tenant ID (e.g. abc12345)
+# Find it in your tenant URL: https://<THIS_PART>.sprint.dynatracelabs.com
+TENANT_ID="YOUR_TENANT_ID"
+
+# API Token (dt0c01.*)
+# Create at: DT tenant → Settings → Access Tokens
+# Scopes needed: events.ingest, metrics.ingest, openTelemetryTrace.ingest, entities.read
+API_TOKEN="dt0c01.XXXX..."
+
+# EdgeConnect OAuth Client (dt0s10.*)
+# Create at: DT tenant → Settings → General → External Requests → Add EdgeConnect
+# Scope: app-engine:edge-connects:connect (auto-added by DT)
+EC_OAUTH_CLIENT_ID="dt0s10.XXXX"
+EC_OAUTH_CLIENT_SECRET="dt0s10.XXXX.YYYY..."
+
+# AppEngine Deploy OAuth Client (dt0s10.*)
+# Can be the SAME as EdgeConnect (if you added deploy scopes to it)
+# OR a different client with scopes: app-engine:apps:install, app-engine:apps:run
+# Leave blank to use the EdgeConnect client for both.
+DEPLOY_OAUTH_CLIENT_ID=""
+DEPLOY_OAUTH_CLIENT_SECRET=""

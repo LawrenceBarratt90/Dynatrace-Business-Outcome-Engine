@@ -1448,7 +1448,7 @@ function generateCoreTileTemplates(company, journeyType, steps, dynatraceUrl) {
       }
     },
     davis_problems: {
-      name: '🚨 Active Davis Problems',
+      name: '🚨 Active Dynatrace Intelligence Problems',
       query: `fetch dt.davis.problems
 | filter event.status == "ACTIVE"
 | fields display_id, title, affected_entity_ids, event.start, event.status, management_zone
@@ -1489,7 +1489,7 @@ function generateCoreTileTemplates(company, journeyType, steps, dynatraceUrl) {
 | 📊 **Service Overview** | [Open Services →](${dynatraceUrl}/ui/services?gtf=-24h+to+now&gf=all) |
 | ❌ **Failure Analysis** | [Open Failure Analysis →](${dynatraceUrl}/ui/diagnostictools/mda?gtf=-24h+to+now&gf=all&mdaId=failureAnalysis) |
 | 🐛 **Exception Analysis** | [Open Exception Analysis →](${dynatraceUrl}/ui/diagnostictools/mda?gtf=-24h+to+now&gf=all&mdaId=exceptionAnalysis) |
-| 📈 **Davis Problems** | [Open Problems →](${dynatraceUrl}/ui/problems?gtf=-24h+to+now) |
+| 📈 **Dynatrace Intelligence Problems** | [Open Problems →](${dynatraceUrl}/ui/problems?gtf=-24h+to+now) |
 | 📊 **Business Events** | [Open BizEvents →](${dynatraceUrl}/ui/bizevents?gtf=-24h+to+now) |
 
 *Links open in your Dynatrace environment*`
@@ -1771,33 +1771,34 @@ Generate the complete dashboard optimized for ${industry} - ${journeyType}.`;
 
 async function generateDashboardStructure(journeyData) {
   const { company, journeyType } = journeyData;
-  
-  // Try loading pre-built template first
-  const templateDashboard = await loadTemplatedasDashboard(company, journeyType);
-  if (templateDashboard) {
-    console.log('[Dashboard] ✅ Using pre-built template');
-    return templateDashboard;
-  }
-  
-  // Fallback to procedural generation if template not available
-  console.log('[Dashboard] ⚠️  Template not available, using procedural fallback');
   const detected = detectPayloadFields(journeyData);
   const industryInfo = journeyData.industry || 'General';
-  const dashboard = buildProvenDashboard(company, journeyType, journeyData.steps || [], detected, industryInfo);
 
-  // Merge dynamic field-specific tiles if the dashboard has a tiles property
-  const generatedDynamic = generateDynamicFieldTiles(detected, company, journeyType);
-  const dynamicKeys = Object.keys(generatedDynamic || {});
-  if (dynamicKeys.length > 0 && dashboard && dashboard.tiles) {
-    // Append dynamic tiles to existing dashboard
-    let maxKey = Math.max(0, ...Object.keys(dashboard.tiles).map(Number).filter(n => !isNaN(n)));
-    for (const [, tile] of Object.entries(generatedDynamic)) {
-      maxKey++;
-      dashboard.tiles[String(maxKey)] = tile;
+  // Use the full proven dashboard builder (46+ tiles) as the primary path
+  try {
+    const dashboard = buildProvenDashboard(company, journeyType, journeyData.steps || [], detected, industryInfo);
+    if (dashboard && dashboard.tiles && Object.keys(dashboard.tiles).length > 0) {
+      console.log(`[Dashboard] ✅ Built proven dashboard: ${Object.keys(dashboard.tiles).length} tiles`);
+      return dashboard;
     }
+  } catch (err) {
+    console.warn('[Dashboard] ⚠️  Proven dashboard build failed:', err.message);
   }
 
-  return dashboard;
+  // Fallback to static template file only if proven builder fails
+  try {
+    const templateDashboard = await loadTemplatedasDashboard(company, journeyType);
+    if (templateDashboard) {
+      console.log('[Dashboard] ⚠️  Using fallback static template (17 tiles)');
+      return templateDashboard;
+    }
+  } catch (err) {
+    console.warn('[Dashboard] ⚠️  Template load failed:', err.message);
+  }
+
+  // Last resort: return a minimal dashboard
+  console.error('[Dashboard] ❌ All generation methods failed, returning minimal dashboard');
+  return { version: 21, variables: [], tiles: {}, layouts: {}, importedWithCode: false, settings: {}, annotations: [] };
 }
 
 // ============================================================================
@@ -1845,7 +1846,7 @@ The dashboard uses a proven template with these sections:
 2. Filtered View (KPIs filtered by step)
 3. Performance & Ops (step perf, SLA, errors, hourly)
 4. Golden Signals (TRAFFIC/LATENCY/ERRORS/SATURATION with service-level timeseries)
-5. Traces & Observability (exceptions, Davis problems, logs)
+5. Traces & Observability (exceptions, Dynatrace Intelligence problems, logs)
 ${dynamicKeys.length > 0 ? `6. Dynamic tiles detected from payload: ${dynamicKeys.join(', ')}` : ''}
 Given the industry "${industry}" and journey "${journeyType}", suggest a dashboard title and any industry-specific insights.
 Respond with ONLY this JSON: {"title":"Dashboard Title","insight":"One-sentence insight about this industry journey"}`;
@@ -2012,9 +2013,12 @@ router.post('/generate', async (req, res) => {
       generationMethod = 'template';
     }
 
-    const tileCount = Object.keys(dashboard.tiles).length;
+    // Dashboard may be a full document ({name, type, content:{tiles}}) or just content ({tiles})
+    const tilesObj = (dashboard.content && dashboard.content.tiles) || dashboard.tiles || {};
+    const tileCount = Object.keys(tilesObj).length;
     const detected = detectPayloadFields(journeyData);
-    const dynamicCount = Object.keys(generateDynamicFieldTiles(detected, journeyData.company, journeyData.journeyType)).length;
+    const dynamicTilesResult = generateDynamicFieldTiles(detected, journeyData.company, journeyData.journeyType);
+    const dynamicCount = dynamicTilesResult ? Object.keys(dynamicTilesResult).length : 0;
 
     // Add versioning to dashboard name based on generation method
     let dashboardName = `${journeyData.company} - ${journeyData.journeyType} Journey`;

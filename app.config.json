@@ -2,9 +2,9 @@
   "$schema": "./.dt-app/app.config.schema.json",
   "environmentUrl": "https://bko67471.sprint.apps.dynatracelabs.com/",
   "app": {
-    "id": "my.bizobs.generator.test",
-    "name": "Business Observability Forge (Test)",
-    "version": "3.2.4",
+    "id": "my.bizobs.generator.master",
+    "name": "Business Observability Forge",
+    "version": "1.0.0",
     "description": "AI-powered Business Observability — generate and observe journeys",
     "scopes": [
       {
@@ -54,13 +54,21 @@
       {
         "name": "storage:entities:read",
         "comment": "DQL query for dt.entity.host to verify OneAgent is installed on the configured host"
+      },
+      {
+        "name": "openpipeline:configurations:read",
+        "comment": "Read OpenPipeline configurations for detecting existing BizObs pipeline and routing"
+      },
+      {
+        "name": "openpipeline:configurations:write",
+        "comment": "Write OpenPipeline configurations to deploy BizObs pipeline processors and routing rules"
       }
     ],
     "settings": {
       "apiConfig": {
         "name": "API Configuration",
         "description": "Configure the connection to the BizObs Generator service",
-        "schemaIds": ["app:my.bizobs.generator.test:api-config"]
+        "schemaIds": ["app:my.bizobs.generator.master:api-config"]
       }
     }
   }

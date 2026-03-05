@@ -411,6 +411,40 @@ async function verifyFix(problemId: string): Promise<boolean> {
 // ─── Agentic Mode (full LLM tool-use loop) ───────────────────
 
 export async function agenticDiagnose(problemDescription: string): Promise<string> {
+  // ── Fallback when Ollama / LLM is not available ──
+  const ollamaUp = await isOllamaAvailable();
+  if (!ollamaUp) {
+    log.warn('LLM unavailable — running rule-based diagnosis for agentic request');
+    const featureFlags = await getCurrentFeatureFlags();
+    const remFlags      = await getRemediationFlags();
+    const diagnosis = ruleDiagnose(
+      'agentic-' + Date.now(),
+      { title: problemDescription, severityLevel: 'ERROR' },
+      featureFlags as unknown as Record<string, unknown>,
+      remFlags     as unknown as Record<string, unknown>,
+    );
+
+    // Execute every proposed fix so the result matches what the LLM loop would do
+    const executed: string[] = [];
+    for (const fix of diagnosis.proposedFixes) {
+      try {
+        const fixResult = await executeFixTool(fix.fixType, fix.details ?? {});
+        executed.push(`✅ ${fix.fixType}: ${fixResult}`);
+      } catch (err) {
+        executed.push(`⚠️ ${fix.fixType}: ${String(err)}`);
+      }
+    }
+
+    return [
+      `## Rule-Based Diagnosis (AI unavailable)`,
+      `**Problem:** ${problemDescription}`,
+      `**Root cause:** ${diagnosis.rootCause}`,
+      `**Confidence:** ${(diagnosis.confidence * 100).toFixed(0)}%`,
+      `### Evidence`, ...diagnosis.evidence.map(e => `- ${e}`),
+      `### Actions Taken`, ...executed,
+    ].join('\n');
+  }
+
   const allTools: ToolDefinition[] = [
     ...dynatraceToolDefs,
     ...fixToolDefs,

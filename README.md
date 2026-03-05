@@ -1,105 +1,162 @@
-# 🚀 Business Observability Engine
+# Business Observability Forge
 
 <p align="center">
-  <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/lawrobar90/Business-Observability-Application" alt="QR code linking to the Business Observability Application repository on GitHub" />
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge" alt="QR code linking to the Business Observability Forge repository on GitHub" />
 </p>
 
-A full-stack business observability platform that dynamically creates microservices, simulates multi-step customer journeys across industries, and integrates deeply with Dynatrace — featuring AI-powered chaos injection, automated remediation, and operational memory.
+Model any customer’s real business journey — their exact checkout flow, claims process, or patient care pathway — and turn it into a live, fully instrumented simulation inside Dynatrace. Describe the journey in plain language (or use AI to research it), and the Forge generates real microservices, realistic traffic, business events with revenue metadata, and executive dashboards — all wired into Dynatrace OneAgent, BizEvents, and Dynatrace Intelligence.
+
+**24 pre-built industry templates** across 8 verticals get you started in one click — but the real power is generating bespoke journeys tailored to any customer’s actual operations.
+
+**This is a unified repo** — it contains both the **Engine** (Node.js server) and the **Forge UI** (Dynatrace AppEngine app).
 
 ---
 
-## 🎯 Key Features
+## Key Features
 
 | Feature | Description |
 |---------|-------------|
+| **Custom Journey Generation** | Describe any customer’s real business flow in plain language — or use AI (Copilot, Gemini, etc.) to research it — and the Forge generates the full journey config: steps, substeps, services, and business metadata. No coding required. |
+| **24 Pre-Built Templates** | One-click industry templates across Banking, Insurance, Manufacturing, Retail, Telecommunications, Healthcare, Financial Services, Travel & Hospitality — great for getting started fast or running a quick demo |
 | **Dynamic Microservices** | Spawns real Node.js child processes per journey step — each with its own Express server, Dynatrace OneAgent identity, and health endpoint |
-| **7 Industry Companies** | Banking, Insurance, Manufacturing, Retail, Smyths, Telecommunications, Travel & Hospitality — each with unique journey definitions |
 | **Auto-Load System** | Generates 30–60 journeys/minute per active company with zero manual interaction |
 | **AI Agent Hub** | 4 AI agents — Nemesis (chaos), Fix-It (remediation), Librarian (memory), Dashboard (deployment) |
 | **Per-Service Chaos Injection** | Target individual services with configurable error rates without affecting the rest of the fleet |
-| **Chaos State Persistence** | All feature flag overrides survive server restarts via `.chaos-state.json` |
-| **Port Persistence** | Services get the same port across restarts via `.port-allocations.json` |
-| **Dynatrace Integration** | OneAgent metadata propagation, event ingestion (CUSTOM_DEPLOYMENT), OAuth SSO, dashboard deployment, DT API proxy |
+| **Dynatrace-Native** | OneAgent metadata propagation, event ingestion (CUSTOM_DEPLOYMENT), OAuth SSO, dashboard deployment, DT API proxy, EdgeConnect tunneling |
 | **Monaco Config-as-Code** | Automated Dynatrace configuration deployment (capture rules, service naming, OpenPipeline, OneAgent features) |
-| **Saved Config Library** | 24 pre-built industry journeys + user-saved configs with export/import |
+| **Persistence** | Chaos state, port allocations, credentials, and saved configs all survive server restarts |
 
 ---
 
-## ⚡ Quick Start
+## Deploy
 
 ### Prerequisites
-- **Node.js v22+** (tested on v22.22.0)
-- **Dynatrace OneAgent** installed ([Installation Guide](https://docs.dynatrace.com/docs/ingest-from/dynatrace-oneagent/installation-and-operation))
 
-### Install & Run
+- **Dynatrace NFR tenant** 
+- **Node.js v22+** and **Docker** on your host (EC2/VM)
+- **2 Dynatrace credentials** (see [TECHNICAL-GUIDE.md](TECHNICAL-GUIDE.md#step-2-create-dynatrace-credentials) for how to create them):
+
+| Credential | Type | Where To Create |
+|-----------|------|-----------------|
+| **API Token** | `dt0c01.*` | DT tenant → Settings → Access Tokens (scopes: `events.ingest`, `metrics.ingest`, `openTelemetryTrace.ingest`, `entities.read`) |
+| **EdgeConnect OAuth** | `dt0s10.*` or `dt0s02.*` | DT tenant → Settings → General → External Requests → Add EdgeConnect. DT generates the credentials automatically. |
+| **Deploy OAuth** *(optional)* | `dt0s10.*` or `dt0s02.*` | Same client works if you add `app-engine:apps:install` + `app-engine:apps:run` scopes. Or use a separate account-level client from Account Management → IAM → OAuth clients. |
+
+### One Command
 
 ```bash
-git clone https://github.com/lawrobar90/Business-Observability-Application.git
-cd Business-Observability-Application
+git clone https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge.git && cd Dynatrace-Business-Observability-Forge && ./setup.sh
+```
+
+The script walks you through 6 guided prompts (environment type, tenant ID, API token, EdgeConnect OAuth, and deploy OAuth), then automatically:
+
+1. Installs npm packages
+2. Configures & starts EdgeConnect (Docker)
+3. Deploys the Forge UI to your Dynatrace tenant
+4. Builds TypeScript agents
+5. Starts the Engine server
+
+**After setup:** Open **Dynatrace → Apps → Business Observability Forge** → Settings → Config → enter your private IP → Save → Test → Get Started checklist.
+
+**Then:** Pick a pre-built template to see it in action immediately — or describe a customer’s real journey and generate a bespoke simulation tailored to their business.
+
+---
+
+<details>
+<summary><strong>Manual Setup (step-by-step)</strong></summary>
+
+### Phase 1 — Pull
+
+```bash
+git clone https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge.git
+cd Dynatrace-Business-Observability-Forge
 npm install
+```
+
+### Phase 2 — Deploy
+
+```bash
+# 1. Copy your EdgeConnect YAML (downloaded from DT External Requests page)
+#    Or edit edgeconnect/edgeConnect.yaml with your OAuth values
+#    Make sure the 'name:' field matches your EdgeConnect name in DT UI
+cp ~/Downloads/edgeConnect.yaml edgeconnect/edgeConnect.yaml
+
+# 2. Start EdgeConnect tunnel
+bash edgeconnect/run-edgeconnect.sh
+
+# 3. Deploy Forge UI to Dynatrace AppEngine
+#    (setup.sh handles credentials automatically — for manual deploy, run ./setup.sh)
+npx dt-app deploy
+
+# 4. Build agents & start the Engine server
+npm run build:agents
 npm start
 ```
 
-The server starts on **port 8080**. Open `http://localhost:8080` in your browser.
+### Phase 3 — Configure
 
-### Alternative Start Methods
+1. Open Dynatrace → **Apps** → **Business Observability Forge**
+2. Go to **Settings** (gear icon) → **Config** tab
+3. Set Host/IP to your **private IP** (not public!) — find it with `hostname -I | awk '{print $1}'`
+4. Set Port to `8080`, Protocol to `HTTP`
+5. Click **Save**, then **Test**
+6. Go to **Get Started** tab → work through the checklist (deploy OpenPipeline, capture rules, etc.)
+7. Go to **Home** → pick a template → click **Run**
 
-```bash
-./start-server.sh        # Full startup with nginx + services
-./restart.sh             # Restart application
-./stop.sh                # Stop all services
-./status.sh              # Status report
-```
+> **AWS users:** Always use the **private IP** (e.g. `172.31.x.x`), not the Elastic/public IP. AWS does not support NAT hairpin.
 
-### Environment Configuration
+</details>
 
-Copy `.env.template` to `.env` and set:
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `PORT` | Main server port | `8080` |
-| `DT_ENVIRONMENT` | Dynatrace tenant URL | `https://abc12345.sprint.apps.dynatracelabs.com` |
-| `DT_PLATFORM_TOKEN` | Platform token for event ingestion | `dt0c01.XXX...` |
-| `OLLAMA_ENDPOINT` | LLM backend for AI agents | `http://localhost:11434` |
-| `SERVICE_PORT_MIN` | Dynamic service port range start | `8081` |
-| `SERVICE_PORT_MAX` | Dynamic service port range end | `8200` |
-
-Or configure Dynatrace credentials from the UI via the ⚙️ **Settings** modal (persisted to `.dt-credentials.json`).
+For the full detailed guide, see [TECHNICAL-GUIDE.md](TECHNICAL-GUIDE.md).
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Browser UI (public/index.html) — Tailwind CSS Dark Theme       │
-│  5-Tab Wizard: Welcome → Details → Prompts → Data → Agent Hub   │
-├─────────────────────────────────────────────────────────────────┤
-│  nginx (port 443, SSL) → reverse proxy                          │
-├─────────────────────────────────────────────────────────────────┤
-│  Main Server (port 8080) — Express.js + Socket.IO               │
-│  ├── 18 API route modules (75+ endpoints)                       │
-│  ├── AI Agent APIs (Nemesis, Fix-It, Librarian, Dashboard)      │
-│  ├── Feature Flag Manager (per-service isolation)               │
-│  ├── Auto-Load Watcher (30-60 journeys/min per company)         │
-│  └── Dynatrace Event Ingestion + DT API Proxy                  │
-├─────────────────────────────────────────────────────────────────┤
-│  Dynamic Child Services (ports 8081–8200)                       │
-│  Each service = separate Node.js process with:                  │
-│  ├── Own Express server + /health endpoint                      │
-│  ├── Dynatrace OneAgent identity (DT_APPLICATION_ID, DT_TAGS)   │
-│  ├── Per-service feature flag config                            │
-│  └── Service-to-service call chaining for journey steps         │
+│                    Dynatrace Platform                            │
+│                                                                  │
+│  ┌──────────────────────────┐   ┌───────────────────────────┐   │
+│  │  Business Observability  │   │  Services / BizEvents /   │   │
+│  │  Forge UI (AppEngine)    │   │  Dashboards / Problems    │   │
+│  └──────────┬───────────────┘   └───────────────────────────┘   │
+│             │ EdgeConnect Tunnel                  ▲               │
+│             │ (HTTPS → port 8080)                 │ OneAgent +   │
+│             │                                     │ OTLP         │
+└─────────────┼─────────────────────────────────────┼──────────────┘
+              │                                     │
+              ▼                                     │
+┌─────────────────────────────────────────────────────────────────┐
+│  Your Host (EC2 / VM / Codespace)                                │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  Main Server (port 8080) — Express.js + Socket.IO        │   │
+│  │  ├── API routes, AI Agents, Journey Engine              │   │
+│  │  └── Dynatrace Event Ingestion + DT API Proxy           │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                          │                                       │
+│              spawns child processes                               │
+│                          ▼                                       │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │  Dynamic Child Services (ports 8081–8200)                │   │
+│  │  Each = separate Node.js process with OneAgent identity  │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                  │
+│  ┌────────────────┐  ┌───────────┐  ┌────────────────────┐     │
+│  │  EdgeConnect    │  │  OneAgent  │  │  Ollama (LLM)     │     │
+│  │  (tunnel)       │  │           │  │  llama3.2          │     │
+│  └────────────────┘  └───────────┘  └────────────────────┘     │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 🤖 AI Agent Hub
+## AI Agent Hub
 
 The Agent Hub (Step 4 in the UI) provides four specialized AI agents powered by an LLM backend (Ollama).
 
-### 👹 Nemesis — Chaos Agent
+### Nemesis — Chaos Agent
 Controlled chaos injection with LLM-powered recipe selection.
 
 - **7 chaos recipes**: `enable_errors`, `increase_error_rate`, `slow_responses`, `disable_circuit_breaker`, `disable_cache`, `target_company`, `custom_flag`
@@ -109,7 +166,7 @@ Controlled chaos injection with LLM-powered recipe selection.
 - **Safety lock**: Max concurrent faults limit
 - **Dynatrace events**: Every chaos injection sends a `CUSTOM_DEPLOYMENT` event with `[ROOT CAUSE]` metadata
 
-### 🔧 Fix-It — Remediation Agent
+### Fix-It — Remediation Agent
 Autonomous problem detection, diagnosis, and remediation.
 
 - **Full pipeline**: Detect → Diagnose → Propose Fix → Execute → Verify → Learn
@@ -118,7 +175,7 @@ Autonomous problem detection, diagnosis, and remediation.
 - **LLM agent loop**: Function calling for intelligent decision-making
 - **Learning**: Records outcomes to Librarian for future reference
 
-### 📚 Librarian — Operational Memory
+### Librarian — Operational Memory
 Persistent knowledge store for the AI agent ecosystem.
 
 - **Vector store**: Similarity search across past incidents
@@ -126,7 +183,7 @@ Persistent knowledge store for the AI agent ecosystem.
 - **Records**: Chaos events, reverts, DT problems, diagnoses, fixes, outcomes
 - **LLM-powered learning**: Generates insights from incident history
 
-### 📊 Dashboard — AI Dashboard Deployer
+### Dashboard — AI Dashboard Deployer
 One-click Dynatrace dashboard deployment.
 
 - **Pre-built dashboards**: Generate from journey configurations
@@ -135,7 +192,7 @@ One-click Dynatrace dashboard deployment.
 
 ---
 
-## 🔄 Auto-Load System
+## Auto-Load System
 
 Once services are running, the auto-load system automatically generates realistic traffic:
 
@@ -148,7 +205,7 @@ Once services are running, the auto-load system automatically generates realisti
 
 ---
 
-## 🎲 Chaos Injection & Feature Flags
+## Chaos Injection & Feature Flags
 
 ### Per-Service Isolation
 Each child service fetches its own feature flags from the main server (`GET /api/feature_flag?service=<name>`). Only services with explicit overrides receive elevated error rates.
@@ -169,7 +226,7 @@ Each child service fetches its own feature flags from the main server (`GET /api
 
 ---
 
-## 🔗 Dynatrace Integration
+## Dynatrace Integration
 
 ### Event Ingestion
 Every chaos injection and remediation action sends a `CUSTOM_DEPLOYMENT` event to Dynatrace with rich metadata:
@@ -212,7 +269,7 @@ Deploys: OneAgent features, capture rules, service naming, OpenPipeline pipeline
 
 ---
 
-## 📋 UI Overview
+## UI Overview
 
 ### 5-Tab Wizard
 
@@ -231,7 +288,7 @@ Deploys: OneAgent features, capture rules, service naming, OpenPipeline pipeline
 
 ---
 
-## 🛠️ Technical Stack
+## Technical Stack
 
 | Component | Technology |
 |-----------|-----------|
@@ -246,7 +303,7 @@ Deploys: OneAgent features, capture rules, service naming, OpenPipeline pipeline
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ├── server.js                    # Main application server (~4,700 lines, 75+ endpoints)
@@ -306,7 +363,7 @@ Deploys: OneAgent features, capture rules, service naming, OpenPipeline pipeline
 
 ---
 
-## 📊 API Route Summary
+## API Route Summary
 
 | Mount | Purpose |
 |-------|---------|
@@ -333,7 +390,7 @@ Deploys: OneAgent features, capture rules, service naming, OpenPipeline pipeline
 
 ---
 
-## 🔧 Management Commands
+## Management Commands
 
 ```bash
 ./start-server.sh    # Full startup with nginx + all services
@@ -351,18 +408,23 @@ npm run configure:monaco        # Deploy DT config via Monaco CLI
 
 ---
 
-## 📊 Demo Walkthrough
+## Demo Walkthrough
 
-1. **Start the server** → services auto-create as journeys are defined
-2. **Step 1**: Enter company details (or pick from 24 pre-built industry journeys)
-3. **Step 2**: Generate AI/Copilot prompts for journey definition
-4. **Step 3**: Run journey simulation — services spin up dynamically, auto-load begins
-5. **Step 4**: Open the AI Agent Hub:
-   - Use **Nemesis** to inject chaos into a specific service
-   - Watch **Dynatrace** detect the problem
-   - Let **Fix-It** autonomously diagnose and remediate
-   - Review the full incident timeline in **Librarian**
-   - Deploy a **Dashboard** to visualize the journey
+### Quick Start (pre-built template)
+1. Open the Forge UI → **Home** → pick a template from the **Template Library** (e.g. Healthcare — Patient Care Journey)
+2. Click **Run** → services spin up, auto-load generates traffic, Dynatrace lights up
+3. Open the **AI Agent Hub** → inject chaos with **Nemesis** → watch **Dynatrace Intelligence** detect it → let **Fix-It** auto-remediate
+
+The 24 templates are a fast on-ramp — use them for demos, POCs, or to learn how the platform works.
+
+### Custom Journey (the real power)
+1. **Describe any customer’s journey** — e.g. “A patient registers, gets triaged, sees a consultant, receives treatment, and is discharged”
+2. **Or use AI to research it** — ask Copilot/Gemini about a customer’s real business flow, paste the output into the Forge
+3. The Forge generates the full config: services, substeps, business metadata (revenue, KPIs, churn risk)
+4. **Run it** → real microservices, real traffic, real Dynatrace telemetry — tailored to *that* customer’s operations
+5. **Demo it** → chaos injection → Dynatrace Intelligence detection → AI remediation → revenue impact dashboard
+
+This is what makes the Forge different: it’s not a canned demo. It’s *their* business, running live in Dynatrace.
 
 ---
 

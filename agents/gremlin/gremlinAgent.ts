@@ -8,7 +8,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { chaosRecipes, ChaosResult, ChaosParams, ChaosType, getRecipeList } from '../../tools/chaos/chaosRecipes.js';
 import { recordChaosEvent, recordChaosRevert, searchSimilar } from '../librarian/librarianAgent.js';
-import { chatJSON } from '../../utils/llmClient.js';
+import { chatJSON, isOllamaAvailable } from '../../utils/llmClient.js';
 import { config } from '../../utils/config.js';
 import { createLogger } from '../../utils/logger.js';
 import { sendChaosEvent, sendChaosRevertEvent } from '../../utils/dtEventHelper.js';
@@ -87,7 +87,7 @@ export async function injectChaos(params: {
       'chaos.duration.ms': chaosParams.durationMs,
       'chaos.recipe': recipe.name,
       'chaos.autonomous': params.details?.autonomous || false,
-      'chaos.reasoning': params.details?.reasoning || '',
+      ...(params.details?.reasoning ? { 'chaos.reasoning': params.details.reasoning } : {}),
     }
   );
 
@@ -198,6 +198,45 @@ Pick the best recipe to test resilience of the target. Respond with JSON: {"type
  */
 export async function smartChaos(description: string): Promise<ChaosResult> {
   const recipes = getRecipeList();
+
+  // ── Fallback when Ollama / LLM is not available ──
+  const ollamaUp = await isOllamaAvailable();
+  if (!ollamaUp) {
+    log.warn('LLM unavailable — using keyword-based chaos selection for smart request');
+    const types: ChaosType[] = recipes.map(r => r.type);
+    const desc = description.toLowerCase();
+
+    // Simple keyword matching to pick the most relevant chaos type
+    let type: ChaosType = 'enable_errors';
+    let target = 'global';
+    const intensity = 5;
+    const durationMs = 5 * 60_000; // 5 minutes
+
+    if (desc.includes('slow') || desc.includes('latency') || desc.includes('response time')) {
+      type = 'slow_responses';
+    } else if (desc.includes('circuit') || desc.includes('cascade')) {
+      type = 'disable_circuit_breaker';
+    } else if (desc.includes('cache')) {
+      type = 'disable_cache';
+    } else if (desc.includes('rate') || desc.includes('increase')) {
+      type = 'increase_error_rate';
+    }
+
+    // Check for company-targeted chaos
+    const companyMatch = desc.match(/(?:for|target|company)\s+([\w\s]+?)(?:\.|$|,)/i);
+    if (companyMatch && types.includes('target_company')) {
+      type = 'target_company';
+      target = companyMatch[1].trim();
+    }
+
+    log.info('Keyword-based chaos plan', { type, target, intensity, durationMs });
+
+    return injectChaos({
+      type, target, intensity, durationMs,
+      details: {}, useLlm: false,
+    });
+  }
+
   const result = await chatJSON<{
     type: ChaosType;
     target: string;

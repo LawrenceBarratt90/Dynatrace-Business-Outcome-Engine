@@ -242,7 +242,7 @@ function buildTimeseriesTile(templateKey) {
 // ── Build observability tiles ────────────────────────────────────────────────
 
 /**
- * Build an observability tile (Davis problems, logs, spans, exceptions).
+ * Build an observability tile (Dynatrace Intelligence problems, logs, spans, exceptions).
  * @param {string} templateKey - Key from tiles-observability.json
  * @returns {Object} - Complete tile object
  */

@@ -87,8 +87,9 @@ export function cleanupOrphanedServiceProcesses() {
       // or processes with Service-style names (e.g. "BasketCreationService")
       const isServiceProcess = (
         args.includes('.dynamic-runners') ||
-        args.includes('dynamic-step-service.cjs') ||
-        args.includes('service-runner.cjs') ||
+        args.includes('dynamic-step-service.js') || args.includes('dynamic-step-service.cjs') ||
+        args.includes('service-runner.js') || args.includes('service-runner.cjs') ||
+        args.includes('runtime/dynamic-step-service') ||
         /^(node\s+.*)?[A-Z][a-zA-Z]+Service\s*$/.test(args.trim()) ||
         /^[A-Z][a-zA-Z]+Service$/.test(args.trim())
       );
@@ -504,7 +505,7 @@ export async function ensureServiceRunning(stepName, companyContext = {}) {
     console.log(`[service-manager] Service ${internalServiceName} not running, starting it for company: ${companyName}...`);
     // Try to start with existing service file, fallback to dynamic service
     const specificServicePath = path.join(__dirname, `${internalServiceName}.cjs`);
-    const dynamicServicePath = path.join(__dirname, 'dynamic-step-service.cjs');
+    const dynamicServicePath = path.join(__dirname, 'runtime', 'dynamic-step-service.js');
     // Create a per-service wrapper so the Node entrypoint filename matches the service name
     const runnersDir = path.join(__dirname, '.dynamic-runners');
     try {
@@ -551,14 +552,11 @@ export async function ensureServiceRunning(stepName, companyContext = {}) {
           fs.mkdirSync(serviceDir, { recursive: true });
         }
         // Write a per-service package.json — OneAgent reads this for Web application id
-        const servicePkgJson = JSON.stringify({
-          name: dynatraceServiceName.toLowerCase(),
-          version: "1.0.0",
-          private: true
-        }, null, 2);
-        fs.writeFileSync(path.join(serviceDir, 'package.json'), servicePkgJson, 'utf-8');
-        
-        const wrapperPath = path.join(serviceDir, 'index.cjs');
+        // Also sets "type": "commonjs" so .js wrappers work with require() and Dynatrace LiveDebugger
+        const wrapperPath = path.join(serviceDir, 'index.js');
+        // Ensure runner directory has commonjs package.json for LiveDebugger .js support
+        const runnerPkgJson = JSON.stringify({ name: dynatraceServiceName.toLowerCase(), version: '1.0.0', private: true, type: 'commonjs' }, null, 2);
+        fs.writeFileSync(path.join(serviceDir, 'package.json'), runnerPkgJson, 'utf-8');
         const wrapperSource = `// Auto-generated wrapper for ${dynatraceServiceName}\n` +
 `process.env.SERVICE_NAME = ${JSON.stringify(dynatraceServiceName)};\n` +
 `process.env.FULL_SERVICE_NAME = ${JSON.stringify(internalServiceName)};\n` +

@@ -18,7 +18,7 @@
  *   2. FILTERED VIEW       – Same KPIs filtered by $Step variable
  *   3. PERFORMANCE & OPS   – Step performance, SLA, error details, hourly patterns
  *   4. GOLDEN SIGNALS      – TRAFFIC, LATENCY, ERRORS, SATURATION (service-level)
- *   5. TRACES & EXCEPTIONS – Spans with exceptions, Davis problems, log errors
+ *   5. TRACES & EXCEPTIONS – Spans with exceptions, Dynatrace Intelligence problems, log errors
  *   6. NAVIGATION          – Deep-link markdown panel, footer
  */
 
@@ -724,10 +724,10 @@ export function getObservabilityTiles() {
     traces_with_exceptions: {
       _tag: 'traces-exceptions',
       _widgetType: 'table',
-      _purpose: 'Spans with exceptions, deep-linked to trace explorer. Includes Davis CoPilot prompt.',
-      title: '💥 TRACES WITH EXCEPTIONS: Click on Endpoint to open Trace. Or use Open-With Davis CoPilot to explain Exception',
+      _purpose: 'Spans with exceptions, deep-linked to trace explorer. Includes Dynatrace Intelligence CoPilot prompt.',
+      title: '💥 TRACES WITH EXCEPTIONS: Click on Endpoint to open Trace. Or use Open-With Dynatrace Intelligence CoPilot to explain Exception',
       type: 'data',
-      query: `fetch spans\n| filter in(dt.entity.service, array($Service))\n\n| fieldsAdd Service = rpc.service\n| fieldsAdd exception.stacktrace = span.events[][exception.stack_trace]\n| fieldsAdd exception.class = span.events[0][exception.type]\n| fieldsAdd eventname = span.events[0][span_event.name]\n| fieldsAdd exception.message = toString(span.events[][exception.message])\n| fieldsAdd trace_id = toString(trace.id), span_id = toString(span.id)\n\n| filter eventname == "exception"\n| filter isNotNull(span.exit_by_exception_id)\n\n| fields Time = start_time,\n         start_time,\n         end_time,\n         Service,\n         Endpoint = concat("[", if(isnull(endpoint.name), span.name, else: endpoint.name), "](/ui/apps/dynatrace.distributedtracing/explorer?cv=a%2Cfalse\\u0026sidebar=a%2Cfalse\\u0026filter=dt.entity.service+%3D+",dt.entity.service,"+AND+endpoint.name+%3D+",endpoint.name,"+AND+trace.id+%3D+",\n                         trace_id,"\\u0026traceId=",trace_id,"\\u0026spanId=",span_id,"\\u0026tf=",$dt_timeframe_from,";",$dt_timeframe_to,"\\u0026pb=true","\\u0026tt=",encodeUrl(toString(start_time)),")"),\n         ExceptionClass = if(isNotNull(exception.class),exception.class, else:"N/A"),\n         ExceptionMesssage = concat("🤖 ", if(isNotNull(exception.message),exception.message, else:"N/A")),\n         Exception = if(isNotNull(exception.stacktrace),exception.stacktrace, else:"N/A"),\n         Duration = duration,\n         dt.entity.service, \n         trace.id,\n         span.id     \n| sort start_time desc\n| limit 200\n| fieldsAdd prompt=concat("Analyze the Exception, Service and Endpoint and tell me how to fix the exception ", \`ExceptionClass\`, ":", ExceptionMesssage), execute=true, contexts=array(record(type="supplementary", value=substring(concat(\`Exception\`, " Service", \`Endpoint\`), to:20000)))`,
+      query: `fetch spans\n| fieldsAdd serviceName = entityName(dt.entity.service)\n| filter in(serviceName, array($Service))\n\n| fieldsAdd exception.stacktrace = span.events[][exception.stack_trace]\n| fieldsAdd exception.class = span.events[1][exception.type]\n| fieldsAdd eventname = span.events[1][span_event.name]\n| fieldsAdd exception.message = toString(span.events[1][exception.message])\n| fieldsAdd trace_id = toString(trace.id), span_id = toString(span.id)\n\n| filter eventname == "exception"\n| filter isNotNull(span.exit_by_exception_id)\n\n| lookup [fetch dt.entity.service | fields id, entity.name], sourceField:dt.entity.service, lookupField:id, prefix:"svc."\n| fieldsAdd Service = svc.entity.name\n\n| fields Time = start_time,\n         start_time,\n         end_time,\n         Service,\n         Endpoint = concat("[", if(isnull(endpoint.name), span.name, else: endpoint.name), "](/ui/apps/dynatrace.distributedtracing/explorer?cv=a%2Cfalse\\u0026sidebar=a%2Cfalse\\u0026filter=dt.entity.service+%3D+",dt.entity.service,"+AND+endpoint.name+%3D+",endpoint.name,"+AND+trace.id+%3D+",\n                         trace_id,"\\u0026traceId=",trace_id,"\\u0026spanId=",span_id,"\\u0026tf=",$dt_timeframe_from,";",$dt_timeframe_to,"\\u0026pb=true","\\u0026tt=",encodeUrl(toString(start_time)),")"),\n         ExceptionClass = if(isNotNull(exception.class),exception.class, else:"N/A"),\n         ExceptionMesssage = concat("🤖 ", if(isNotNull(exception.message),exception.message, else:"N/A")),\n         Exception = if(isNotNull(exception.stacktrace),exception.stacktrace, else:"N/A"),\n         Duration = duration,\n         dt.entity.service, \n         trace.id,\n         span.id     \n| sort start_time desc\n| limit 200\n| fieldsAdd prompt=concat("Analyze the Exception, Service and Endpoint and tell me how to fix the exception ", \`ExceptionClass\`, ":", ExceptionMesssage), execute=true, contexts=array(record(type="supplementary", value=substring(concat(\`Exception\`, " Service", \`Endpoint\`), to:20000)))`,
       visualization: 'table',
       visualizationSettings: {
         table: { columnWidths: { 'event.name': 350, 'serviceName': 200, 'occurrences': 100, 'lastSeen': 160 } },
@@ -745,7 +745,7 @@ export function getObservabilityTiles() {
     top_exceptions: {
       _tag: 'exceptions-table',
       _widgetType: 'table',
-      _purpose: 'Top 15 Davis error events with service name and frequency',
+      _purpose: 'Top 15 Dynatrace Intelligence error events with service name and frequency',
       title: '💥 Top Exceptions',
       type: 'data',
       query: `fetch dt.davis.events, from:now()-24h\n| filter event.kind == "ERROR_EVENT"\n| summarize occurrences = count(), lastSeen = takeLast(timestamp), by: {event.name, dt.entity.service}\n| fieldsAdd serviceName = entityName(dt.entity.service)\n| sort occurrences desc\n| limit 15`,
@@ -766,8 +766,8 @@ export function getObservabilityTiles() {
     davis_problems: {
       _tag: 'davis-problems',
       _widgetType: 'table',
-      _purpose: 'Active Davis AI problems with affected entities',
-      title: '🚨 Active Davis Problems',
+      _purpose: 'Active Dynatrace Intelligence problems with affected entities',
+      title: '🚨 Active Dynatrace Intelligence Problems',
       type: 'data',
       query: `fetch dt.davis.problems\n| filter event.status == "ACTIVE"\n| fields display_id, title, affected_entity_ids, event.start, event.status, management_zone\n| sort event.start desc\n| limit 10`,
       visualization: 'table',
@@ -919,7 +919,7 @@ export function getDeepLinksMarkdown(dynatraceUrl) {
   return {
     type: 'markdown',
     title: '🔗 Quick Navigation',
-    content: `## 🔗 Deep-Link Navigation\n\n| Resource | Link |\n|----------|------|\n| 🔍 **Distributed Traces** | [Open Trace Explorer →](${dynatraceUrl}/ui/diagnostictools/purepaths?gtf=-24h+to+now&gf=all) |\n| 📊 **Service Overview** | [Open Services →](${dynatraceUrl}/ui/services?gtf=-24h+to+now&gf=all) |\n| ❌ **Failure Analysis** | [Open Failure Analysis →](${dynatraceUrl}/ui/diagnostictools/mda?gtf=-24h+to+now&gf=all&mdaId=failureAnalysis) |\n| 🐛 **Exception Analysis** | [Open Exception Analysis →](${dynatraceUrl}/ui/diagnostictools/mda?gtf=-24h+to+now&gf=all&mdaId=exceptionAnalysis) |\n| 📈 **Davis Problems** | [Open Problems →](${dynatraceUrl}/ui/problems?gtf=-24h+to+now) |\n| 📊 **Business Events** | [Open BizEvents →](${dynatraceUrl}/ui/bizevents?gtf=-24h+to+now) |\n\n*Links open in your Dynatrace environment*`
+    content: `## 🔗 Deep-Link Navigation\n\n| Resource | Link |\n|----------|------|\n| 🔍 **Distributed Traces** | [Open Trace Explorer →](${dynatraceUrl}/ui/diagnostictools/purepaths?gtf=-24h+to+now&gf=all) |\n| 📊 **Service Overview** | [Open Services →](${dynatraceUrl}/ui/services?gtf=-24h+to+now&gf=all) |\n| ❌ **Failure Analysis** | [Open Failure Analysis →](${dynatraceUrl}/ui/diagnostictools/mda?gtf=-24h+to+now&gf=all&mdaId=failureAnalysis) |\n| 🐛 **Exception Analysis** | [Open Exception Analysis →](${dynatraceUrl}/ui/diagnostictools/mda?gtf=-24h+to+now&gf=all&mdaId=exceptionAnalysis) |\n| 📈 **Dynatrace Intelligence Problems** | [Open Problems →](${dynatraceUrl}/ui/problems?gtf=-24h+to+now) |\n| 📊 **Business Events** | [Open BizEvents →](${dynatraceUrl}/ui/bizevents?gtf=-24h+to+now) |\n\n*Links open in your Dynatrace environment*`
   };
 }
 
@@ -996,7 +996,7 @@ export const PROVEN_LAYOUT = {
   top_exceptions: { x: 0, y: 58, w: 24, h: 5 },
   // Row 63-67: Traces with exceptions
   traces_with_exceptions: { x: 0, y: 63, w: 24, h: 5 },
-  // Row 68-72: Davis & Logs
+  // Row 68-72: Dynatrace Intelligence & Logs
   davis_problems: { x: 0, y: 68, w: 12, h: 5 },
   log_errors: { x: 12, y: 68, w: 12, h: 5 },
   // Row 73-79: Deep links
