@@ -1,11 +1,11 @@
 {
-  "_comment": "Observability tiles: Davis problems, logs, spans/exceptions, top exceptions. All DQL verified against working Manufacturing dashboard.",
+  "_comment": "Observability tiles: Dynatrace Intelligence problems, logs, spans/exceptions, top exceptions. All DQL verified against working Manufacturing dashboard.",
 
   "tiles": {
 
     "active_davis_problems": {
       "id": "obs_davis_problems",
-      "title": "🚨 Active Davis Problems",
+      "title": "🚨 Active Dynatrace Intelligence Problems",
       "domain": "observability",
       "visualization": "table",
       "requires": [],

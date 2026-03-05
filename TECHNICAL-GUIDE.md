@@ -397,7 +397,7 @@ Every chaos injection and remediation action sends a `CUSTOM_DEPLOYMENT` event t
 }
 ```
 
-These events appear as deployment markers on the affected service in Dynatrace, enabling root cause correlation with Davis AI.
+These events appear as deployment markers on the affected service in Dynatrace, enabling root cause correlation with Dynatrace Intelligence.
 
 ---
 

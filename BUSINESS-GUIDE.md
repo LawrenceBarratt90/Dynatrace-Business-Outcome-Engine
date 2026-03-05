@@ -8,7 +8,7 @@
 
 ### The Pitch
 
-> *"What if you could take any customer's real business journey — their exact checkout flow, their claims process, their patient care pathway — model it in minutes, spin up real instrumented microservices, and show them exactly what happens when something breaks? Not a slide deck. Not a theoretical scenario. A live, running simulation inside Dynatrace where they can watch revenue drop, watch Davis AI detect it, and watch an AI agent fix it — all in real time."*
+> *"What if you could take any customer's real business journey — their exact checkout flow, their claims process, their patient care pathway — model it in minutes, spin up real instrumented microservices, and show them exactly what happens when something breaks? Not a slide deck. Not a theoretical scenario. A live, running simulation inside Dynatrace where they can watch revenue drop, watch Dynatrace Intelligence detect it, and watch an AI agent fix it — all in real time."*
 
 > *That's the Business Observability Forge.*
 
@@ -20,7 +20,7 @@
 
 💰 **It quantifies the cost of downtime in their language.** Not "99.9% uptime" — but "$127,000/hour in blocked patient care revenue" or "340 abandoned loan applications per hour." That's the number that gets budget approved.
 
-🤖 **It proves AI isn't a buzzword.** Chaos injection → Davis AI detection → autonomous remediation → organizational learning. Four steps, 30 seconds, zero human intervention. That's the future of IT operations, and you can show it live.
+🤖 **It proves AI isn't a buzzword.** Chaos injection → Dynatrace Intelligence detection → autonomous remediation → organizational learning. Four steps, 30 seconds, zero human intervention. That's the future of IT operations, and you can show it live.
 
 ⚡ **It compresses months of proof-of-value into minutes.** Traditional POCs take weeks of integration work. The Forge generates a full multi-service environment with realistic traffic, business events, and Dynatrace telemetry — ready to demo — in under 30 minutes.
 
@@ -33,9 +33,9 @@
 | **Revenue Protection** | See the dollar impact of every outage in real time — not in next month's report |
 | **Time to Value** | Go from zero to a fully instrumented, multi-service demo in under 30 minutes |
 | **Any Industry, Any Journey** | 24 built-in templates across 8 verticals — or generate a bespoke journey for any customer using AI |
-| **AI-Driven Resilience** | Inject chaos, detect with Davis AI, remediate autonomously, learn from every incident |
+| **AI-Driven Resilience** | Inject chaos, detect with Dynatrace Intelligence, remediate autonomously, learn from every incident |
 | **Board-Ready Storytelling** | Turn a technical monitoring conversation into a business value conversation in 3 minutes |
-| **Dynatrace-Native** | Built on OneAgent, BizEvents, Davis AI, EdgeConnect, and AppEngine — not bolted on, built in |
+| **Dynatrace-Native** | Built on OneAgent, BizEvents, Dynatrace Intelligence, EdgeConnect, and AppEngine — not bolted on, built in |
 
 ---
 
@@ -84,7 +84,7 @@ That's the conversation your CTO needs to have with your CFO.
 The hardest part of selling observability internally is showing ROI. The Forge gives you a live, working demo that shows:
 
 - **Before chaos:** All journeys completing, revenue flowing, KPIs green
-- **During chaos:** One service fails → journeys break → revenue drops → Davis AI detects it
+- **During chaos:** One service fails → journeys break → revenue drops → Dynatrace Intelligence detects it
 - **After remediation:** AI agent fixes the issue → journeys recover → revenue resumes
 
 That's a 3-minute story that justifies a multi-year platform investment.
@@ -142,7 +142,7 @@ Open the **Chaos Control** page. Select the TriageAndAssessment service. Inject 
 Switch to Dynatrace:
 - **Services view** — the TriageAndAssessment service goes red
 - **Business events** — journey completions drop
-- **Problems** — Davis AI opens a problem, correlating the CUSTOM_DEPLOYMENT event with the error spike
+- **Problems** — Dynatrace Intelligence opens a problem, correlating the CUSTOM_DEPLOYMENT event with the error spike
 
 > "Dynatrace didn't just detect an error. It correlated the root cause — our chaos injection event — with the business impact. It knows *which* journeys are affected and *what* the revenue impact is."
 
@@ -286,7 +286,7 @@ A: Absolutely — and this is the real power. You're not limited to the 24 built
 A: Yes. Three ways: (1) Use AI-assisted generation — describe the journey and let the Forge build it. (2) Create manually through the UI with full control over steps, substeps, and business metadata. (3) Import a JSON journey definition for repeatable, shareable configurations.
 
 **Q: Does this require Dynatrace?**
-A: Yes — the Forge was built for Dynatrace. It leverages OneAgent instrumentation, Davis AI correlation, BizEvents, EdgeConnect tunneling, and AppEngine to deliver the full business observability experience. It's not a generic tool adapted to Dynatrace — it's a Dynatrace-native platform from the ground up.
+A: Yes — the Forge was built for Dynatrace. It leverages OneAgent instrumentation, Dynatrace Intelligence correlation, BizEvents, EdgeConnect tunneling, and AppEngine to deliver the full business observability experience. It's not a generic tool adapted to Dynatrace — it's a Dynatrace-native platform from the ground up.
 
 **Q: How long does the demo take to set up?**
 A: About 30 minutes for first-time setup. After that, launching a demo is one click from the Template Library — or a few minutes to generate a custom journey for a specific customer.

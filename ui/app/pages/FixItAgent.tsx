@@ -140,7 +140,7 @@ export const FixItAgent = () => {
         <TitleBar>
           <TitleBar.Title>🔧 Fix-It Agent</TitleBar.Title>
           <TitleBar.Subtitle>
-            AI-powered autonomous problem remediation with Davis AI
+            AI-powered autonomous problem remediation with Dynatrace Intelligence
             {lastCheck && ` · Last check: ${lastCheck.toLocaleTimeString()}`}
           </TitleBar.Subtitle>
         </TitleBar>
@@ -320,7 +320,7 @@ export const FixItAgent = () => {
               }}>
                 <Heading level={4} style={{ marginBottom: 8 }}>ℹ️ How Fix-It Works</Heading>
                 <Paragraph style={{ fontSize: 12, lineHeight: 1.6 }}>
-                  The Fix-It agent uses Davis AI to analyze problems, identify root causes, 
+                  The Fix-It agent uses Dynatrace Intelligence to analyze problems, identify root causes, 
                   and execute automated remediation workflows. It can restart services, 
                   clear caches, rollback deployments, and more.
                 </Paragraph>

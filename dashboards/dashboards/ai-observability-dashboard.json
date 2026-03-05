@@ -147,7 +147,7 @@
       "davis": { "enabled": false, "davisVisualization": { "isAvailable": true } }
     },
     "11": {
-      "title": "Token Consumption Over Time (Davis Forecast)",
+      "title": "Token Consumption Over Time (Dynatrace Intelligence Forecast)",
       "type": "data",
       "query": "fetch spans\n| filter gen_ai.system == \"ollama\"\n| filter gen_ai.request.model == $Model or gen_ai.response.model == $Model\n| fieldsAdd promptTok = coalesce(asLong(gen_ai.usage.prompt_tokens), 0)\n| fieldsAdd completionTok = coalesce(asLong(gen_ai.usage.completion_tokens), 0)\n| makeTimeseries tokenConsumption = sum(promptTok + completionTok), interval: 1m",
       "visualization": "davis",

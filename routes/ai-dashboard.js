@@ -1448,7 +1448,7 @@ function generateCoreTileTemplates(company, journeyType, steps, dynatraceUrl) {
       }
     },
     davis_problems: {
-      name: '🚨 Active Davis Problems',
+      name: '🚨 Active Dynatrace Intelligence Problems',
       query: `fetch dt.davis.problems
 | filter event.status == "ACTIVE"
 | fields display_id, title, affected_entity_ids, event.start, event.status, management_zone
@@ -1489,7 +1489,7 @@ function generateCoreTileTemplates(company, journeyType, steps, dynatraceUrl) {
 | 📊 **Service Overview** | [Open Services →](${dynatraceUrl}/ui/services?gtf=-24h+to+now&gf=all) |
 | ❌ **Failure Analysis** | [Open Failure Analysis →](${dynatraceUrl}/ui/diagnostictools/mda?gtf=-24h+to+now&gf=all&mdaId=failureAnalysis) |
 | 🐛 **Exception Analysis** | [Open Exception Analysis →](${dynatraceUrl}/ui/diagnostictools/mda?gtf=-24h+to+now&gf=all&mdaId=exceptionAnalysis) |
-| 📈 **Davis Problems** | [Open Problems →](${dynatraceUrl}/ui/problems?gtf=-24h+to+now) |
+| 📈 **Dynatrace Intelligence Problems** | [Open Problems →](${dynatraceUrl}/ui/problems?gtf=-24h+to+now) |
 | 📊 **Business Events** | [Open BizEvents →](${dynatraceUrl}/ui/bizevents?gtf=-24h+to+now) |
 
 *Links open in your Dynatrace environment*`
@@ -1846,7 +1846,7 @@ The dashboard uses a proven template with these sections:
 2. Filtered View (KPIs filtered by step)
 3. Performance & Ops (step perf, SLA, errors, hourly)
 4. Golden Signals (TRAFFIC/LATENCY/ERRORS/SATURATION with service-level timeseries)
-5. Traces & Observability (exceptions, Davis problems, logs)
+5. Traces & Observability (exceptions, Dynatrace Intelligence problems, logs)
 ${dynamicKeys.length > 0 ? `6. Dynamic tiles detected from payload: ${dynamicKeys.join(', ')}` : ''}
 Given the industry "${industry}" and journey "${journeyType}", suggest a dashboard title and any industry-specific insights.
 Respond with ONLY this JSON: {"title":"Dashboard Title","insight":"One-sentence insight about this industry journey"}`;

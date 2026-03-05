@@ -245,7 +245,7 @@ async function handleProblem(problem: any): Promise<FixItRunResult> {
 
 /**
  * Send "remediation starting" event to Dynatrace.
- * CRITICAL: Links to the problem for Davis correlation.
+ * CRITICAL: Links to the problem for Dynatrace Intelligence correlation.
  */
 async function sendRemediationStartEvent(problemId: string, problemTitle: string): Promise<void> {
   try {

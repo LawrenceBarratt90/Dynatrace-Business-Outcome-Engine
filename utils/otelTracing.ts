@@ -138,7 +138,7 @@ export function initTracing(): void {
   _provider.register();
 
   log.info('🎯 OTel tracing initialized — GenAI spans for Ollama calls will appear in Dynatrace');
-  log.info('📊 View in Dynatrace: Notebooks > Davis AI > AI Observability');
+  log.info('📊 View in Dynatrace: Notebooks > Dynatrace Intelligence > AI Observability');
 }
 
 export function getTracer() {

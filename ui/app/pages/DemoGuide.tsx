@@ -92,7 +92,7 @@ const DEMO_PATHS: DemoPath[] = [
     id: 'chaos-and-fix',
     icon: '💥',
     title: 'Chaos & Fix-It',
-    subtitle: 'Inject faults, watch Davis detect them, then auto-remediate',
+    subtitle: 'Inject faults, watch Dynatrace Intelligence detect them, then auto-remediate',
     color: '#e74c3c',
     steps: [
       {
@@ -106,11 +106,11 @@ const DEMO_PATHS: DemoPath[] = [
         where: 'This app → Chaos Control',
       },
       {
-        title: 'Watch Davis detect the problem',
-        action: 'Open Problems in Dynatrace. Within a few minutes, Davis should raise a problem card for the increased error rate. Click into it to see the root cause analysis.',
+        title: 'Watch Dynatrace Intelligence detect the problem',
+        action: 'Open Problems in Dynatrace. Within a few minutes, Dynatrace Intelligence should raise a problem card for the increased error rate. Click into it to see the root cause analysis.',
         where: 'Dynatrace',
         dtLink: { label: 'Problems', url: `${TENANT_URL}/ui/apps/dynatrace.davis.problems/` },
-        tip: 'Davis uses automatic baselines — no thresholds to configure. It compares current behavior to what it learned as normal.',
+        tip: 'Dynatrace Intelligence uses automatic baselines — no thresholds to configure. It compares current behavior to what it learned as normal.',
       },
       {
         title: 'See the deployment event on the service',
@@ -297,20 +297,20 @@ const PERSONAS: Persona[] = [
     audience: 'C-level executives, VPs, and senior leadership who want the strategic picture',
     focusAreas: [
       'Business journey visibility end-to-end',
-      'AI-powered root cause analysis (Davis)',
+      'AI-powered root cause analysis (Dynatrace Intelligence)',
       'Auto-remediation reducing MTTR',
       'Platform extensibility via AppEngine',
     ],
     talkingPoints: [
       'Every business transaction is modeled as a journey with real services — from Browse to Checkout to Fulfillment.',
-      'Davis detects anomalies automatically using AI baselines — no manual thresholds to maintain.',
+      'Dynatrace Intelligence detects anomalies automatically using AI baselines — no manual thresholds to maintain.',
       'Fix-It auto-remediates problems in seconds, not hours. Show the chaos → detect → fix → verify loop.',
       'This entire app runs natively inside Dynatrace using AppEngine — it\'s not an external tool, it\'s a platform extension.',
     ],
     demoFlow: [
       { step: 'Generate a Retail journey (Quick Start)', detail: 'Show how fast you can model a business process end-to-end.' },
       { step: 'Open the auto-generated dashboard', detail: 'Highlight business KPIs — conversion rates, error rates, latency by journey step.', dtLink: { label: 'Dashboards', url: `${TENANT_URL}/ui/apps/dynatrace.dashboards` } },
-      { step: 'Inject chaos and watch Davis', detail: 'Break something, then show Davis finding the root cause automatically.', dtLink: { label: 'Problems', url: `${TENANT_URL}/ui/apps/dynatrace.davis.problems/` } },
+      { step: 'Inject chaos and watch Dynatrace Intelligence', detail: 'Break something, then show Dynatrace Intelligence finding the root cause automatically.', dtLink: { label: 'Problems', url: `${TENANT_URL}/ui/apps/dynatrace.davis.problems/` } },
       { step: 'Auto-remediate with Fix-It', detail: 'Let AI fix the problem — emphasize speed and zero manual intervention.' },
       { step: 'Show the AppEngine app itself', detail: 'Point out this is a Dynatrace-native app — Strato components, EdgeConnect, serverless functions.' },
     ],
@@ -325,20 +325,20 @@ const PERSONAS: Persona[] = [
     audience: 'Site reliability engineers, platform teams, and on-call responders',
     focusAreas: [
       'Chaos engineering with controlled fault injection',
-      'Automatic problem detection via Davis AI',
+      'Automatic problem detection via Dynatrace Intelligence',
       'Auto-remediation and self-healing services',
       'SLO-relevant golden signals (traffic, latency, errors, saturation)',
     ],
     talkingPoints: [
       'Chaos Control lets you inject specific faults — error rates, latency spikes, timeouts — on individual services.',
-      'Every chaos injection sends a CUSTOM_DEPLOYMENT event tagged [ROOT CAUSE] so Davis correlates it instantly.',
+      'Every chaos injection sends a CUSTOM_DEPLOYMENT event tagged [ROOT CAUSE] so Dynatrace Intelligence correlates it instantly.',
       'Fix-It reads feature flags, diagnoses the issue, and applies the fix automatically — simulating a real auto-remediation workflow.',
       'The generated dashboard includes golden signals: traffic, latency, errors, and saturation — the four pillars of SRE.',
     ],
     demoFlow: [
       { step: 'Show running services', detail: 'Open Services app, show healthy baselines and service flow.', dtLink: { label: 'Services', url: `${TENANT_URL}/ui/apps/dynatrace.services` } },
       { step: 'Inject a 50% error rate', detail: 'Use Chaos Control to break a payment service. Show the fault propagating.' },
-      { step: 'Watch Davis raise a problem', detail: 'Open Problems. Show the automatic root cause analysis and the correlated deployment event.', dtLink: { label: 'Problems', url: `${TENANT_URL}/ui/apps/dynatrace.davis.problems/` } },
+      { step: 'Watch Dynatrace Intelligence raise a problem', detail: 'Open Problems. Show the automatic root cause analysis and the correlated deployment event.', dtLink: { label: 'Problems', url: `${TENANT_URL}/ui/apps/dynatrace.davis.problems/` } },
       { step: 'Auto-remediate with Fix-It', detail: 'Run Fix-It auto-diagnose. Show it reading flags, finding the issue, and disabling the fault.' },
       { step: 'Verify in Dynatrace', detail: 'Show error rates dropping, problem closing. Highlight zero human intervention.', dtLink: { label: 'Services', url: `${TENANT_URL}/ui/apps/dynatrace.services` } },
       { step: 'Show golden signals on dashboard', detail: 'Open the generated dashboard — traffic, latency, errors, saturation tiles.', dtLink: { label: 'Dashboards', url: `${TENANT_URL}/ui/apps/dynatrace.dashboards` } },
@@ -439,13 +439,13 @@ const PERSONAS: Persona[] = [
     focusAreas: [
       'End-to-end wow factor — fast, visual, interactive',
       'Business value + technical depth in one flow',
-      'Davis AI differentiation',
+      'Dynatrace Intelligence differentiation',
       'Platform extensibility story',
     ],
     talkingPoints: [
       'Start with the business angle: "In 30 seconds, we model a full customer journey with real services."',
       'Show breadth: services auto-discovered, traces flowing, dashboard generated — all from one click.',
-      'The chaos → detect → fix loop is the "wow moment". Davis finds root cause without configuration. Fix-It heals it automatically.',
+      'The chaos → detect → fix loop is the "wow moment". Dynatrace Intelligence finds root cause without configuration. Fix-It heals it automatically.',
       'Close with the platform story: this entire app is a Dynatrace extension. Customers can build apps like this themselves.',
     ],
     demoFlow: [
@@ -453,7 +453,7 @@ const PERSONAS: Persona[] = [
       { step: '2. Show services in Dynatrace (1 min)', detail: 'Open Services. Show the generated services, their dependencies, and the service flow.', dtLink: { label: 'Services', url: `${TENANT_URL}/ui/apps/dynatrace.services` } },
       { step: '3. Open the dashboard (1 min)', detail: 'Import the auto-downloaded dashboard. Walk through 2-3 key tiles: journey overview, error rates, golden signals.', dtLink: { label: 'Dashboards', url: `${TENANT_URL}/ui/apps/dynatrace.dashboards` } },
       { step: '4. Break it — inject chaos (30 sec)', detail: 'Go to Chaos Control. Enable 50% errors on the payment service. Say: "Let\'s see what happens."' },
-      { step: '5. Davis detects the problem (2 min)', detail: 'Open Problems. Davis finds the root cause → correlated deployment event → full impact analysis.', dtLink: { label: 'Problems', url: `${TENANT_URL}/ui/apps/dynatrace.davis.problems/` } },
+      { step: '5. Dynatrace Intelligence detects the problem (2 min)', detail: 'Open Problems. Dynatrace Intelligence finds the root cause → correlated deployment event → full impact analysis.', dtLink: { label: 'Problems', url: `${TENANT_URL}/ui/apps/dynatrace.davis.problems/` } },
       { step: '6. Auto-remediate with Fix-It (1 min)', detail: 'Run Fix-It. Watch it diagnose and fix. Switch to Problems — problem closing automatically.' },
       { step: '7. Show traces (optional, 1 min)', detail: 'If time allows, show distributed traces and GenAI spans for the LLM calls.', dtLink: { label: 'Distributed Traces', url: `${TENANT_URL}/ui/apps/dynatrace.distributedtracing/` } },
       { step: '8. LiveDebugger deep-dive (optional, 2 min)', detail: 'Open LiveDebugger on a service process. Set breakpoints on lines 697 (error injection), 708 (full error object), and 996 (service chain call) in dynamic-step-service.js. Capture snapshots showing injected errors, customer data, and trace context — three perspectives in one workflow.', dtLink: { label: 'LiveDebugger', url: `${TENANT_URL}/ui/apps/dynatrace.devobs.debugger/debugger` } },
