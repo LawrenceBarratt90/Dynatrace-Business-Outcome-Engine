@@ -977,8 +977,8 @@ export default async function (payload: ProxyPayload) {
             description: 'Prompt the Dynatrace Intelligence generative AI',
             predecessors: [],
           },
-          http_request_1: {
-            name: 'http_request_1',
+          call_ai_fixit_agent: {
+            name: 'call_ai_fixit_agent',
             action: 'dynatrace.automations:http-function',
             input: {
               url: `${baseUrl}/api/feature_flag`,

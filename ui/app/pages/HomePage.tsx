@@ -4388,7 +4388,7 @@ export const HomePage = () => {
                       <Strong style={{ fontSize: 13, textDecoration: isStepComplete('automation-workflow') ? 'line-through' : 'none', opacity: isStepComplete('automation-workflow') ? 0.6 : 1 }}>Fix-It Agent Workflow Deployed</Strong>
                       <div style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>Davis problem → Dynatrace Intelligence analysis → autonomous remediation via HTTP</div>
                       {isStepComplete('automation-workflow') && <div style={{ fontSize: 10, marginTop: 3, color: '#2e7d32' }}>✅ Detected — <a href={`${TENANT_URL}/ui/apps/dynatrace.automations`} target="_blank" rel="noopener noreferrer" style={{ color: '#4169e1', fontSize: 10 }}>View in Workflows →</a></div>}
-                      {!isStepComplete('automation-workflow') && <div style={{ fontSize: 10, marginTop: 3, opacity: 0.5 }}>Copy the workflow JSON → import in Dynatrace Workflows</div>}
+                      {!isStepComplete('automation-workflow') && <div style={{ fontSize: 10, marginTop: 3, opacity: 0.5 }}>Download the workflow JSON → upload in Dynatrace Workflows</div>}
                     </div>
                     {!isStepComplete('automation-workflow') ? (
                       <Flex gap={4}>
@@ -4400,13 +4400,22 @@ export const HomePage = () => {
                             });
                             const result = await res.json() as any;
                             if (result.success && result.data?.workflowTemplate) {
-                              await navigator.clipboard.writeText(JSON.stringify(result.data.workflowTemplate, null, 2));
-                              showToast('Workflow JSON copied to clipboard — paste into Workflows → Upload', 'success', 5000);
+                              const json = JSON.stringify(result.data.workflowTemplate, null, 2);
+                              const blob = new Blob([json], { type: 'application/json' });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement('a');
+                              a.href = url;
+                              a.download = 'bizobs-fix-it-agent-workflow.json';
+                              document.body.appendChild(a);
+                              a.click();
+                              document.body.removeChild(a);
+                              URL.revokeObjectURL(url);
+                              showToast('Workflow JSON downloaded — upload it in Dynatrace Workflows', 'success', 5000);
                             } else {
                               showToast('Failed to generate workflow template', 'error');
                             }
                           } catch (err: any) { showToast(err.message, 'error'); }
-                        }} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(0,161,201,0.4)', background: 'rgba(0,161,201,0.08)', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: '#00a1c9' }}>📋 Copy JSON</button>
+                        }} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(0,161,201,0.4)', background: 'rgba(0,161,201,0.08)', cursor: 'pointer', fontSize: 11, fontWeight: 600, color: '#00a1c9' }}>⬇️ Download</button>
                         <a href={`${TENANT_URL}/ui/apps/dynatrace.automations`} target="_blank" rel="noopener noreferrer" style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(65,105,225,0.3)', background: 'rgba(65,105,225,0.06)', fontSize: 11, fontWeight: 600, color: '#4169e1', textDecoration: 'none' }}>Open →</a>
                       </Flex>
                     ) : (
