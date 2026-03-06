@@ -214,12 +214,10 @@ export async function smartChaos(description: string): Promise<ChaosResult> {
 
     if (desc.includes('slow') || desc.includes('latency') || desc.includes('response time')) {
       type = 'slow_responses';
-    } else if (desc.includes('cascade') || desc.includes('waterfall') || desc.includes('progressive')) {
-      type = 'cascading_latency';
-    } else if (desc.includes('timeout') || desc.includes('dependency') || desc.includes('external') || desc.includes('hang')) {
-      type = 'dependency_timeout';
-    } else if (desc.includes('jitter') || desc.includes('intermittent') || desc.includes('flaky') || desc.includes('p99') || desc.includes('spike')) {
-      type = 'jitter';
+    } else if (desc.includes('circuit') || desc.includes('cascade')) {
+      type = 'disable_circuit_breaker';
+    } else if (desc.includes('cache')) {
+      type = 'disable_cache';
     } else if (desc.includes('rate') || desc.includes('increase')) {
       type = 'increase_error_rate';
     }

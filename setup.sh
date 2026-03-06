@@ -9,7 +9,7 @@
 #  The script will prompt you for values if setup.conf doesn't exist.
 #  Or pre-fill setup.conf and it runs non-interactively.
 # ============================================================
-set -eo pipefail
+set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CONF_FILE="$SCRIPT_DIR/setup.conf"
@@ -363,8 +363,8 @@ export DT_APP_OAUTH_CLIENT_SECRET="$DEPLOY_OAUTH_CLIENT_SECRET"
 sed -i "s|\"environmentUrl\":.*|\"environmentUrl\": \"${APPS_URL}/\",|" "$SCRIPT_DIR/app.config.json"
 ok "app.config.json updated → $APPS_URL"
 
-echo "  Building and deploying (this takes ~60 seconds)..."
-DEPLOY_OUTPUT=$(echo y | npx dt-app deploy 2>&1) || true
+echo "  Building and deploying (this takes ~30 seconds)..."
+DEPLOY_OUTPUT=$(npx dt-app deploy --non-interactive 2>&1)
 DEPLOY_EXIT=$?
 echo "$DEPLOY_OUTPUT" | tail -5
 
@@ -388,15 +388,7 @@ fi
 step "Step 6/6: Starting server"
 
 echo "  Compiling TypeScript agents..."
-if ! npx tsc --project tsconfig.json 2>&1; then
-  fail "TypeScript compilation failed. Check errors above."
-fi
-ok "TypeScript compiled → dist/"
-
-# Verify dist directory has compiled files
-if [ ! -d "$SCRIPT_DIR/dist" ] || [ -z "$(ls -A "$SCRIPT_DIR/dist" 2>/dev/null)" ]; then
-  fail "dist/ directory is empty after build. Run 'npx tsc' manually to debug."
-fi
+npm run build:agents 2>&1 | tail -1
 
 # Kill any existing server
 if [ -f "$SCRIPT_DIR/server.pid" ]; then

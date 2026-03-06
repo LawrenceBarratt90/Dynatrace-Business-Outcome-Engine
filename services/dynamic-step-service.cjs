@@ -29,12 +29,7 @@ const DEFAULT_ERROR_CONFIG = {
   errors_per_transaction: 0,    // No errors by default — Nemesis sets per-service overrides
   errors_per_visit: 0,          // No errors by default
   errors_per_minute: 0,         // No errors by default
-  regenerate_every_n_transactions: 100,  // Regenerate flags every 100 transactions
-  // ── Trace-visible chaos injection flags ──
-  response_time_ms: 0,           // Fixed latency injection (ms)
-  cascading_latency_ms: 0,       // Base latency that increases per step index
-  dependency_timeout_ms: 0,      // Simulates outbound HTTP call that times out
-  jitter_percentage: 0,          // % of requests that get random 2-10s delay
+  regenerate_every_n_transactions: 100  // Regenerate flags every 100 transactions
 };
 
 // Fetch error config from main server — passes service name for per-service targeting
@@ -598,12 +593,7 @@ function createStepService(serviceName, stepName) {
         errors_per_transaction: payload.errorConfig?.errors_per_transaction ?? globalConfig.errors_per_transaction,
         errors_per_visit: payload.errorConfig?.errors_per_visit ?? globalConfig.errors_per_visit,
         errors_per_minute: payload.errorConfig?.errors_per_minute ?? globalConfig.errors_per_minute,
-        regenerate_every_n_transactions: payload.errorConfig?.regenerate_every_n_transactions ?? globalConfig.regenerate_every_n_transactions,
-        // ── Trace-visible chaos flags ──
-        response_time_ms: globalConfig.response_time_ms || 0,
-        cascading_latency_ms: globalConfig.cascading_latency_ms || 0,
-        dependency_timeout_ms: globalConfig.dependency_timeout_ms || 0,
-        jitter_percentage: globalConfig.jitter_percentage || 0,
+        regenerate_every_n_transactions: payload.errorConfig?.regenerate_every_n_transactions ?? globalConfig.regenerate_every_n_transactions
       };
       
       // Log if global config is being used (indicates Dynatrace control)
@@ -692,92 +682,10 @@ function createStepService(serviceName, stepName) {
         } // end if (featureFlags && typeof featureFlags === 'object')
       } // end else (errors enabled)
 
-      // ═══════════════════════════════════════════════════════════════════
-      // 🔥 TRACE-VISIBLE CHAOS INJECTION
-      // These add REAL delays/failures inside the HTTP handler so Dynatrace
-      // captures them as span duration, child spans, and outbound calls.
-      // ═══════════════════════════════════════════════════════════════════
-      let chaosDelayMs = 0;
-      let chaosType = null;
-
-      // 1️⃣  RESPONSE TIME DEGRADATION — fixed delay added to every request
-      if (errorConfig.response_time_ms > 0) {
-        chaosDelayMs += errorConfig.response_time_ms;
-        chaosType = 'slow_response';
-        console.log(`🐌 [Chaos] Response time injection: +${errorConfig.response_time_ms}ms on ${properServiceName}`);
-      }
-
-      // 2️⃣  CASCADING LATENCY — delay increases with step index in the chain
-      if (errorConfig.cascading_latency_ms > 0) {
-        const stepIndex = Number(payload.stepIndex) || 0;
-        const cascadeDelay = errorConfig.cascading_latency_ms * (stepIndex + 1);
-        chaosDelayMs += cascadeDelay;
-        chaosType = chaosType ? `${chaosType}+cascading` : 'cascading_latency';
-        console.log(`📈 [Chaos] Cascading latency: step ${stepIndex} → +${cascadeDelay}ms (base=${errorConfig.cascading_latency_ms}ms) on ${properServiceName}`);
-      }
-
-      // 3️⃣  INTERMITTENT JITTER — N% of requests get a random 2-10s spike
-      if (errorConfig.jitter_percentage > 0) {
-        const roll = Math.random() * 100;
-        if (roll < errorConfig.jitter_percentage) {
-          const jitterMs = Math.floor(Math.random() * 8000) + 2000; // 2-10s
-          chaosDelayMs += jitterMs;
-          chaosType = chaosType ? `${chaosType}+jitter` : 'jitter';
-          console.log(`🎲 [Chaos] Jitter hit (${errorConfig.jitter_percentage}% chance): +${jitterMs}ms on ${properServiceName}`);
-        } else {
-          console.log(`🎲 [Chaos] Jitter miss (${roll.toFixed(0)}% > ${errorConfig.jitter_percentage}% threshold)`);
-        }
-      }
-
-      // 4️⃣  DEPENDENCY TIMEOUT — real outbound HTTP call to a blackhole that times out
-      if (errorConfig.dependency_timeout_ms > 0) {
-        chaosType = chaosType ? `${chaosType}+dep_timeout` : 'dependency_timeout';
-        const timeoutMs = errorConfig.dependency_timeout_ms;
-        console.log(`⏱️  [Chaos] Dependency timeout: making outbound call that will hang for ${timeoutMs}ms on ${properServiceName}`);
-        // Make a real HTTP request to a non-routable address — this creates a real
-        // outbound HTTP span in Dynatrace that shows as a failed external call
-        await new Promise((resolve) => {
-          const req = http.request({
-            hostname: '10.255.255.1',   // Non-routable RFC 5737 address — guaranteed to hang
-            port: 19999,
-            path: `/api/external/dependency-check?service=${encodeURIComponent(properServiceName)}`,
-            method: 'GET',
-            timeout: timeoutMs,
-            headers: {
-              'x-chaos-type': 'dependency_timeout',
-              'x-source-service': properServiceName,
-              'x-correlation-id': correlationId || 'unknown'
-            }
-          }, () => { resolve(); });
-          req.on('error', () => { resolve(); });   // Connection refused / reset — resolve
-          req.on('timeout', () => {
-            req.destroy();
-            console.log(`⏱️  [Chaos] Dependency timeout completed after ${timeoutMs}ms`);
-            resolve();
-          });
-          req.end();
-        });
-      }
-
-      // Add chaos custom attributes so Dynatrace can filter/query by chaos type
-      if (chaosType) {
-        addCustomAttributes({
-          'chaos.type': chaosType,
-          'chaos.delay_ms': chaosDelayMs,
-          'chaos.service': properServiceName,
-          'chaos.step': currentStepName,
-          'chaos.response_time_ms': errorConfig.response_time_ms,
-          'chaos.cascading_latency_ms': errorConfig.cascading_latency_ms,
-          'chaos.dependency_timeout_ms': errorConfig.dependency_timeout_ms,
-          'chaos.jitter_percentage': errorConfig.jitter_percentage,
-        });
-      }
-
-      // Simulate processing with realistic timing (add delay if error, add chaos delay)
-      const baseProcessingTime = errorInjected ? 
+      // Simulate processing with realistic timing (add delay if error)
+      const processingTime = errorInjected ? 
         Math.floor(Math.random() * 2000) + 3000 : // 3-5s for errors
         Math.floor(Math.random() * 200) + 100;    // 100-300ms normal
-      const processingTime = baseProcessingTime + chaosDelayMs;
 
       // 🚨 If error injected by feature flag, record a REAL exception on the OTel span
       // so Dynatrace captures span.events[].exception.* for DQL queries

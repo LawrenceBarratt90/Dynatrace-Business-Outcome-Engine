@@ -666,12 +666,7 @@ const DEFAULT_FEATURE_FLAGS = {
   errors_per_transaction: 0,
   errors_per_visit: 0,
   errors_per_minute: 0,
-  regenerate_every_n_transactions: 100,
-  // ── Trace-visible chaos injection flags ──
-  response_time_ms: 0,           // Fixed latency injection (ms) — adds real delay inside handler
-  cascading_latency_ms: 0,       // Base latency that increases per step index in the chain
-  dependency_timeout_ms: 0,      // Simulates outbound HTTP call that hangs then times out
-  jitter_percentage: 0,          // % of requests that get random 2-10s delay (0-100)
+  regenerate_every_n_transactions: 100
 };
 
 // Current feature flag values (starts as copy of defaults)

@@ -342,20 +342,20 @@ function ruleDiagnose(
     });
   }
 
-  // Check for any active chaos injection and revert it
-  if (title.toLowerCase().includes('slow') || title.toLowerCase().includes('latency') || title.toLowerCase().includes('timeout')) {
+  // Cache disabled
+  if (!cacheEnabled) {
     fixes.push({
-      fixType: 'revert_all_chaos', target: 'all_chaos_flags',
-      reasoning: 'Active chaos injection detected (latency/timeout) — reverting all chaos flags.',
+      fixType: 'enable_cache', target: 'cacheEnabled',
+      reasoning: 'Cache is disabled — re-enabling to improve performance.',
       risk: 'low',
     });
   }
 
-  // Cascading failures — revert all chaos
-  if (title.toLowerCase().includes('cascade')) {
+  // Circuit breaker disabled during cascading failures
+  if (!cbEnabled && title.toLowerCase().includes('cascade')) {
     fixes.push({
-      fixType: 'revert_all_chaos', target: 'all_chaos_flags',
-      reasoning: 'Cascading failure — reverting all chaos injection to contain damage.',
+      fixType: 'enable_circuit_breaker', target: 'circuitBreakerEnabled',
+      reasoning: 'Circuit breaker off during cascading failure — enabling to contain damage.',
       risk: 'low',
     });
   }

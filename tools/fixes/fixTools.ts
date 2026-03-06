@@ -17,8 +17,8 @@ export type FixType =
   | 'disable_errors'
   | 'reset_feature_flags'
   | 'reduce_error_rate'
-  | 'revert_slow_responses'
-  | 'revert_all_chaos'
+  | 'enable_circuit_breaker'
+  | 'enable_cache'
   | 'disable_slow_responses'
   | 'send_dt_event';
 
@@ -117,31 +117,29 @@ async function resetFeatureFlags(params: FixParams): Promise<FixResult> {
   log.info(`🔧 Resetting all feature flags to defaults`, { fixId: id });
 
   try {
-    // Reset System B flags (errors_per_transaction, chaos injection, etc.)
+    // Reset System B flags (errors_per_transaction, etc.)
     await callFeatureFlagAPI('POST', '/api/feature_flag', {
       flags: {
         errors_per_transaction: 0.1,
         errors_per_visit: 0.001,
         errors_per_minute: 0.5,
         regenerate_every_n_transactions: 100,
-        response_time_ms: 0,
-        cascading_latency_ms: 0,
-        dependency_timeout_ms: 0,
-        jitter_percentage: 0,
       },
     });
 
     // Reset System A flags via remediation (sends DT events)
     await callRemediationAPI('errorInjectionEnabled', true, 'Fix-It: reset to defaults', problemId);
     await callRemediationAPI('slowResponsesEnabled', true, 'Fix-It: reset to defaults', problemId);
+    await callRemediationAPI('circuitBreakerEnabled', false, 'Fix-It: reset to defaults', problemId);
+    await callRemediationAPI('cacheEnabled', true, 'Fix-It: reset to defaults', problemId);
 
     return {
       fixId: id, type: 'reset_feature_flags', target: 'all',
-      success: true, message: 'All feature flags and chaos injection reset to defaults',
+      success: true, message: 'All feature flags reset to default values',
       executedAt: new Date().toISOString(),
       details: {
-        systemA: { errorInjectionEnabled: true, slowResponsesEnabled: true },
-        systemB: { errors_per_transaction: 0.1, errors_per_visit: 0.001, errors_per_minute: 0.5, response_time_ms: 0, cascading_latency_ms: 0, dependency_timeout_ms: 0, jitter_percentage: 0 },
+        systemA: { errorInjectionEnabled: true, slowResponsesEnabled: true, circuitBreakerEnabled: false, cacheEnabled: true },
+        systemB: { errors_per_transaction: 0.1, errors_per_visit: 0.001, errors_per_minute: 0.5 },
       },
     };
   } catch (err) {
@@ -183,21 +181,19 @@ async function reduceErrorRate(params: FixParams): Promise<FixResult> {
 
 async function enableCircuitBreaker(params: FixParams): Promise<FixResult> {
   const id = nextFixId();
-  log.info(`🔧 Reverting slow response injection`, { fixId: id });
+  const problemId = params.details?.problemId as string | undefined;
+  log.info(`🔧 Enabling circuit breaker`, { fixId: id });
 
   try {
-    // Zero out response_time_ms via System B
-    await callFeatureFlagAPI('POST', '/api/feature_flag', {
-      flags: { response_time_ms: 0 },
-    });
+    await callRemediationAPI('circuitBreakerEnabled', true, 'Fix-It: enabling circuit breaker', problemId);
     return {
-      fixId: id, type: 'revert_slow_responses', target: 'response_time_ms',
-      success: true, message: 'Slow response injection reverted — response_time_ms set to 0',
+      fixId: id, type: 'enable_circuit_breaker', target: 'circuitBreakerEnabled',
+      success: true, message: 'Circuit breaker enabled — errors will be caught',
       executedAt: new Date().toISOString(), details: {},
     };
   } catch (err) {
     return {
-      fixId: id, type: 'revert_slow_responses', target: 'response_time_ms',
+      fixId: id, type: 'enable_circuit_breaker', target: 'circuitBreakerEnabled',
       success: false, message: `Failed: ${String(err)}`,
       executedAt: new Date().toISOString(), details: { error: String(err) },
     };
@@ -206,27 +202,19 @@ async function enableCircuitBreaker(params: FixParams): Promise<FixResult> {
 
 async function enableCache(params: FixParams): Promise<FixResult> {
   const id = nextFixId();
-  log.info(`🔧 Reverting all chaos injection flags`, { fixId: id });
+  const problemId = params.details?.problemId as string | undefined;
+  log.info(`🔧 Enabling cache`, { fixId: id });
 
   try {
-    // Zero out ALL chaos injection flags via System B
-    await callFeatureFlagAPI('POST', '/api/feature_flag', {
-      flags: {
-        response_time_ms: 0,
-        cascading_latency_ms: 0,
-        dependency_timeout_ms: 0,
-        jitter_percentage: 0,
-        errors_per_transaction: 0,
-      },
-    });
+    await callRemediationAPI('cacheEnabled', true, 'Fix-It: enabling cache', problemId);
     return {
-      fixId: id, type: 'revert_all_chaos', target: 'all_chaos_flags',
-      success: true, message: 'All chaos injection reverted — latency, jitter, timeouts, and errors zeroed',
+      fixId: id, type: 'enable_cache', target: 'cacheEnabled',
+      success: true, message: 'Cache enabled — response times should improve',
       executedAt: new Date().toISOString(), details: {},
     };
   } catch (err) {
     return {
-      fixId: id, type: 'revert_all_chaos', target: 'all_chaos_flags',
+      fixId: id, type: 'enable_cache', target: 'cacheEnabled',
       success: false, message: `Failed: ${String(err)}`,
       executedAt: new Date().toISOString(), details: { error: String(err) },
     };
@@ -240,10 +228,6 @@ async function disableSlowResponses(params: FixParams): Promise<FixResult> {
 
   try {
     await callRemediationAPI('slowResponsesEnabled', false, 'Fix-It: disabling slow responses', problemId);
-    // Also zero out the trace-visible response_time_ms flag
-    await callFeatureFlagAPI('POST', '/api/feature_flag', {
-      flags: { response_time_ms: 0 },
-    });
     return {
       fixId: id, type: 'disable_slow_responses', target: 'slowResponsesEnabled',
       success: true, message: 'Slow responses disabled — latency should normalize',
@@ -297,8 +281,8 @@ export const fixTools: Record<FixType, (params: FixParams) => Promise<FixResult>
   disable_errors: disableErrors,
   reset_feature_flags: resetFeatureFlags,
   reduce_error_rate: reduceErrorRate,
-  revert_slow_responses: enableCircuitBreaker,
-  revert_all_chaos: enableCache,
+  enable_circuit_breaker: enableCircuitBreaker,
+  enable_cache: enableCache,
   disable_slow_responses: disableSlowResponses,
   send_dt_event: sendDtEvent,
 };
@@ -308,8 +292,8 @@ export function getFixList(): { type: FixType; description: string }[] {
     { type: 'disable_errors', description: 'Disable error injection and set error rate to 0 (full remediation)' },
     { type: 'reset_feature_flags', description: 'Reset all feature flags to default values' },
     { type: 'reduce_error_rate', description: 'Reduce errors_per_transaction to a low value' },
-    { type: 'revert_slow_responses', description: 'Revert slow response injection (set response_time_ms to 0)' },
-    { type: 'revert_all_chaos', description: 'Revert ALL chaos injection — zeroes latency, jitter, timeouts, and errors' },
+    { type: 'enable_circuit_breaker', description: 'Enable the circuit breaker to stop error cascading' },
+    { type: 'enable_cache', description: 'Re-enable caching to improve response times' },
     { type: 'disable_slow_responses', description: 'Turn off slow response simulation' },
     { type: 'send_dt_event', description: 'Send a custom event to Dynatrace for the deployment timeline' },
   ];
@@ -350,7 +334,7 @@ export const fixToolDefs = [
     type: 'function' as const,
     function: {
       name: 'enableCircuitBreaker',
-      description: 'Revert slow response injection — sets response_time_ms to 0.',
+      description: 'Enable the circuit breaker to prevent error cascading across services.',
       parameters: { type: 'object', properties: { problemId: { type: 'string', description: 'Dynatrace problem ID' } } },
     },
   },
@@ -358,7 +342,7 @@ export const fixToolDefs = [
     type: 'function' as const,
     function: {
       name: 'enableCache',
-      description: 'Revert ALL chaos injection — zeroes response_time_ms, cascading_latency_ms, dependency_timeout_ms, jitter_percentage, and errors.',
+      description: 'Re-enable caching to improve response times and reduce backend load.',
       parameters: { type: 'object', properties: {} },
     },
   },
@@ -405,9 +389,9 @@ export async function executeFixTool(
     case 'reduceErrorRate':
       return JSON.stringify(await fixTools.reduce_error_rate(params));
     case 'enableCircuitBreaker':
-      return JSON.stringify(await fixTools.revert_slow_responses(params));
+      return JSON.stringify(await fixTools.enable_circuit_breaker(params));
     case 'enableCache':
-      return JSON.stringify(await fixTools.revert_all_chaos(params));
+      return JSON.stringify(await fixTools.enable_cache(params));
     case 'disableSlowResponses':
       return JSON.stringify(await fixTools.disable_slow_responses(params));
     case 'sendDtEvent':

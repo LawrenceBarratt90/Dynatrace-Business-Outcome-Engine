@@ -23,11 +23,11 @@ The Engine runs on your host (EC2, VM, Codespace). The Forge UI runs inside Dyna
 ┌──────────────────────────────────────────────────────────────────┐
 │                    Dynatrace Platform                            │
 │                                                                  │
-│  ┌──────────────────────────┐   ┌───────────────────────────┐   │
-│  │  Business Observability  │   │  Services / BizEvents /   │   │
-│  │  Forge UI (AppEngine)    │   │  Dashboards / Problems    │   │
-│  └──────────┬───────────────┘   └───────────────────────────┘   │
-│             │ EdgeConnect Tunnel                  ▲               │
+│  ┌──────────────────────────┐   ┌───────────────────────────┐    │
+│  │  Business Observability  │   │  Services / BizEvents /   │    │
+│  │  Forge UI (AppEngine)    │   │  Dashboards / Problems    │    │
+│  └──────────┬───────────────┘   └───────────────────────────┘    │
+│             │ EdgeConnect Tunnel                  ▲              │
 │             │ (HTTPS → port 8080)                 │ OneAgent +   │
 │             │                                     │ OTLP         │
 └─────────────┼─────────────────────────────────────┼──────────────┘
@@ -36,31 +36,31 @@ The Engine runs on your host (EC2, VM, Codespace). The Forge UI runs inside Dyna
 ┌──────────────────────────────────────────────────────────────────┐
 │  Your Host (EC2 / VM / Codespace)                                │
 │                                                                  │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  Main Server (port 8080) — Express.js + Socket.IO        │   │
-│  │  ├── 18 API route modules (75+ endpoints)                │   │
-│  │  ├── AI Agents: Nemesis (chaos), Fix-It (remediation),   │   │
-│  │  │              Librarian (memory), Dashboard (deploy)    │   │
-│  │  ├── Feature Flag Manager (per-service isolation)        │   │
-│  │  ├── Journey Simulation Engine                           │   │
-│  │  └── Dynatrace Event Ingestion + DT API Proxy           │   │
-│  └──────────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │  Main Server (port 8080) — Express.js + Socket.IO        │    │
+│  │  ├── 18 API route modules (75+ endpoints)                │    │
+│  │  ├── AI Agents: Nemesis (chaos), Fix-It (remediation),   │    │
+│  │  │              Librarian (memory), Dashboard (deploy)   │    │
+│  │  ├── Feature Flag Manager (per-service isolation)        │    │
+│  │  ├── Journey Simulation Engine                           │    │
+│  │  └── Dynatrace Event Ingestion + DT API Proxy            │    │
+│  └──────────────────────────────────────────────────────────┘    │
 │                          │                                       │
-│              spawns child processes                               │
+│              spawns child processes                              │
 │                          ▼                                       │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │  Dynamic Child Services (ports 8081–8200)                │   │
-│  │  Each = separate Node.js process with:                   │   │
-│  │  ├── Own Express server + /health endpoint               │   │
-│  │  ├── Dynatrace OneAgent identity (unique DT_TAGS)        │   │
-│  │  ├── Per-service feature flags from main server          │   │
-│  │  └── Service-to-service call chaining                    │   │
-│  └──────────────────────────────────────────────────────────┘   │
+│  ┌──────────────────────────────────────────────────────────┐    │
+│  │  Dynamic Child Services (ports 8081–8200)                │    │
+│  │  Each = separate Node.js process with:                   │    │
+│  │  ├── Own Express server + /health endpoint               │    │
+│  │  ├── Dynatrace OneAgent identity (unique DT_TAGS)        │    │
+│  │  ├── Per-service feature flags from main server          │    │
+│  │  └── Service-to-service call chaining                    │    │
+│  └──────────────────────────────────────────────────────────┘    │
 │                                                                  │
-│  ┌────────────────┐  ┌───────────┐  ┌────────────────────┐     │
-│  │  EdgeConnect    │  │  OneAgent  │  │  Ollama (LLM)     │     │
-│  │  (tunnel)       │  │           │  │  llama3.2          │     │
-│  └────────────────┘  └───────────┘  └────────────────────┘     │
+│  ┌────────────────┐  ┌───────────┐  ┌────────────────────┐       │
+│  │  EdgeConnect   │  │  OneAgent │  │  Ollama (LLM)      │       │
+│  │  (tunnel)      │  │           │  │  llama3.2          │       │
+│  └────────────────┘  └───────────┘  └────────────────────┘       │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -79,7 +79,7 @@ Before you start, make sure you have **all of these** ready:
 | 5 | **Node.js** | v22+ | Server runtime | `node --version` → should show v22.x+ |
 | 6 | **Docker** | Latest | Runs EdgeConnect | `docker --version` |
 | 7 | **Dynatrace OneAgent** | Latest | Auto-instruments every child service | `sudo systemctl status oneagent` or check Hosts in DT UI |
-| 8 | **Ollama** (optional) | Latest | Powers AI agents (Nemesis, Fix-It, Librarian) | `ollama list` → should show `llama3.2` |
+| 8 | **Ollama** | Latest | Powers AI agents (Nemesis, Fix-It, Librarian) | `ollama list` → should show `llama3.2` |
 
 > **Don't have a Dynatrace API Token yet?** Stop here and create one. Nothing will work without it.
 
@@ -122,7 +122,7 @@ You need **2–3 credentials** — an API Token, an EdgeConnect OAuth Client, an
 |---|-----------|------|----------------|---------------|
 | A | **API Token** | `dt0c01.*` | Dynatrace tenant → Settings → Access Tokens | The **Engine server** uses this to send events/metrics to Dynatrace |
 | B | **EdgeConnect OAuth** | `dt0s10.*` or `dt0s02.*` | Dynatrace tenant → Settings → General → External Requests → EdgeConnect | **EdgeConnect** (tunnel). Can also be used for deploy if you add the right scopes. |
-| C | **Deploy OAuth** *(optional)* | `dt0s10.*` or `dt0s02.*` | Same as B (with added scopes), or a separate client from Account Management → IAM → OAuth clients | **`dt-app deploy`** (app deployment to Dynatrace AppEngine) |
+| C | **Deploy OAuth**  | `dt0s10.*` or `dt0s02.*` | Separate client from Account Management → IAM → OAuth clients | **`dt-app deploy`** (app deployment to Dynatrace AppEngine) |
 
 > **Simplest setup:** Use **one OAuth client** (B) for both EdgeConnect and deploy by adding deploy scopes to it. `setup.sh` will ask if you want to use the same or a different client.
 
@@ -140,7 +140,8 @@ You need **2–3 credentials** — an API Token, an EdgeConnect OAuth Client, an
    - `openTelemetryTrace.ingest`
    - `entities.read`
 5. Click **Generate** → **copy the token** (you can't see it again)
-> 📸 **Screenshot: Access Tokens Page** — *Dynatrace Settings → Access Tokens → Generate new token dialog, with the 4 required scopes (events.ingest, metrics.ingest, openTelemetryTrace.ingest, entities.read) checked. Show the token name "BizObs Engine" in the name field.*
+> 📸 **Screenshot: Access Tokens Page** 
+![Step 2 – Access Tokens](Screenshots/Step2-AccessTokens.png)
 > **You don't need to save this to a file.** `setup.sh` will ask for this token and create `.dt-credentials.json` automatically.
 
 ---
@@ -160,17 +161,23 @@ This client is used for the EdgeConnect tunnel. Depending on your tenant, it may
    - **OAuth client resource**: `urn:dtenvironment:YOUR_TENANT_ID`
 6. **Click "Download edgeConnect.yaml"** — this gives you a pre-filled YAML with all the values
 
-> 📸 **Screenshot: EdgeConnect Setup Page** — *Dynatrace Settings → General → External Requests showing the EdgeConnect entry named "bizobs-forge" with status indicator. Below it, the OAuth credentials panel showing client_id (dt0s10.* or dt0s02.*), the resource URN, and the "Download edgeConnect.yaml" button.*
+![Step 6 – EdgeConnect](Screenshots/edgeconnect-setup.png)
+![Step 6 – EdgeConnect](Screenshots/edgeconnect-secure.png)
+
 
 > **Important:** The client secret is only shown once. Copy it or download the YAML immediately.
 
 **Optionally, make this same client work for deploy too:**
 1. Go to **Account Management** → **Identity & Access Management** → **OAuth clients**
-2. Find the client you just created
-3. Edit it and **add these scopes**:
+2. Click **Create Client**
+3. Input your **email address** and the description **Business Observability Forge App Install**
+4. **Add these scopes**:
    - `app-engine:apps:install` (required to deploy the app)
    - `app-engine:apps:run` (required to run the app)
-4. Save
+5. Save
+![Step 6 – AppEngine](Screenshots/oAuth-appengine.png)
+![Step 6 – AppEngine](Screenshots/oAuth-appengine-final.png)
+
 
 > **If you can't add deploy scopes** (e.g. the client type doesn't allow it), use a separate account-level OAuth client for deploy. `setup.sh` will ask at prompt 6/6.
 
@@ -242,12 +249,12 @@ Open the Forge app in Dynatrace (**Apps → Business Observability Forge**).
 | Field | Value | Example |
 |-------|-------|---------|
 | Protocol | `HTTP` | (not HTTPS — the server runs plain HTTP) |
-| Host / IP Address | Your **private IP** | `172.31.37.182` |
+| Host / IP Address | Your **private IP** | `***.**.**.**` |
 | Port | `8080` | |
 
 Click **Save**, then click **Test**.
 
-> 📸 **Screenshot: Forge UI Settings → Config Tab** — *The Settings page Config tab showing: Protocol dropdown set to "HTTP", Host/IP field with a private IP like "172.31.37.182", Port field with "8080", and the Save + Test buttons. Ideally show a green "Connection successful" toast after testing.*
+![For Ui - Settings](Screenshots/forge_ui-settings.png)
 
 > **If the test fails:**
 > - Make sure the Engine server is running (Step 5)
@@ -279,7 +286,8 @@ This is a checklist that auto-detects your setup and lets you deploy Dynatrace c
 | **OneAgent Feature Flags** | Enables required OneAgent feature flags | Click **Deploy** |
 
 Work through from top to bottom. Each green checkmark means that step is configured correctly.
-> 📸 **Screenshot: Get Started Checklist** — *The Settings → Get Started tab showing all 10 checklist items with green checkmarks. Highlight the one-click "Deploy" buttons next to OpenPipeline Pipeline, Routing, Capture Rule, and Feature Flags steps. This is the "everything is ready" state.*
+![For Ui - Settings](Screenshots/getting-started-checklist.png)
+
 **Once all steps are green, you're ready.** Go to the **Home** tab, pick a template from the Template Library, and click **Run** to launch your first journey simulation.
 
 ---
@@ -330,7 +338,8 @@ Work through from top to bottom. Each green checkmark means that step is configu
 
 Each template includes: company name, domain, industry type, journey steps with substeps, business metadata (revenue, category, KPIs), and customer profiles.
 
-> 📸 **Screenshot: Template Library Detail** — *The Home page with the Template Library sidebar open on the left, showing template cards grouped by industry. In the main panel, a selected template (e.g. Healthcare — Patient Care Journey) with its journey steps listed: PatientRegistration → TriageAndAssessment → ClinicalConsultation → Treatment → DischargeAndFollowUp.*
+![For Ui - Settings](Screenshots/template-library.png)
+
 
 ### Per-Service Chaos Injection
 

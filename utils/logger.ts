@@ -42,7 +42,7 @@ const COLORS: Record<LogLevel, string> = {
 };
 const RESET = '\x1b[0m';
 const AGENT_ICONS: Record<AgentName, string> = {
-  nemesis: '👹',
+  nemesis: '👹',,
   fixit: '🔧',
   librarian: '📚',
   system: '⚙️',

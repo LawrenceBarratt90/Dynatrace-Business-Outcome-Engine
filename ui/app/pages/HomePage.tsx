@@ -3638,10 +3638,9 @@ export const HomePage = () => {
                         >
                           <option value="enable_errors">🔴 Enable Errors — Turn on error injection</option>
                           <option value="increase_error_rate">📈 Increase Error Rate — Raise error rate</option>
-                          <option value="slow_responses">🐌 Slow Responses — Add real latency to spans</option>
-                          <option value="cascading_latency">📈 Cascading Latency — Progressive waterfall slowdown</option>
-                          <option value="dependency_timeout">⏱️ Dependency Timeout — Outbound call hangs</option>
-                          <option value="jitter">🎲 Intermittent Jitter — Random p99 spikes</option>
+                          <option value="slow_responses">🐌 Slow Responses — Add latency</option>
+                          <option value="disable_circuit_breaker">💥 Disable Circuit Breaker — Remove protection</option>
+                          <option value="disable_cache">🗑️ Disable Cache — Increase load</option>
                           <option value="target_company">🏢 Target Company — Focus on specific company</option>
                           <option value="custom_flag">🏴 Custom Flag — Set any feature flag</option>
                         </select>
