@@ -122,7 +122,7 @@ You need **2–3 credentials** — an API Token, an EdgeConnect OAuth Client, an
 |---|-----------|------|----------------|---------------|
 | A | **API Token** | `dt0c01.*` | Dynatrace tenant → Settings → Access Tokens | The **Engine server** uses this to send events/metrics to Dynatrace |
 | B | **EdgeConnect OAuth** | `dt0s10.*` or `dt0s02.*` | Dynatrace tenant → Settings → General → External Requests → EdgeConnect | **EdgeConnect** (tunnel). Can also be used for deploy if you add the right scopes. |
-| C | **Deploy OAuth** *(optional)* | `dt0s10.*` or `dt0s02.*` | Same as B (with added scopes), or a separate client from Account Management → IAM → OAuth clients | **`dt-app deploy`** (app deployment to Dynatrace AppEngine) |
+| C | **Deploy OAuth**  | `dt0s10.*` or `dt0s02.*` | Separate client from Account Management → IAM → OAuth clients | **`dt-app deploy`** (app deployment to Dynatrace AppEngine) |
 
 > **Simplest setup:** Use **one OAuth client** (B) for both EdgeConnect and deploy by adding deploy scopes to it. `setup.sh` will ask if you want to use the same or a different client.
 
