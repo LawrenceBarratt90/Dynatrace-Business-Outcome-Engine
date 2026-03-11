@@ -723,6 +723,9 @@
                     <button onclick="queryDynatraceData()" class="bg-dtblue hover:bg-dtcyan text-white hover:text-black font-bold rounded-lg px-4 py-3 shadow-card transition-all text-sm">
                       ✅ Verify Data Ingestion
                     </button>
+                    <button onclick="window._agentDashDownloadPDF()" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-lg px-4 py-3 shadow-card transition-all text-sm">
+                      📄 Download Executive Summary (PDF)
+                    </button>
                   </div>
                   <div id="dynatrace-status" class="mt-3 p-3 bg-black bg-opacity-50 rounded text-xs font-mono text-gray-400">
                     Ready to deploy Dynatrace dashboards...
@@ -1108,6 +1111,9 @@
                   <div class="border-t border-dtborder pt-4 space-y-3">
                     <button onclick="window._agentDashDeploy()" class="w-full bg-dtgreen text-black px-4 py-3 rounded-lg text-sm font-bold hover:bg-dtcyan transition-all shadow-card">
                       🚀 Deploy to Dynatrace
+                    </button>
+                    <button onclick="window._agentDashDownloadPDF()" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-4 py-3 rounded-lg text-sm font-bold transition-all shadow-card">
+                      📄 Download Executive Summary (PDF)
                     </button>
                     <button onclick="window._agentDashDownload()" class="w-full bg-dtgray text-white px-4 py-2 rounded-lg text-xs font-medium hover:bg-dtpurple transition-all border border-dtborder">
                       💾 Download JSON
@@ -10518,6 +10524,70 @@ Return the response in JSON code format that can be copied from this UI
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
+      };
+
+      window._agentDashDownloadPDF = async function() {
+        // Gather journey data (same logic as _agentDashGenerate)
+        var cjd = window.currentJourneyData;
+        var lj = window.lastJourney;
+        var journey = null;
+
+        if (cjd && cjd.journey && cjd.journey.steps && cjd.journey.steps.length > 0) {
+          journey = cjd.journey;
+        } else if (cjd && cjd.steps && cjd.steps.length > 0) {
+          journey = cjd;
+        } else if (lj && lj.steps && lj.steps.length > 0) {
+          journey = lj;
+        }
+
+        if (!journey || !journey.steps || journey.steps.length === 0) {
+          return alert('No journey loaded. Please generate or load a journey first (Step 2).');
+        }
+
+        var companyName = journey.companyName || journey.company || 'Customer';
+        showResult('dashboard-result', '⏳ Generating executive summary PDF for ' + companyName + '...');
+
+        try {
+          var response = await fetch('/api/pdf/executive-summary', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              journeyData: {
+                companyName: companyName,
+                company: companyName,
+                industryType: journey.industryType || journey.industry || 'Enterprise',
+                journeyType: journey.journeyType || journey.journeyDetail || 'Customer Journey',
+                steps: journey.steps
+              },
+              dashboardData: _lastGeneratedDashboard || {}
+            })
+          });
+
+          if (!response.ok) {
+            var errData = await response.json().catch(function() { return { error: response.statusText }; });
+            throw new Error(errData.error || 'PDF generation failed');
+          }
+
+          var blob = await response.blob();
+          var url = URL.createObjectURL(blob);
+          var a = document.createElement('a');
+          a.href = url;
+          a.download = companyName.replace(/\s+/g, '-') + '-BizObs-Summary.pdf';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+
+          showResult('dashboard-result', '✅ Executive summary PDF downloaded!\n📄 ' + companyName + '-BizObs-Summary.pdf\n\n💡 Share this one-pager with stakeholders to show what Dynatrace Business Observability delivers.');
+
+          var previewEl = document.getElementById('dashboard-preview');
+          if (previewEl) {
+            var existing = previewEl.innerHTML;
+            previewEl.innerHTML = existing + '<p class="text-dtcyan text-xs mt-2 font-semibold">📄 Executive Summary PDF downloaded</p>';
+          }
+        } catch (e) {
+          showResult('dashboard-result', '❌ PDF generation failed: ' + e.message);
+        }
       };
 
       window._agentDashHealth = async function() {

@@ -36,6 +36,7 @@ import loadrunnerServiceRouter from './routes/loadrunner-service.js';
 import oauthRouter from './routes/oauth.js';
 import aiDashboardRouter from './routes/ai-dashboard.js';
 import businessFlowRouter from './routes/business-flow.js';
+import pdfExportRouter from './routes/pdf-export.js';
 // AI Agent Routes (compiled from TypeScript in dist/)
 import nemesisRouter from './dist/routes/gremlin.js';
 import fixitRouter from './dist/routes/fixit.js';
@@ -653,6 +654,7 @@ app.use('/api/loadrunner-service', loadrunnerServiceRouter);
 app.use('/api/oauth', oauthRouter);
 app.use('/api/ai-dashboard', aiDashboardRouter);
 app.use('/api/business-flow', businessFlowRouter);
+app.use('/api/pdf', pdfExportRouter);
 // AI Agent Routes
 app.use('/api/gremlin', nemesisRouter.default || nemesisRouter);
 app.use('/api/fixit', fixitRouter.default || fixitRouter);
