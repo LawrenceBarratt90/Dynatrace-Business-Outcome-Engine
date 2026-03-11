@@ -499,6 +499,84 @@ Welcome Tab → Step 1: Company Details → Step 2: Generate Prompts → Step 3:
 
 ---
 
+## Full Removal & Reinstall
+
+To completely remove the Forge from a host and start fresh, use the included `uninstall.sh` script.
+
+### Uninstall (keep Ollama)
+
+```bash
+cd /home/ec2-user/Dynatrace-Business-Observability-Forge
+bash uninstall.sh
+```
+
+### Uninstall (remove everything including Ollama)
+
+```bash
+cd /home/ec2-user/Dynatrace-Business-Observability-Forge
+bash uninstall.sh --all
+```
+
+### What the uninstall does
+
+| Step | Action |
+|------|--------|
+| 1 | Stops the BizObs server (PID file + process kill) |
+| 2 | Stops & removes the EdgeConnect Docker container and image |
+| 3 | Removes the log-cleanup cron job |
+| 4 | *(Optional with `--all`)* Stops & removes Ollama and its models |
+| 5 | Deletes the entire project directory |
+
+### Reinstall from Git
+
+After uninstalling, clone and run setup:
+
+```bash
+cd /home/ec2-user
+git clone https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge.git
+cd Dynatrace-Business-Observability-Forge
+./setup.sh
+```
+
+The `setup.sh` script will prompt for your Dynatrace credentials and handle everything: Node.js, npm install, EdgeConnect, AppEngine deploy, and server startup.
+
+> **Tip:** If you saved a `setup.conf` previously, copy it into the new clone before running `setup.sh` to skip credential prompts.
+
+---
+
+## Log Housekeeping
+
+The Forge includes automatic log rotation to prevent disk fills.
+
+### Manual cleanup
+
+```bash
+bash scripts/log-cleanup.sh
+```
+
+### Install daily cron (runs at 3 AM)
+
+```bash
+bash scripts/log-cleanup.sh --install
+```
+
+### Remove the cron job
+
+```bash
+bash scripts/log-cleanup.sh --uninstall
+```
+
+### What it cleans
+
+| Target | Action |
+|--------|--------|
+| `logs/server.log` | Rotated when >50MB, keeps 3 compressed backups |
+| Root `server.log` | Removed (legacy path, should not exist) |
+| `dist/logs/agents.log` | Truncated when >50MB |
+| `~/.npm/_logs/` | Debug logs older than 7 days deleted |
+
+---
+
 ## Tech Stack Summary
 
 | Layer | Technology |
