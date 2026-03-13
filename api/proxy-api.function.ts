@@ -133,7 +133,7 @@ export default async function (payload: ProxyPayload) {
     if (action === 'get-services') {
       const healthRes = await fetchWithRetry(`${baseUrl}/api/health`, {
         method: 'GET',
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(30000),
       });
       const data = await healthRes.json();
       return { success: true, status: healthRes.status, data };

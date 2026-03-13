@@ -346,7 +346,7 @@ export const HomePage = () => {
         setSavedTemplates(initialTemplates);
         localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(initialTemplates));
         console.log(`✅ Loaded ${initialTemplates.length} initial templates`);
-        console.log('[BizObs] App version: v1.3.8');
+        console.log('[BizObs] App version: v1.3.9');
       }
     } catch (error) {
       console.error('Error loading templates:', error);
@@ -4487,7 +4487,7 @@ export const HomePage = () => {
           </button>
         </div>
       )}
-      <div style={{ position: 'fixed', bottom: 4, right: 8, fontSize: 9, color: 'rgba(255,255,255,0.18)', zIndex: 1, pointerEvents: 'none', fontFamily: 'monospace' }}>v1.3.8</div>
+      <div style={{ position: 'fixed', bottom: 4, right: 8, fontSize: 9, color: 'rgba(255,255,255,0.18)', zIndex: 1, pointerEvents: 'none', fontFamily: 'monospace' }}>v1.3.9</div>
     </Page>
   );
 };
