@@ -1,7 +1,7 @@
 # Business Observability Forge
 
 <p align="center">
-  <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge" alt="QR code linking to the Business Observability Forge repository on GitHub" />
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/LawrenceBarratt90/Business-Observablity-forge" alt="QR code linking to the Business Observability Forge repository on GitHub" />
 </p>
 
 Model any customer’s real business journey — their exact checkout flow, claims process, or patient care pathway — and turn it into a live, fully instrumented simulation inside Dynatrace. Describe the journey in plain language (or use AI to research it), and the Forge generates real microservices, realistic traffic, business events with revenue metadata, and executive dashboards — all wired into Dynatrace OneAgent, BizEvents, and Dynatrace Intelligence.
@@ -45,7 +45,7 @@ Model any customer’s real business journey — their exact checkout flow, clai
 ### One Command
 
 ```bash
-git clone https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge.git && cd Dynatrace-Business-Observability-Forge && ./setup.sh
+git clone https://github.com/LawrenceBarratt90/Business-Observablity-forge.git && cd Business-Observablity-forge && ./setup.sh
 ```
 
 The script walks you through 6 guided prompts (environment type, tenant ID, API token, EdgeConnect OAuth, and deploy OAuth), then automatically:
@@ -68,8 +68,8 @@ The script walks you through 6 guided prompts (environment type, tenant ID, API 
 ### Phase 1 — Pull
 
 ```bash
-git clone https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge.git
-cd Dynatrace-Business-Observability-Forge
+git clone https://github.com/LawrenceBarratt90/Business-Observablity-forge.git
+cd Business-Observablity-forge
 npm install
 ```
 

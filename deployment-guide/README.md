@@ -246,7 +246,7 @@ ollama pull llama3.2
 
 ```bash
 cd /home/ec2-user   # or your preferred directory
-git clone https://github.com/lawrobar90/Dynatrace-AI-Business-Observability-Engine.git "Business Observability Forge"
+git clone https://github.com/LawrenceBarratt90/Business-Observablity-forge.git "Business-Observablity-forge"
 cd "Business Observability Forge"
 
 # Install dependencies (the repo does NOT include node_modules — this is required)

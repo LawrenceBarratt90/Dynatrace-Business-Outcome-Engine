@@ -108,4 +108,4 @@ That's exactly what it's built for.
 
 ---
 
-*[Technical Guide](TECHNICAL-GUIDE.md) · [GitHub Repository](https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge)*
+*[Technical Guide](TECHNICAL-GUIDE.md) · [GitHub Repository](https://github.com/LawrenceBarratt90/Business-Observablity-forge)*

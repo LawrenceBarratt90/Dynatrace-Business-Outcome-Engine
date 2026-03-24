@@ -3,8 +3,8 @@
 #  Business Observability Forge — One-Command Setup
 # ============================================================
 #  Usage:
-#    git clone https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge.git
-#    cd Dynatrace-Business-Observability-Forge && ./setup.sh
+#    git clone https://github.com/LawrenceBarratt90/Business-Observablity-forge.git
+#    cd Business-Observablity-forge && ./setup.sh
 #
 #  The script will prompt you for values if setup.conf doesn't exist.
 #  Or pre-fill setup.conf and it runs non-interactively.

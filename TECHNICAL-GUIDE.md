@@ -105,8 +105,8 @@ Step 6: Configure from Forge UI    ← Wire everything together (private IP + Ge
 This is a **single unified repo** — it contains both the Engine (server) and the Forge UI (AppEngine app).
 
 ```bash
-git clone https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge.git
-cd Dynatrace-Business-Observability-Forge
+git clone https://github.com/LawrenceBarratt90/Business-Observablity-forge.git
+cd Business-Observablity-forge
 npm install
 ```
 
@@ -537,8 +537,8 @@ After uninstalling, clone and run setup:
 
 ```bash
 cd /home/ec2-user
-git clone https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge.git
-cd Dynatrace-Business-Observability-Forge
+git clone https://github.com/LawrenceBarratt90/Business-Observablity-forge.git
+cd Business-Observablity-forge
 ./setup.sh
 ```
 

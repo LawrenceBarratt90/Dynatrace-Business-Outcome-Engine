@@ -18,7 +18,7 @@
 #
 #  USAGE:
 #    # Option A: SSH in and run interactively (prompts for DT creds)
-#    curl -fsSL https://raw.githubusercontent.com/lawrobar90/business-observability-forge-mcp-enabled/main/bootstrap-ec2.sh | bash
+#    curl -fsSL https://raw.githubusercontent.com/LawrenceBarratt90/Business-Observablity-forge/main/bootstrap-ec2.sh | bash
 #
 #    # Option B: Pass all credentials via CLI flags (CI/CD, no prompts)
 #    bash bootstrap-ec2.sh \
@@ -74,8 +74,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-REPO_URL="https://github.com/lawrobar90/business-observability-forge-mcp-enabled.git"
-INSTALL_DIR="/home/ec2-user/business-observability-forge-mcp-enabled"
+REPO_URL="https://github.com/LawrenceBarratt90/Business-Observablity-forge.git"
+INSTALL_DIR="/home/ec2-user/Business-Observablity-forge"
 
 echo -e "${BOLD}"
 echo "╔══════════════════════════════════════════════════════════════╗"

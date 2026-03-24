@@ -15,8 +15,8 @@
 #
 #  To reinstall after uninstall:
 #    cd /home/ec2-user
-#    git clone https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge.git
-#    cd Dynatrace-Business-Observability-Forge && ./setup.sh
+#    git clone https://github.com/LawrenceBarratt90/Business-Observablity-forge.git
+#    cd Business-Observablity-forge && ./setup.sh
 # ============================================================
 
 set -euo pipefail
@@ -154,8 +154,8 @@ echo -e "╚══════════════════════�
 echo ""
 echo -e "  ${BOLD}To reinstall:${NC}"
 echo -e "    cd /home/ec2-user"
-echo -e "    git clone https://github.com/lawrobar90/Dynatrace-Business-Observability-Forge.git"
-echo -e "    cd Dynatrace-Business-Observability-Forge"
+echo -e "    git clone https://github.com/LawrenceBarratt90/Business-Observablity-forge.git"
+echo -e "    cd Business-Observablity-forge"
 echo -e "    ./setup.sh"
 echo ""
 
