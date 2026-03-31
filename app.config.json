@@ -1,6 +1,6 @@
 {
   "$schema": "./.dt-app/app.config.schema.json",
-  "environmentUrl": "https://bko67471.sprint.apps.dynatracelabs.com/",
+  "environmentUrl": "https://YOUR_TENANT_ID.apps.dynatrace.com/",
   "app": {
     "id": "my.bizobs.generator.master",
     "name": "Business Observability Forge",

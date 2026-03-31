@@ -132,15 +132,16 @@ For the full detailed guide, see [TECHNICAL-GUIDE.md](TECHNICAL-GUIDE.md).
 │                                                                  │
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │  Main Server (port 8080) — Express.js + Socket.IO        │   │
-│  │  ├── API routes, AI Agents, Journey Engine              │   │
+│  │  ├── 20+ API route modules (100+ endpoints)             │   │
+│  │  ├── AI Agents, MCP Server, PDF Export                  │   │
 │  │  └── Dynatrace Event Ingestion + DT API Proxy           │   │
 │  └──────────────────────────────────────────────────────────┘   │
 │                          │                                       │
-│              spawns child processes                               │
+│              spawns child processes (with --require otel.cjs)    │
 │                          ▼                                       │
 │  ┌──────────────────────────────────────────────────────────┐   │
-│  │  Dynamic Child Services (ports 8081–8200)                │   │
-│  │  Each = separate Node.js process with OneAgent identity  │   │
+│  │  Dynamic Child Services (ports 8081–8740, 660 ports)     │   │
+│  │  Each = separate Node.js process with OTel + OneAgent    │   │
 │  └──────────────────────────────────────────────────────────┘   │
 │                                                                  │
 │  ┌────────────────┐  ┌───────────┐  ┌────────────────────┐     │
@@ -182,6 +183,7 @@ Persistent knowledge store for the AI agent ecosystem.
 - **History store**: Chronological event timeline
 - **Records**: Chaos events, reverts, DT problems, diagnoses, fixes, outcomes
 - **LLM-powered learning**: Generates insights from incident history
+- **Librarian Dashboard**: Modal overlay on the Forge Dashboards page — Ollama analyses your full incident history and renders an AI Summary, colour-coded Stats Cards, severity-tagged Insights, Detected Patterns, and a scrollable Event Timeline. Falls back to raw-data analysis when Ollama is cold.
 
 ### Dashboard — AI Dashboard Deployer
 One-click Dynatrace dashboard deployment.
@@ -271,15 +273,18 @@ Deploys: OneAgent features, capture rules, service naming, OpenPipeline pipeline
 
 ## UI Overview
 
-### 5-Tab Wizard
+### 5-Tab Wizard + Forge Pages
 
-| Tab | Description |
+| Tab/Page | Description |
 |-----|-------------|
 | 🏠 **Welcome** | Application overview and getting-started guide |
 | **Step 1: Customer Details** | Company name, domain, industry type input |
 | **Step 2: Generate Prompts** | AI/Copilot prompt generation for journey creation |
 | **Step 3: Generate Data** | Journey simulation controls, data generation, LoadRunner integration |
 | 🤖 **Step 4: AI Agent Hub** | Nemesis / Fix-It / Librarian / Dashboard agent controls |
+| 📊 **Forge Dashboards** | DQL-powered dashboard presets (Security, DI, Infra) + 📚 Librarian modal overlay |
+| 🏭 **Solutions** | 55+ industry verticals with clickable demo journeys and Dynatrace capability mapping |
+| 🎯 **Demo Guide** | Interactive walkthrough paths (Quick Start, Chaos & Fix-It, Traces, Platform, LiveDebugger) |
 
 ### Additional UI Elements
 - **Saved Prompts Sidebar** (left panel): Save/load/duplicate/delete/export/import journey configs. 110+ pre-built + user-saved configs.
@@ -296,19 +301,18 @@ Deploys: OneAgent features, capture rules, service naming, OpenPipeline pipeline
 | **Framework** | Express.js 4 + Socket.IO 4 |
 | **AI Agents** | TypeScript → compiled to `dist/` |
 | **LLM Backend** | Ollama (llama3.2) |
-| **Observability** | Dynatrace OneAgent + OpenTelemetry |
-| **Frontend** | Single-page HTML + Tailwind CSS (dark theme) |
-| **Auth** | OAuth 2.0 via `simple-oauth2` |
-| **Proxy** | nginx with SSL (port 443) |
+| **Observability** | Dynatrace OneAgent + OpenTelemetry SDK (otel.cjs) |
+| **AppEngine UI** | React 18 + Dynatrace Strato components |
+| **Auth** | OAuth 2.0 (client_credentials + authorization code) |
 
 ---
 
 ## Project Structure
 
 ```
-├── server.js                    # Main application server (~4,700 lines, 75+ endpoints)
-├── package.json                 # business-observability-engine v0.1.0
-├── .env.template                # Environment variable template
+├── server.js                    # Main application server (~4,700 lines, 100+ endpoints)
+├── package.json                 # business-observability-engine
+├── otel.cjs                     # OpenTelemetry bootstrap (auto-loaded by child services)
 │
 ├── agents/                      # TypeScript AI agent source
 │   ├── nemesis/                 # Chaos injection agent
@@ -322,19 +326,20 @@ Deploys: OneAgent features, capture rules, service naming, OpenPipeline pipeline
 │   └── fixes/                   # 7 fix type implementations
 ├── utils/                       # LLM client, config, logger, OpenTelemetry
 │
-├── routes/                      # 18 Express route modules
-│   ├── journey-simulation.js    # Full journey simulation engine (2,639 lines)
+├── routes/                      # 20+ Express route modules
+│   ├── journey-simulation.js    # Full journey simulation engine
 │   ├── oauth.js                 # Dynatrace OAuth SSO
-│   ├── mcp-integration.js       # MCP session management (1,305 lines)
+│   ├── mcp-server.js            # MCP (Model Context Protocol) server
 │   ├── ai-dashboard.js          # AI dashboard generation
+│   ├── pdf-export.js            # PDF export
 │   ├── loadrunner-*.js          # LoadRunner integration
 │   └── ...                      # Journey, simulate, metrics, steps, flow, config, proxy
 │
 ├── services/                    # Core service infrastructure
-│   ├── service-manager.js       # Dynamic service creation (1,040 lines)
-│   ├── dynamic-step-service.cjs # Child service template (1,183 lines)
-│   ├── auto-load.js             # Auto-load watcher (327 lines)
-│   ├── port-manager.js          # Port allocation + persistence (364 lines)
+│   ├── service-manager.js       # Dynamic service creation + OTel child spawning
+│   ├── dynamic-step-service.cjs # Child service template
+│   ├── auto-load.js             # Auto-load watcher
+│   ├── port-manager.js          # Port allocation + persistence (8081–8740)
 │   ├── service-runner.cjs       # Individual service spawner
 │   └── ...                      # Child-caller, event service, metrics service
 │
@@ -344,15 +349,15 @@ Deploys: OneAgent features, capture rules, service naming, OpenPipeline pipeline
 ├── public/                      # Frontend
 │   └── index.html               # Single-page UI (~10,800 lines)
 │
-├── saved-configs/               # 32 persisted journey configs (24 default + 8 user)
+├── saved-configs/               # 110+ persisted journey configs (pre-built templates + user-saved)
 ├── dynatrace-monaco/            # Monaco v2 config-as-code project
 ├── dynatrace-workflows/         # Self-healing workflow JSON
-├── dashboards/                  # Sample/generated dashboard JSON
+├── dashboards/                  # Saved dashboard presets + generated dashboards
+├── data/                        # Field definitions (4800+ lines across all verticals)
 ├── loadrunner-tests/            # LoadRunner scenarios by industry
 ├── memory/                      # Vector + history stores for Librarian
 ├── prompts/                     # AI prompt templates (system context, DQL, dashboards)
-├── scripts/                     # Operational scripts (deploy, simulate, nginx, autostart)
-├── nginx/                       # Nginx reverse proxy config
+├── scripts/                     # Operational scripts (deploy, simulate, autostart)
 ├── k8s/                         # Kubernetes deployment manifests
 ├── logs/                        # Application + continuous-generation logs
 │
@@ -377,7 +382,13 @@ Deploys: OneAgent features, capture rules, service naming, OpenPipeline pipeline
 | `/api/nemesis` | Nemesis chaos agent API |
 | `/api/fixit` | Fix-It remediation agent API |
 | `/api/librarian` | Librarian memory agent API |
+| `/api/librarian/analyze` | Ollama-powered Librarian Dashboard analysis |
 | `/api/ai-dashboard` | AI dashboard generation |
+| `/api/pdf` | PDF export |
+| `/api/mcp` | MCP (Model Context Protocol) server |
+| `/api/autonomous` | Autonomous agent orchestration |
+| `/api/workflow-webhook` | Dynatrace workflow webhook receiver |
+| `/api/business-flow` | Business flow configuration |
 | `/api/loadrunner` | LoadRunner integration |
 | `/api/loadrunner-service` | LoadRunner service management |
 | `/api/oauth` | Dynatrace OAuth SSO |
@@ -415,7 +426,7 @@ npm run configure:monaco        # Deploy DT config via Monaco CLI
 2. Click **Run** → services spin up, auto-load generates traffic, Dynatrace lights up
 3. Open the **AI Agent Hub** → inject chaos with **Nemesis** → watch **Dynatrace Intelligence** detect it → let **Fix-It** auto-remediate
 
-The 24 templates are a fast on-ramp — use them for demos, POCs, or to learn how the platform works.
+The 110+ templates are a fast on-ramp — use them for demos, POCs, or to learn how the platform works.
 
 ### Custom Journey (the real power)
 1. **Describe any customer’s journey** — e.g. “A patient registers, gets triaged, sees a consultant, receives treatment, and is discharged”
@@ -428,5 +439,5 @@ This is what makes the Forge different: it’s not a canned demo. It’s *their*
 
 ---
 
-**Built for Dynatrace Partner Power-Up Program**
+**Built on Dynatrace SaaS — Grail, DPS & Dynatrace Intelligence**
 Demonstrating advanced business observability with AI-powered chaos engineering and automated remediation.
