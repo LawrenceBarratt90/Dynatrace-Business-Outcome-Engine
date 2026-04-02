@@ -245,6 +245,413 @@ function buildBase(companyName: string, journeyType: string, timeframe: Timefram
   return q;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   INDUSTRY VOCABULARY — maps detected industry to domain terms
+   Enables the Executive preset to speak each industry's language.
+   ═══════════════════════════════════════════════════════════════ */
+
+type IndustryGroup = 'retail' | 'healthcare' | 'banking' | 'insurance' | 'telecom' | 'travel' | 'gaming' | 'government' | 'education' | 'automotive' | 'manufacturing' | 'logistics' | 'energy' | 'realestate' | 'foodservice' | 'media' | 'generic';
+
+interface IndustryVocab {
+  transaction: string; transactions: string; revenue: string;
+  customer: string; customers: string;
+  avgValueLabel: string; faultLabel: string; leakageSection: string;
+  recentLabel: string; abandonLabel: string; abandonDesc: string;
+  abandonStartSteps: string[]; abandonEndSteps: string[];
+  failedLabel: string; failedDesc: string; failedSteps: string[];
+  leakageLabel: string; faultTrendLabel: string;
+  icons: { tx: string; cust: string; abandon: string };
+}
+
+const INDUSTRY_VOCABULARY: Record<IndustryGroup, IndustryVocab> = {
+  retail: {
+    transaction: 'Order', transactions: 'Orders', revenue: 'Revenue',
+    customer: 'Customer', customers: 'Customers',
+    avgValueLabel: 'Avg Order Value', faultLabel: 'Order Fault Rate',
+    leakageSection: 'ORDER HEALTH & REVENUE LEAKAGE',
+    recentLabel: 'Most Recent Orders',
+    abandonLabel: 'Cart Abandonment Rate', abandonDesc: 'Of customers who started a cart, how many never completed checkout — the top source of revenue leakage in retail.',
+    abandonStartSteps: ['cart', 'Cart', 'basket', 'Basket', 'add to cart'],
+    abandonEndSteps: ['confirm', 'Confirm', 'complete', 'Complete', 'success', 'Success', 'purchase', 'Purchase'],
+    failedLabel: 'Failed Checkouts', failedDesc: 'Orders that reached checkout but errored — revenue that was almost captured but lost to IT issues.',
+    failedSteps: ['checkout', 'Checkout', 'payment', 'Payment'],
+    leakageLabel: 'Revenue Leakage by Step', faultTrendLabel: 'Order Faults Over Time',
+    icons: { tx: '🛒', cust: '👥', abandon: '🛒' },
+  },
+  healthcare: {
+    transaction: 'Encounter', transactions: 'Encounters', revenue: 'Billable Value',
+    customer: 'Patient', customers: 'Patients',
+    avgValueLabel: 'Avg Encounter Value', faultLabel: 'Encounter Fault Rate',
+    leakageSection: 'ENCOUNTER HEALTH & VALUE LEAKAGE',
+    recentLabel: 'Most Recent Encounters',
+    abandonLabel: 'No-Show Rate', abandonDesc: 'Of patients who scheduled an appointment, how many never completed their visit — impacts care delivery and facility utilisation.',
+    abandonStartSteps: ['schedule', 'Schedule', 'appointment', 'Appointment', 'referral', 'Referral', 'register', 'Register', 'triage', 'Triage'],
+    abandonEndSteps: ['discharge', 'Discharge', 'complete', 'Complete', 'follow-up', 'Follow-up', 'billing', 'Billing', 'checkout', 'Checkout'],
+    failedLabel: 'Failed Referrals', failedDesc: 'Encounters that reached processing but errored — care that was almost delivered but lost to system issues.',
+    failedSteps: ['referral', 'Referral', 'admission', 'Admission', 'consult', 'Consult', 'procedure', 'Procedure'],
+    leakageLabel: 'Value Leakage by Step', faultTrendLabel: 'Encounter Faults Over Time',
+    icons: { tx: '🏥', cust: '🧑‍⚕️', abandon: '📋' },
+  },
+  banking: {
+    transaction: 'Transaction', transactions: 'Transactions', revenue: 'Revenue',
+    customer: 'Account Holder', customers: 'Account Holders',
+    avgValueLabel: 'Avg Transaction Value', faultLabel: 'Transaction Fault Rate',
+    leakageSection: 'TRANSACTION HEALTH & REVENUE LEAKAGE',
+    recentLabel: 'Most Recent Transactions',
+    abandonLabel: 'Application Drop-off Rate', abandonDesc: 'Of customers who started an application, how many never completed — lost revenue from incomplete onboarding.',
+    abandonStartSteps: ['application', 'Application', 'apply', 'Apply', 'inquiry', 'Inquiry', 'open account', 'Open Account'],
+    abandonEndSteps: ['approval', 'Approval', 'approved', 'Approved', 'complete', 'Complete', 'funded', 'Funded', 'activated', 'Activated'],
+    failedLabel: 'Failed Transfers', failedDesc: 'Transactions that reached processing but errored — funds that were almost transferred but lost to system failures.',
+    failedSteps: ['transfer', 'Transfer', 'payment', 'Payment', 'settlement', 'Settlement', 'disbursement', 'Disbursement'],
+    leakageLabel: 'Revenue Leakage by Step', faultTrendLabel: 'Transaction Faults Over Time',
+    icons: { tx: '🏦', cust: '👤', abandon: '📝' },
+  },
+  insurance: {
+    transaction: 'Policy', transactions: 'Policies', revenue: 'Premium Value',
+    customer: 'Policyholder', customers: 'Policyholders',
+    avgValueLabel: 'Avg Policy Premium', faultLabel: 'Policy Fault Rate',
+    leakageSection: 'POLICY HEALTH & PREMIUM LEAKAGE',
+    recentLabel: 'Most Recent Policies',
+    abandonLabel: 'Quote Abandonment Rate', abandonDesc: 'Of prospects who requested a quote, how many never bound a policy — lost premium revenue from the sales funnel.',
+    abandonStartSteps: ['quote', 'Quote', 'inquiry', 'Inquiry', 'application', 'Application', 'proposal', 'Proposal'],
+    abandonEndSteps: ['bind', 'Bind', 'issue', 'Issue', 'activate', 'Activate', 'complete', 'Complete', 'policy issued', 'Policy Issued'],
+    failedLabel: 'Failed Claims', failedDesc: 'Claims that reached processing but errored — policyholder satisfaction and regulatory risk.',
+    failedSteps: ['claim', 'Claim', 'adjudication', 'Adjudication', 'payment', 'Payment', 'settlement', 'Settlement'],
+    leakageLabel: 'Premium Leakage by Step', faultTrendLabel: 'Policy Faults Over Time',
+    icons: { tx: '📑', cust: '🛡️', abandon: '📋' },
+  },
+  telecom: {
+    transaction: 'Subscription', transactions: 'Subscriptions', revenue: 'Revenue',
+    customer: 'Subscriber', customers: 'Subscribers',
+    avgValueLabel: 'Avg Subscription Value', faultLabel: 'Subscription Fault Rate',
+    leakageSection: 'SUBSCRIPTION HEALTH & REVENUE LEAKAGE',
+    recentLabel: 'Most Recent Subscriptions',
+    abandonLabel: 'Plan Abandonment Rate', abandonDesc: 'Of subscribers who started plan selection, how many never activated — lost recurring revenue from incomplete sign-ups.',
+    abandonStartSteps: ['plan', 'Plan', 'select', 'Select', 'configure', 'Configure', 'browse plans', 'Browse Plans'],
+    abandonEndSteps: ['activate', 'Activate', 'provision', 'Provision', 'complete', 'Complete', 'confirm', 'Confirm'],
+    failedLabel: 'Failed Activations', failedDesc: 'Subscriptions that reached activation but errored — subscribers left without service due to IT issues.',
+    failedSteps: ['activation', 'Activation', 'provision', 'Provision', 'porting', 'Porting', 'setup', 'Setup'],
+    leakageLabel: 'Revenue Leakage by Step', faultTrendLabel: 'Subscription Faults Over Time',
+    icons: { tx: '📱', cust: '📡', abandon: '📶' },
+  },
+  travel: {
+    transaction: 'Booking', transactions: 'Bookings', revenue: 'Revenue',
+    customer: 'Traveller', customers: 'Travellers',
+    avgValueLabel: 'Avg Booking Value', faultLabel: 'Booking Fault Rate',
+    leakageSection: 'BOOKING HEALTH & REVENUE LEAKAGE',
+    recentLabel: 'Most Recent Bookings',
+    abandonLabel: 'Booking Abandonment Rate', abandonDesc: 'Of travellers who started a booking, how many never confirmed — lost revenue from incomplete reservations.',
+    abandonStartSteps: ['search', 'Search', 'select', 'Select', 'itinerary', 'Itinerary', 'flight', 'Flight', 'room', 'Room'],
+    abandonEndSteps: ['confirm', 'Confirm', 'book', 'Book', 'complete', 'Complete', 'ticketed', 'Ticketed', 'reserved', 'Reserved'],
+    failedLabel: 'Failed Reservations', failedDesc: 'Bookings that reached confirmation but errored — travellers left without confirmed reservations.',
+    failedSteps: ['reservation', 'Reservation', 'booking', 'Booking', 'payment', 'Payment', 'ticketing', 'Ticketing'],
+    leakageLabel: 'Revenue Leakage by Step', faultTrendLabel: 'Booking Faults Over Time',
+    icons: { tx: '✈️', cust: '🧳', abandon: '🗓️' },
+  },
+  gaming: {
+    transaction: 'Session', transactions: 'Sessions', revenue: 'Revenue',
+    customer: 'Player', customers: 'Players',
+    avgValueLabel: 'Avg Session Value', faultLabel: 'Session Fault Rate',
+    leakageSection: 'SESSION HEALTH & REVENUE LEAKAGE',
+    recentLabel: 'Most Recent Sessions',
+    abandonLabel: 'Session Drop-off Rate', abandonDesc: 'Of players who started a session, how many dropped before completing key actions — lost engagement and monetisation.',
+    abandonStartSteps: ['login', 'Login', 'launch', 'Launch', 'lobby', 'Lobby', 'deposit', 'Deposit', 'wager', 'Wager'],
+    abandonEndSteps: ['cashout', 'Cashout', 'complete', 'Complete', 'payout', 'Payout', 'withdraw', 'Withdraw', 'settle', 'Settle'],
+    failedLabel: 'Failed Transactions', failedDesc: 'In-game transactions that errored — players left unable to deposit, wager, or withdraw.',
+    failedSteps: ['deposit', 'Deposit', 'wager', 'Wager', 'withdrawal', 'Withdrawal', 'payment', 'Payment'],
+    leakageLabel: 'Revenue Leakage by Step', faultTrendLabel: 'Session Faults Over Time',
+    icons: { tx: '🎮', cust: '🕹️', abandon: '🎰' },
+  },
+  government: {
+    transaction: 'Application', transactions: 'Applications', revenue: 'Processing Value',
+    customer: 'Citizen', customers: 'Citizens',
+    avgValueLabel: 'Avg Processing Value', faultLabel: 'Application Fault Rate',
+    leakageSection: 'APPLICATION HEALTH & PROCESSING LEAKAGE',
+    recentLabel: 'Most Recent Applications',
+    abandonLabel: 'Application Abandonment Rate', abandonDesc: 'Of citizens who started an application, how many never submitted — impacts service delivery and public trust.',
+    abandonStartSteps: ['start', 'Start', 'begin', 'Begin', 'form', 'Form', 'application', 'Application', 'register', 'Register'],
+    abandonEndSteps: ['submit', 'Submit', 'complete', 'Complete', 'approve', 'Approve', 'issue', 'Issue', 'certified', 'Certified'],
+    failedLabel: 'Failed Submissions', failedDesc: 'Applications that reached submission but errored — citizens forced to retry or visit in person.',
+    failedSteps: ['submit', 'Submit', 'review', 'Review', 'verify', 'Verify', 'process', 'Process'],
+    leakageLabel: 'Value Leakage by Step', faultTrendLabel: 'Application Faults Over Time',
+    icons: { tx: '🏛️', cust: '🧑‍💼', abandon: '📄' },
+  },
+  education: {
+    transaction: 'Enrolment', transactions: 'Enrolments', revenue: 'Tuition Revenue',
+    customer: 'Student', customers: 'Students',
+    avgValueLabel: 'Avg Tuition Value', faultLabel: 'Enrolment Fault Rate',
+    leakageSection: 'ENROLMENT HEALTH & TUITION LEAKAGE',
+    recentLabel: 'Most Recent Enrolments',
+    abandonLabel: 'Enrolment Drop-off Rate', abandonDesc: 'Of students who started enrolment, how many never completed — lost tuition revenue and student engagement.',
+    abandonStartSteps: ['apply', 'Apply', 'application', 'Application', 'register', 'Register', 'enrol', 'Enrol', 'course select', 'Course Select'],
+    abandonEndSteps: ['confirm', 'Confirm', 'enrol', 'Enrol', 'complete', 'Complete', 'pay tuition', 'Pay Tuition', 'registered', 'Registered'],
+    failedLabel: 'Failed Registrations', failedDesc: 'Enrolments that reached processing but errored — students left unable to complete registration.',
+    failedSteps: ['registration', 'Registration', 'payment', 'Payment', 'verification', 'Verification', 'enrolment', 'Enrolment'],
+    leakageLabel: 'Tuition Leakage by Step', faultTrendLabel: 'Enrolment Faults Over Time',
+    icons: { tx: '🎓', cust: '📚', abandon: '📝' },
+  },
+  automotive: {
+    transaction: 'Deal', transactions: 'Deals', revenue: 'Revenue',
+    customer: 'Buyer', customers: 'Buyers',
+    avgValueLabel: 'Avg Deal Value', faultLabel: 'Deal Fault Rate',
+    leakageSection: 'DEAL HEALTH & REVENUE LEAKAGE',
+    recentLabel: 'Most Recent Deals',
+    abandonLabel: 'Lead Drop-off Rate', abandonDesc: 'Of leads who started an inquiry, how many never completed a deal — lost sales revenue from the pipeline.',
+    abandonStartSteps: ['inquiry', 'Inquiry', 'test drive', 'Test Drive', 'configure', 'Configure', 'quote', 'Quote', 'browse', 'Browse'],
+    abandonEndSteps: ['purchase', 'Purchase', 'finance', 'Finance', 'complete', 'Complete', 'delivery', 'Delivery', 'contract', 'Contract'],
+    failedLabel: 'Failed Finance Applications', failedDesc: 'Deals that reached finance/contract but errored — buyers left without completed purchases.',
+    failedSteps: ['finance', 'Finance', 'contract', 'Contract', 'payment', 'Payment', 'lease', 'Lease'],
+    leakageLabel: 'Revenue Leakage by Step', faultTrendLabel: 'Deal Faults Over Time',
+    icons: { tx: '🚗', cust: '🔑', abandon: '🏷️' },
+  },
+  manufacturing: {
+    transaction: 'Work Order', transactions: 'Work Orders', revenue: 'Production Value',
+    customer: 'Client', customers: 'Clients',
+    avgValueLabel: 'Avg Work Order Value', faultLabel: 'Work Order Fault Rate',
+    leakageSection: 'WORK ORDER HEALTH & PRODUCTION LEAKAGE',
+    recentLabel: 'Most Recent Work Orders',
+    abandonLabel: 'Order Cancellation Rate', abandonDesc: 'Of work orders initiated, how many were cancelled before completion — lost production value from incomplete jobs.',
+    abandonStartSteps: ['order', 'Order', 'requisition', 'Requisition', 'plan', 'Plan', 'schedule', 'Schedule'],
+    abandonEndSteps: ['ship', 'Ship', 'complete', 'Complete', 'deliver', 'Deliver', 'quality check', 'Quality Check', 'dispatch', 'Dispatch'],
+    failedLabel: 'Failed Production Steps', failedDesc: 'Work orders that encountered errors during production — impacting delivery timelines and client satisfaction.',
+    failedSteps: ['assembly', 'Assembly', 'quality', 'Quality', 'packaging', 'Packaging', 'inspection', 'Inspection'],
+    leakageLabel: 'Production Leakage by Step', faultTrendLabel: 'Work Order Faults Over Time',
+    icons: { tx: '🏭', cust: '🔧', abandon: '📦' },
+  },
+  logistics: {
+    transaction: 'Shipment', transactions: 'Shipments', revenue: 'Freight Revenue',
+    customer: 'Shipper', customers: 'Shippers',
+    avgValueLabel: 'Avg Shipment Value', faultLabel: 'Shipment Fault Rate',
+    leakageSection: 'SHIPMENT HEALTH & REVENUE LEAKAGE',
+    recentLabel: 'Most Recent Shipments',
+    abandonLabel: 'Shipment Cancellation Rate', abandonDesc: 'Of shipments booked, how many were cancelled before delivery — lost freight revenue and capacity waste.',
+    abandonStartSteps: ['book', 'Book', 'pickup', 'Pickup', 'dispatch', 'Dispatch', 'order', 'Order', 'schedule', 'Schedule'],
+    abandonEndSteps: ['deliver', 'Deliver', 'complete', 'Complete', 'signed', 'Signed', 'received', 'Received'],
+    failedLabel: 'Failed Deliveries', failedDesc: 'Shipments that encountered errors in transit — impacting delivery SLAs and shipper satisfaction.',
+    failedSteps: ['transit', 'Transit', 'customs', 'Customs', 'delivery', 'Delivery', 'last mile', 'Last Mile'],
+    leakageLabel: 'Revenue Leakage by Step', faultTrendLabel: 'Shipment Faults Over Time',
+    icons: { tx: '🚛', cust: '📦', abandon: '🗺️' },
+  },
+  energy: {
+    transaction: 'Service Request', transactions: 'Service Requests', revenue: 'Billing Revenue',
+    customer: 'Account Holder', customers: 'Account Holders',
+    avgValueLabel: 'Avg Billing Value', faultLabel: 'Service Request Fault Rate',
+    leakageSection: 'SERVICE HEALTH & BILLING LEAKAGE',
+    recentLabel: 'Most Recent Service Requests',
+    abandonLabel: 'Application Drop-off Rate', abandonDesc: 'Of customers who started a service application, how many never completed — lost billing revenue from incomplete activations.',
+    abandonStartSteps: ['apply', 'Apply', 'request', 'Request', 'signup', 'Signup', 'transfer', 'Transfer', 'meter', 'Meter'],
+    abandonEndSteps: ['activate', 'Activate', 'connect', 'Connect', 'complete', 'Complete', 'provision', 'Provision'],
+    failedLabel: 'Failed Activations', failedDesc: 'Service requests that reached activation but errored — customers left without service.',
+    failedSteps: ['activation', 'Activation', 'connection', 'Connection', 'metering', 'Metering', 'billing', 'Billing'],
+    leakageLabel: 'Billing Leakage by Step', faultTrendLabel: 'Service Request Faults Over Time',
+    icons: { tx: '⚡', cust: '🏠', abandon: '🔌' },
+  },
+  realestate: {
+    transaction: 'Listing', transactions: 'Listings', revenue: 'Transaction Value',
+    customer: 'Buyer', customers: 'Buyers',
+    avgValueLabel: 'Avg Listing Value', faultLabel: 'Listing Fault Rate',
+    leakageSection: 'LISTING HEALTH & VALUE LEAKAGE',
+    recentLabel: 'Most Recent Listings',
+    abandonLabel: 'Lead Drop-off Rate', abandonDesc: 'Of leads who started property inquiries, how many never progressed to offer — lost commission revenue from the pipeline.',
+    abandonStartSteps: ['inquiry', 'Inquiry', 'viewing', 'Viewing', 'tour', 'Tour', 'search', 'Search', 'register', 'Register'],
+    abandonEndSteps: ['offer', 'Offer', 'contract', 'Contract', 'closing', 'Closing', 'complete', 'Complete', 'settle', 'Settle'],
+    failedLabel: 'Failed Closings', failedDesc: 'Listings that reached closing but errored — deals lost at the final stage of the transaction.',
+    failedSteps: ['closing', 'Closing', 'contract', 'Contract', 'escrow', 'Escrow', 'settlement', 'Settlement'],
+    leakageLabel: 'Value Leakage by Step', faultTrendLabel: 'Listing Faults Over Time',
+    icons: { tx: '🏠', cust: '🔑', abandon: '🏢' },
+  },
+  foodservice: {
+    transaction: 'Order', transactions: 'Orders', revenue: 'Revenue',
+    customer: 'Guest', customers: 'Guests',
+    avgValueLabel: 'Avg Order Value', faultLabel: 'Order Fault Rate',
+    leakageSection: 'ORDER HEALTH & REVENUE LEAKAGE',
+    recentLabel: 'Most Recent Orders',
+    abandonLabel: 'Order Abandonment Rate', abandonDesc: 'Of guests who started an order, how many never completed — lost revenue from incomplete transactions.',
+    abandonStartSteps: ['menu', 'Menu', 'browse', 'Browse', 'add item', 'Add Item', 'cart', 'Cart', 'customise', 'Customise'],
+    abandonEndSteps: ['confirm', 'Confirm', 'place order', 'Place Order', 'complete', 'Complete', 'payment', 'Payment', 'pickup', 'Pickup'],
+    failedLabel: 'Failed Orders', failedDesc: 'Orders that reached payment but errored — guests left unable to complete their food order.',
+    failedSteps: ['payment', 'Payment', 'checkout', 'Checkout', 'processing', 'Processing', 'fulfilment', 'Fulfilment'],
+    leakageLabel: 'Revenue Leakage by Step', faultTrendLabel: 'Order Faults Over Time',
+    icons: { tx: '🍔', cust: '🍽️', abandon: '📋' },
+  },
+  media: {
+    transaction: 'Subscription', transactions: 'Subscriptions', revenue: 'Revenue',
+    customer: 'Subscriber', customers: 'Subscribers',
+    avgValueLabel: 'Avg Subscription Value', faultLabel: 'Subscription Fault Rate',
+    leakageSection: 'SUBSCRIPTION HEALTH & REVENUE LEAKAGE',
+    recentLabel: 'Most Recent Subscriptions',
+    abandonLabel: 'Signup Drop-off Rate', abandonDesc: 'Of users who started signup, how many never activated — lost recurring revenue from incomplete onboarding.',
+    abandonStartSteps: ['signup', 'Signup', 'register', 'Register', 'trial', 'Trial', 'browse', 'Browse', 'plan select', 'Plan Select'],
+    abandonEndSteps: ['activate', 'Activate', 'subscribe', 'Subscribe', 'complete', 'Complete', 'confirm', 'Confirm', 'payment', 'Payment'],
+    failedLabel: 'Failed Activations', failedDesc: 'Subscriptions that reached activation but errored — users left without access to content.',
+    failedSteps: ['activation', 'Activation', 'payment', 'Payment', 'provision', 'Provision', 'billing', 'Billing'],
+    leakageLabel: 'Revenue Leakage by Step', faultTrendLabel: 'Subscription Faults Over Time',
+    icons: { tx: '📺', cust: '🎬', abandon: '📡' },
+  },
+  generic: {
+    transaction: 'Transaction', transactions: 'Transactions', revenue: 'Revenue',
+    customer: 'Customer', customers: 'Customers',
+    avgValueLabel: 'Avg Transaction Value', faultLabel: 'Transaction Fault Rate',
+    leakageSection: 'TRANSACTION HEALTH & REVENUE LEAKAGE',
+    recentLabel: 'Most Recent Transactions',
+    abandonLabel: 'Process Abandonment Rate', abandonDesc: 'Of customers who started a process, how many never completed — revenue lost from incomplete journeys.',
+    abandonStartSteps: ['start', 'Start', 'begin', 'Begin', 'initiate', 'Initiate', 'cart', 'Cart', 'apply', 'Apply'],
+    abandonEndSteps: ['confirm', 'Confirm', 'complete', 'Complete', 'success', 'Success', 'finish', 'Finish', 'done', 'Done'],
+    failedLabel: 'Failed Completions', failedDesc: 'Transactions that reached a critical step but errored — value lost to system issues.',
+    failedSteps: ['checkout', 'Checkout', 'payment', 'Payment', 'process', 'Process', 'submit', 'Submit'],
+    leakageLabel: 'Revenue Leakage by Step', faultTrendLabel: 'Transaction Faults Over Time',
+    icons: { tx: '📊', cust: '👥', abandon: '📉' },
+  },
+};
+
+/** Detect industry group from journey type and company name keywords */
+function detectIndustry(journeyType: string, companyName: string): IndustryGroup {
+  const combined = `${journeyType} ${companyName}`.toLowerCase();
+  if (/patient|clinic|hospital|healthcare|health care|medical|pharma|encounter|prescription|diagnosis|referral|ehr|hipaa|dental|veterinar|care access|care pathway/.test(combined)) return 'healthcare';
+  if (/insurance|policy|claim|premium|underwriting|actuari|reinsur|annuit|insurtech/.test(combined)) return 'insurance';
+  if (/bank|loan|mortgage|deposit|atm|branch|account open|kyc|wealth|portfolio|trading|fintech|payment gateway|merchant|lending|credit union|neobank/.test(combined)) return 'banking';
+  if (/telecom|mobile operator|isp|broadband|5g|fibre|wireless|cellul|subscriber|porting/.test(combined)) return 'telecom';
+  if (/airline|flight|hotel|cruise|travel|booking|reservation|hospitality|resort|car rental|tourism/.test(combined)) return 'travel';
+  if (/gaming|casino|igaming|esport|wager|betting|slot|poker|player|gambl/.test(combined)) return 'gaming';
+  if (/government|public sector|citizen|municipal|federal|council|permit|licens|defense|civic/.test(combined)) return 'government';
+  if (/universit|college|school|education|student|enrol|tuition|edtech|k-12|campus|academic|course/.test(combined)) return 'education';
+  if (/automotive|dealership|vehicle|car purchase|test drive|ev charging|motor/.test(combined)) return 'automotive';
+  if (/manufactur|industrial|factory|assembly|production|plant|raw material/.test(combined)) return 'manufacturing';
+  if (/logistic|freight|shipping|cargo|warehouse|last mile|courier|trucking|fleet|delivery service|3pl/.test(combined)) return 'logistics';
+  if (/energy|utilit|oil|gas|renewable|solar|wind|grid|power|electricity|meter/.test(combined)) return 'energy';
+  if (/real estate|property|proptech|listing|mortgage broker|closing|escrow|tenant|landlord/.test(combined)) return 'realestate';
+  if (/restaurant|food delivery|qsr|catering|fast food|dine|takeaway|meal|kitchen|food order/.test(combined)) return 'foodservice';
+  if (/media|streaming|broadcast|publish|content|entertainment|news|podcast|music|video|ott/.test(combined)) return 'media';
+  if (/retail|e-?commerce|shop|fashion|beauty|grocer|luxury|marketplace|purchase|cart|checkout|order/.test(combined)) return 'retail';
+  return 'generic';
+}
+
+function getVocab(journeyType: string, companyName: string): IndustryVocab {
+  return INDUSTRY_VOCABULARY[detectIndustry(journeyType, companyName)];
+}
+
+/** Build matchesPhrase DQL clause for an array of step name patterns */
+function buildStepMatch(steps: string[]): string {
+  return steps.map(s => `matchesPhrase(toString(json.stepName), "${s}")`).join(' or ');
+}
+
+/** Executive tiles with industry-aware vocabulary */
+function getExecutiveTiles(b: string, timeframe: Timeframe, journeyType: string, companyName: string): TileCandidate[] {
+  const v = getVocab(journeyType, companyName);
+  return [
+    // ══════ KEY BUSINESS METRICS ══════
+    { id: 'ex-kpi-banner', title: 'KEY BUSINESS METRICS', vizType: 'sectionBanner', width: 3, icon: '📊', accent: '#a78bfa', dql: '' },
+    { id: 'ex-revenue', title: `Total ${v.revenue}`, vizType: 'heroMetric', width: 1, icon: '💰', accent: '#00d4aa', desc: `Aggregate ${v.revenue.toLowerCase()} captured across all business events — compare against targets to gauge performance.`,
+      dql: `${b}\n| summarize totalRevenue = round(sum(toDouble(additionalfields.transactionValue)), decimals:0)` },
+    { id: 'ex-orders', title: `Total ${v.transactions}`, vizType: 'heroMetric', width: 1, icon: v.icons.tx, accent: '#3498db', desc: `Total ${v.transaction.toLowerCase()} volume for the period — track against historical averages to spot trends.`,
+      dql: `${b}\n| summarize totalOrders = count()` },
+    { id: 'ex-customers', title: `Unique ${v.customers}`, vizType: 'heroMetric', width: 1, icon: v.icons.cust, accent: '#a78bfa', desc: `Distinct ${v.customer.toLowerCase()} identifiers in the period — a proxy for reach and engagement breadth.`,
+      dql: `${b}\n| summarize customers = countDistinct(json.customerId)` },
+    { id: 'ex-avg-order', title: v.avgValueLabel, vizType: 'heroMetric', width: 1, icon: '💵', accent: '#1abc9c', desc: `Average value per ${v.transaction.toLowerCase()} — rising values signal effective upselling or premium mix shifts.`,
+      dql: `${b}\n| summarize avgOrder = round(avg(toDouble(additionalfields.transactionValue)), decimals:2)`,
+      requiresNumeric: ['transactionValue'] },
+    { id: 'ex-error-rate', title: 'Error Rate %', vizType: 'heroMetric', width: 1, icon: '⚠️', accent: '#e74c3c', desc: `Percentage of business events flagged as errors — directly correlates with ${v.revenue.toLowerCase()} leakage and ${v.customer.toLowerCase()} churn.`,
+      dql: `${b}\n| summarize total = count(), errors = countIf(json.hasError == true)\n| fieldsAdd rate = round(100.0 * toDouble(errors) / toDouble(total), decimals:1)` },
+    { id: 'ex-services', title: 'Active Services', vizType: 'heroMetric', width: 1, icon: '🔧', accent: '#e67e22', desc: `Count of distinct services processing business events — shows the operational surface area supporting ${v.revenue.toLowerCase()}.`,
+      dql: `${b}\n| summarize services = countDistinct(json.serviceName)` },
+
+    // ══════ HEALTH & LEAKAGE ══════
+    { id: 'ex-leakage-banner', title: v.leakageSection, vizType: 'sectionBanner', width: 3, icon: '🚨', accent: '#ae132d', dql: '' },
+    { id: 'ex-order-fault-rate', title: `${v.faultLabel} %`, vizType: 'heroMetric', width: 1, icon: '💔', accent: '#e74c3c', desc: `Percentage of ${v.transactions.toLowerCase()} that faulted — a key quality metric; every fault risks losing a ${v.customer.toLowerCase()}.`,
+      dql: `${b}\n| summarize totalOrders = count(), faultedOrders = countIf(json.hasError == true)\n| fieldsAdd faultRate = round(100.0 * toDouble(faultedOrders) / toDouble(totalOrders), decimals:2)` },
+    { id: 'ex-abandonment', title: `${v.abandonLabel} %`, vizType: 'heroMetric', width: 1, icon: v.icons.abandon, accent: '#d56b1a', desc: v.abandonDesc,
+      dql: `${b}\n| summarize starts = countIf(${buildStepMatch(v.abandonStartSteps)}), completions = countIf(${buildStepMatch(v.abandonEndSteps)})\n| fieldsAdd abandonmentRate = if(starts > 0, round(100.0 * (1.0 - toDouble(completions) / toDouble(starts)), decimals:1), else: 0.0)` },
+    { id: 'ex-failed', title: v.failedLabel, vizType: 'heroMetric', width: 1, icon: '❌', accent: '#ae132d', desc: v.failedDesc,
+      dql: `${b}\n| filter json.hasError == true\n| filter ${buildStepMatch(v.failedSteps)}\n| summarize failed = count()` },
+    { id: 'ex-leakage-by-step', title: v.leakageLabel, vizType: 'categoricalBar', width: 2, icon: '💸', accent: '#ae132d', desc: `Where in the journey are errors causing ${v.revenue.toLowerCase()} loss — pinpoint the exact step where value leaks out.`,
+      dql: `${b}\n| filter json.hasError == true\n| summarize lostRevenue = round(sum(toDouble(additionalfields.transactionValue)), decimals:0), faults = count(), by:{json.stepName}\n| sort lostRevenue desc\n| limit 15` },
+    { id: 'ex-fault-trend', title: v.faultTrendLabel, vizType: 'timeseries', width: 1, icon: '📈', accent: '#e74c3c', desc: `${v.transaction} fault volume trend — compare with baselines to determine if current fault rates are normal.`,
+      dql: `${b}\n| makeTimeseries faults = countIf(json.hasError == true)` },
+
+    // ══════ REVENUE & VOLUME TRENDS ══════
+    { id: 'ex-trends-banner', title: `${v.revenue.toUpperCase()} & VOLUME TRENDS`, vizType: 'sectionBanner', width: 3, icon: '📈', accent: '#00d4aa', dql: '' },
+    { id: 'ex-revenue-ts', title: `${v.revenue} Over Time`, vizType: 'timeseries', width: 2, icon: '📈', accent: '#00d4aa', desc: `${v.revenue} trend line — compare against seasonal averages to spot anomalies.`,
+      dql: `${b}\n| makeTimeseries revenue = sum(toDouble(additionalfields.transactionValue))` },
+    { id: 'ex-impact', title: `${v.revenue} at Risk`, vizType: 'impactCard', width: 1, icon: '🔥', accent: '#e74c3c', desc: `Estimated monetary impact of errored ${v.transactions.toLowerCase()} — quantifies how much ${v.revenue.toLowerCase()} IT issues are putting at risk.`,
+      dql: `${b}\n| summarize errors = countIf(json.hasError == true), totalTxns = count(), avgValue = avg(toDouble(additionalfields.transactionValue))\n| fieldsAdd estimatedImpact = round(toDouble(errors) * avgValue, decimals:0), errorRate = round(100.0 * toDouble(errors) / toDouble(totalTxns), decimals:1)` },
+    { id: 'ex-volume-ts', title: `${v.transaction} Volume Over Time`, vizType: 'timeseries', width: 1, icon: '📊', accent: '#3498db', desc: `${v.transaction} count over time — overlay with campaign dates to measure impact.`,
+      dql: `${b}\n| makeTimeseries orders = count()` },
+    { id: 'ex-customers-ts', title: `Unique ${v.customers} Over Time`, vizType: 'timeseries', width: 1, icon: v.icons.cust, accent: '#a78bfa', desc: `${v.customer} reach trend — dips may indicate accessibility issues; growth shows effectiveness.`,
+      dql: `${b}\n| makeTimeseries customers = countDistinct(json.customerId)` },
+    { id: 'ex-rev-by-svc-ts', title: `${v.revenue} by Service Over Time`, vizType: 'timeseries', width: 1, icon: '💰', accent: '#1abc9c', desc: `${v.revenue} attribution per service — identify which backend services drive the most business value.`,
+      dql: `${b}\n| makeTimeseries revenue = sum(toDouble(additionalfields.transactionValue)), by:{json.serviceName}` },
+
+    // ══════ JOURNEY FLOW ══════
+    { id: 'ex-journey-banner', title: 'JOURNEY FLOW', vizType: 'sectionBanner', width: 3, icon: '🔻', accent: '#a78bfa', dql: '' },
+    { id: 'ex-funnel', title: 'Journey Steps Funnel', vizType: 'categoricalBar', width: 2, icon: '🔻', accent: '#a78bfa', desc: `Visualises the ${v.customer.toLowerCase()} journey funnel — each bar is a stage; steep drops reveal where ${v.customers.toLowerCase()} abandon.`,
+      dql: `${b}\n| summarize count = count(), by:{json.stepName, json.stepIndex}\n| sort toDouble(json.stepIndex) asc\n| limit 20` },
+    { id: 'ex-step-conversion', title: 'Drop-off by Step', vizType: 'categoricalBar', width: 1, icon: '📉', accent: '#e74c3c', desc: `Error-driven drop-off rate per journey step — high drop-off at critical steps means direct ${v.revenue.toLowerCase()} leakage.`,
+      dql: `${b}\n| summarize total = count(), errors = countIf(json.hasError == true), by:{json.stepName, json.stepIndex}\n| fieldsAdd dropRate = round(100.0 * toDouble(errors) / toDouble(total), decimals:1)\n| sort toDouble(json.stepIndex) asc\n| limit 20` },
+    { id: 'ex-step-revenue', title: `${v.revenue} by Journey Step`, vizType: 'categoricalBar', width: 2, icon: '💰', accent: '#00d4aa', desc: `${v.revenue} attributed to each journey step — shows where business value accumulates across the ${v.customer.toLowerCase()} flow.`,
+      dql: `${b}\n| summarize revenue = sum(toDouble(additionalfields.transactionValue)), count = count(), by:{json.stepName, json.stepIndex}\n| sort toDouble(json.stepIndex) asc\n| limit 20` },
+    { id: 'ex-step-time', title: 'Avg Processing Time by Step', vizType: 'categoricalBar', width: 1, icon: '⏱️', accent: '#f39c12', desc: `Average processing latency at each journey step — slow steps reduce conversion and increase abandonment.`,
+      dql: `${b}\n| summarize avgTime = round(avg(toDouble(additionalfields.processingTime)), decimals:0), by:{json.stepName, json.stepIndex}\n| sort toDouble(json.stepIndex) asc\n| limit 20`,
+      requiresNumeric: ['processingTime'] },
+
+    // ══════ REVENUE BREAKDOWN ══════
+    { id: 'ex-bd-banner', title: `${v.revenue.toUpperCase()} BREAKDOWN`, vizType: 'sectionBanner', width: 3, icon: '💰', accent: '#1abc9c', dql: '' },
+    { id: 'ex-rev-journey', title: `${v.revenue} by Journey Type`, vizType: 'categoricalBar', width: 2, icon: '📊', accent: '#1abc9c', desc: `${v.revenue} split across journey types — shows which ${v.customer.toLowerCase()} paths generate the most value.`,
+      dql: `${b}\n| summarize revenue = sum(toDouble(additionalfields.transactionValue)), by:{json.journeyType}\n| sort revenue desc\n| limit 15` },
+    { id: 'ex-events-journey', title: 'Events by Journey', vizType: 'donut', width: 1, icon: '🎯', desc: 'Proportional event distribution by journey type — understand the traffic mix driving your business.',
+      dql: `${b}\n| summarize count = count(), by:{json.journeyType}\n| sort count desc\n| limit 10` },
+    { id: 'ex-rev-service', title: `${v.revenue} by Service`, vizType: 'categoricalBar', width: 2, icon: '🔧', accent: '#1abc9c', desc: `${v.revenue} attributed to each backend service — helps prioritise SLA investments on the highest-value services.`,
+      dql: `${b}\n| summarize revenue = sum(toDouble(additionalfields.transactionValue)), by:{json.serviceName}\n| sort revenue desc\n| limit 15` },
+    { id: 'ex-events-type', title: 'Events by Type', vizType: 'donut', width: 1, icon: '🏷️', desc: 'Breakdown of event types — reveals the composition of your digital activity.',
+      dql: `${b}\n| summarize count = count(), by:{event.type}\n| sort count desc\n| limit 10` },
+
+    // ══════ SLA & PERFORMANCE ══════
+    { id: 'ex-sla-banner', title: 'SLA & PERFORMANCE', vizType: 'sectionBanner', width: 3, icon: '⏱️', accent: '#f39c12', dql: '' },
+    { id: 'ex-sla-met', title: 'SLA Met vs Not Met', vizType: 'timeseries', width: 2, icon: '✅', accent: '#27ae60', desc: `SLA compliance trend (5s threshold) — of all ${v.transactions.toLowerCase()}, how many were processed within SLA?`,
+      dql: `${b}\n| fieldsAdd sla = if(toDouble(additionalfields.processingTime) > 5000, "Not Met", else: "Met")\n| makeTimeseries met = countIf(sla == "Met"), notMet = countIf(sla == "Not Met")`,
+      requiresNumeric: ['processingTime'] },
+    { id: 'ex-sla-pct', title: 'SLA Compliance %', vizType: 'heroMetric', width: 1, icon: '📋', accent: '#27ae60', desc: `Overall SLA compliance percentage — of total ${v.transactions.toLowerCase()}, what % completed inside the SLA threshold.`,
+      dql: `${b}\n| fieldsAdd sla = if(toDouble(additionalfields.processingTime) > 5000, "Not Met", else: "Met")\n| summarize slaPercentage = round(100.0 * toDouble(countIf(sla == "Met")) / toDouble(count()), decimals:1)`,
+      requiresNumeric: ['processingTime'] },
+    { id: 'ex-latency-by-svc', title: 'Avg Latency by Service', vizType: 'categoricalBar', width: 2, icon: '⏱️', accent: '#f39c12', desc: 'Per-service average processing latency — services with high latency drag down the overall SLA compliance rate.',
+      dql: `${b}\n| summarize avgLatency = round(avg(toDouble(additionalfields.processingTime)), decimals:0), by:{json.serviceName}\n| sort avgLatency desc\n| limit 15`,
+      requiresNumeric: ['processingTime'] },
+    { id: 'ex-latency-ts', title: 'Avg Processing Time', vizType: 'timeseries', width: 1, icon: '📈', accent: '#f39c12', desc: 'Processing time trend — a rising baseline indicates infrastructure degradation or growing data volumes.',
+      dql: `${b}\n| makeTimeseries avgLatency = avg(toDouble(additionalfields.processingTime))`,
+      requiresNumeric: ['processingTime'] },
+
+    // ══════ IT IMPACT ON BUSINESS ══════
+    { id: 'ex-it-banner', title: 'IT IMPACT ON BUSINESS', vizType: 'sectionBanner', width: 3, icon: '🛠️', accent: '#e74c3c', dql: '' },
+    { id: 'ex-it-problems', title: 'Open IT Problems', vizType: 'heroMetric', width: 1, icon: '🔴', accent: '#e74c3c', desc: `Active Dynatrace Intelligence problems — open problems directly correlate with ${v.transaction.toLowerCase()} faults and SLA breaches.`,
+      dql: `fetch dt.davis.problems, from:${timeframe}\n| filter dt.davis.is_duplicate == false\n| filter event.status == "ACTIVE"\n| summarize openProblems = count()` },
+    { id: 'ex-it-loss', title: 'Est. Loss from Errors', vizType: 'heroMetric', width: 1, icon: '💸', accent: '#ae132d', desc: `${v.revenue} directly lost to errored ${v.transactions.toLowerCase()} — the business cost of IT issues.`,
+      dql: `${b}\n| filter json.hasError == true\n| summarize lostRevenue = round(sum(toDouble(additionalfields.transactionValue)), decimals:0)` },
+    { id: 'ex-it-affected', title: `Affected ${v.customers}`, vizType: 'heroMetric', width: 1, icon: v.icons.cust, accent: '#d56b1a', desc: `Unique ${v.customers.toLowerCase()} impacted by errors — ${v.customer.toLowerCase()}-level blast radius of IT faults.`,
+      dql: `${b}\n| filter json.hasError == true\n| summarize affectedCustomers = countDistinct(json.customerId)` },
+    { id: 'ex-problems-ts', title: 'Problems Over Time', vizType: 'timeseries', width: 2, icon: '📈', accent: '#e74c3c', desc: `Dynatrace Intelligence problem creation rate — correlate with ${v.revenue.toLowerCase()} dips to measure business impact.`,
+      dql: `fetch dt.davis.problems, from:${timeframe}\n| filter dt.davis.is_duplicate == false\n| makeTimeseries count = count()` },
+    { id: 'ex-errors-ts', title: 'Business Errors Over Time', vizType: 'timeseries', width: 1, icon: '📈', accent: '#ae132d', desc: `Business event errors over time — each spike represents potential ${v.transaction.toLowerCase()} faults and ${v.revenue.toLowerCase()} leakage.`,
+      dql: `${b}\n| makeTimeseries errors = countIf(json.hasError == true)` },
+
+    // ══════ TOP CUSTOMERS & RECENT ACTIVITY ══════
+    { id: 'ex-activity-banner', title: `TOP ${v.customers.toUpperCase()} & RECENT ACTIVITY`, vizType: 'sectionBanner', width: 3, icon: '👤', accent: '#3498db', dql: '' },
+    { id: 'ex-top-customers', title: `Top ${v.customers} by ${v.revenue}`, vizType: 'categoricalBar', width: 2, icon: '👤', accent: '#3498db', desc: `Highest-value ${v.customers.toLowerCase()} ranked by spend — protect these VIPs from error-impacted experiences first.`,
+      dql: `${b}\n| summarize revenue = round(sum(toDouble(additionalfields.transactionValue)), decimals:2), orders = count(), by:{json.customerId}\n| sort revenue desc\n| limit 15` },
+    { id: 'ex-customer-dist', title: `${v.customer} Activity Distribution`, vizType: 'honeycomb', width: 1, icon: '🔥', desc: `Heatmap of ${v.customer.toLowerCase()} activity volume — larger cells indicate power users or high-frequency ${v.customers.toLowerCase()}.`,
+      dql: `${b}\n| summarize count = count(), by:{json.customerId}\n| sort count desc\n| limit 30` },
+    { id: 'ex-recent-orders', title: v.recentLabel, vizType: 'table', width: 3, icon: '📋', accent: '#3498db', desc: `Live feed of the latest ${v.transactions.toLowerCase()} with ${v.customer.toLowerCase()}, journey, service, and error status — real-time operational awareness.`,
+      dql: `${b}\n| fields Time = timestamp, Customer = json.customerId, Journey = json.journeyType, Step = json.stepName, Service = json.serviceName, Value = additionalfields.transactionValue, EventType = event.type, HasError = json.hasError\n| sort Time desc\n| limit 50` },
+
+    // ══════ SERVICE PERFORMANCE ══════
+    { id: 'ex-svc-banner', title: 'SERVICE PERFORMANCE', vizType: 'sectionBanner', width: 3, icon: '🔧', accent: '#e67e22', dql: '' },
+    { id: 'ex-svc-table', title: 'Service Business Performance', vizType: 'table', width: 3, icon: '📋', accent: '#e67e22', desc: `Full service scorecard — ${v.revenue.toLowerCase()}, volume, errors, failure rate, and ${v.customer.toLowerCase()} reach per service.`,
+      dql: `${b}\n| summarize EventCount = count(), Errors = countIf(json.hasError == true), Revenue = round(sum(toDouble(additionalfields.transactionValue)), decimals:2), AvgValue = round(avg(toDouble(additionalfields.transactionValue)), decimals:2), Customers = countDistinct(json.customerId), by:{json.serviceName}\n| fieldsAdd FailRate = round(100.0 * toDouble(Errors) / toDouble(EventCount), decimals:2)\n| fieldsAdd Service = concat("[", json.serviceName, "](${TENANT_BASE}/ui/apps/dynatrace.services)")\n| fields Service, Revenue, EventCount, Errors, FailRate, AvgValue, Customers\n| sort Revenue desc\n| limit 25` },
+    { id: 'ex-svc-errors', title: 'Error Rate by Service', vizType: 'categoricalBar', width: 2, icon: '⚠️', accent: '#e74c3c', desc: `Per-service error rate ranking — services at the top are the biggest contributors to ${v.transaction.toLowerCase()} faults.`,
+      dql: `${b}\n| summarize total = count(), errors = countIf(json.hasError == true), by:{json.serviceName}\n| fieldsAdd errorRate = round(100.0 * toDouble(errors) / toDouble(total), decimals:1)\n| sort errorRate desc\n| limit 15` },
+    { id: 'ex-heatmap', title: 'Event Activity Heatmap', vizType: 'honeycomb', width: 1, icon: '🔥', desc: 'Event type distribution heatmap — see the relative weight of different event types at a glance.',
+      dql: `${b}\n| summarize count = count(), by:{event.type}\n| sort count desc\n| limit 20` },
+  ];
+}
+
 function getCandidates(companyName: string, journeyType: string, preset: DashboardPreset, timeframe: Timeframe, serviceName?: string, eventType?: string, companyServices?: string[]): TileCandidate[] {
   const b = buildBase(companyName, journeyType, timeframe, serviceName, eventType);
 
@@ -395,11 +802,12 @@ function getCandidates(companyName: string, journeyType: string, preset: Dashboa
     ];
 
     /* ══════════════════════════════════════════════════════════════
-       EXECUTIVE — C-Level Business Impact Dashboard
-       Inspired by EasyTrade Business Impact & Retail eCommerce
+       EXECUTIVE — Industry-Aware C-Level Business Impact Dashboard
+       Vocabulary adapts to detected industry from journey/company.
        Revenue · Volume · SLA · Journey Flow · IT Impact · Trends
        ══════════════════════════════════════════════════════════════ */
-    case 'executive': return [
+    case 'executive': return getExecutiveTiles(b, timeframe, journeyType, companyName);
+    /* ── Old retail-centric tiles superseded by industry-aware getExecutiveTiles() ──
       // ══════ KEY BUSINESS METRICS ══════
       { id: 'ex-kpi-banner', title: 'KEY BUSINESS METRICS', vizType: 'sectionBanner', width: 3, icon: '📊', accent: '#a78bfa', dql: '' },
       { id: 'ex-revenue', title: 'Total Revenue', vizType: 'heroMetric', width: 1, icon: '💰', accent: '#00d4aa', desc: 'Aggregate revenue captured across all business events in the selected timeframe — compare against seasonal targets to gauge performance.',
@@ -510,7 +918,7 @@ function getCandidates(companyName: string, journeyType: string, preset: Dashboa
         dql: `${b}\n| summarize total = count(), errors = countIf(json.hasError == true), by:{json.serviceName}\n| fieldsAdd errorRate = round(100.0 * toDouble(errors) / toDouble(total), decimals:1)\n| sort errorRate desc\n| limit 15` },
       { id: 'ex-heatmap', title: 'Event Activity Heatmap', vizType: 'honeycomb', width: 1, icon: '🔥', desc: 'Event type distribution heatmap — see the relative weight of purchase, cart, browse, and error events at a glance.',
         dql: `${b}\n| summarize count = count(), by:{event.type}\n| sort count desc\n| limit 20` },
-    ];
+    ── end of superseded tiles ── */
 
     /* ══════════════════════════════════════════════════════════════
        DYNATRACE INTELLIGENCE — Problems · Root Cause · Anomalies ·

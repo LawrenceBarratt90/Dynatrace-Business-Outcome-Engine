@@ -1,10 +1,10 @@
 {
   "$schema": "./.dt-app/app.config.schema.json",
-  "environmentUrl": "https://YOUR_TENANT_ID.apps.dynatrace.com/",
+  "environmentUrl": "https://bko67471.sprint.apps.dynatracelabs.com/",
   "app": {
     "id": "my.bizobs.generator.master",
     "name": "Business Observability Forge",
-    "version": "2.23.1",
+    "version": "2.24.0",
     "description": "AI-powered Business Observability — generate and observe journeys",
     "scopes": [
       {
