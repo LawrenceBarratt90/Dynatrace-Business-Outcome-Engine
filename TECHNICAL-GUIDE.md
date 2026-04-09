@@ -110,7 +110,7 @@ This is a **single unified repo** — it contains both the Engine (server) and t
 sudo git clone https://github.com/LawrenceBarratt90/Dynatrace-Business-Outcome-Engine.git
 cd Dynatrace-Business-Outcome-Engine
 chmod +x setup.sh
-./setup.sh
+sudo ./setup.sh
 ```
 
 The `setup.sh` script will walk you through 6 guided prompts and handle everything automatically: npm install, credential configuration, EdgeConnect setup, AppEngine deploy, and server startup.
