@@ -198,6 +198,41 @@ if [[ ! "$DEPLOY_OAUTH_CLIENT_SECRET" == dt0s10.* ]] && [[ ! "$DEPLOY_OAUTH_CLIE
   exit 1
 fi
 
+# Detect swapped ID/secret — Client IDs have 2 dot-separated parts, secrets have 3
+EC_ID_DOTS=$(echo "$EC_OAUTH_CLIENT_ID" | tr -cd '.' | wc -c)
+EC_SECRET_DOTS=$(echo "$EC_OAUTH_CLIENT_SECRET" | tr -cd '.' | wc -c)
+DEPLOY_ID_DOTS=$(echo "$DEPLOY_OAUTH_CLIENT_ID" | tr -cd '.' | wc -c)
+DEPLOY_SECRET_DOTS=$(echo "$DEPLOY_OAUTH_CLIENT_SECRET" | tr -cd '.' | wc -c)
+
+if [ "$EC_ID_DOTS" -gt 1 ]; then
+  echo -e "  ${RED}✗ EdgeConnect OAuth Client ID looks like a secret (too many parts).${NC}"
+  echo -e "  ${YELLOW}  Client ID format:     dt0s10.XXXXXXXX  (2 parts)${NC}"
+  echo -e "  ${YELLOW}  Client Secret format:  dt0s10.XXXXXXXX.YYYYYYYY...  (3 parts)${NC}"
+  echo -e "  ${YELLOW}  You entered: '${EC_OAUTH_CLIENT_ID:0:20}...'${NC}"
+  echo -e "  ${YELLOW}  Delete setup.conf and re-run ./setup.sh${NC}"
+  exit 1
+fi
+if [ "$EC_SECRET_DOTS" -lt 2 ]; then
+  echo -e "  ${RED}✗ EdgeConnect OAuth Client Secret looks like a client ID (too short).${NC}"
+  echo -e "  ${YELLOW}  Client Secret format:  dt0s10.XXXXXXXX.YYYYYYYY...  (3 parts)${NC}"
+  echo -e "  ${YELLOW}  Delete setup.conf and re-run ./setup.sh${NC}"
+  exit 1
+fi
+if [ "$DEPLOY_ID_DOTS" -gt 1 ]; then
+  echo -e "  ${RED}✗ Deploy OAuth Client ID looks like a secret (too many parts).${NC}"
+  echo -e "  ${YELLOW}  Client ID format:     dt0s10.XXXXXXXX  (2 parts)${NC}"
+  echo -e "  ${YELLOW}  Client Secret format:  dt0s10.XXXXXXXX.YYYYYYYY...  (3 parts)${NC}"
+  echo -e "  ${YELLOW}  You entered: '${DEPLOY_OAUTH_CLIENT_ID:0:20}...'${NC}"
+  echo -e "  ${YELLOW}  Delete setup.conf and re-run ./setup.sh${NC}"
+  exit 1
+fi
+if [ "$DEPLOY_SECRET_DOTS" -lt 2 ]; then
+  echo -e "  ${RED}✗ Deploy OAuth Client Secret looks like a client ID (too short).${NC}"
+  echo -e "  ${YELLOW}  Client Secret format:  dt0s10.XXXXXXXX.YYYYYYYY...  (3 parts)${NC}"
+  echo -e "  ${YELLOW}  Delete setup.conf and re-run ./setup.sh${NC}"
+  exit 1
+fi
+
 # Save valid credentials for future runs
 if [ "$NEED_PROMPT" = true ]; then
   cat > "$CONF_FILE" << EOF
