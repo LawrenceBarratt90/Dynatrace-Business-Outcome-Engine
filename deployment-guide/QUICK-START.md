@@ -108,8 +108,8 @@ The app will still work without Ollama — it falls back to rule-based logic ins
 
 ```bash
 cd /home/ec2-user
-git clone https://github.com/LawrenceBarratt90/Dynatrace-Business-Observability-Demonstrator.git
-cd Dynatrace-Business-Observability-Demonstrator
+git clone https://github.com/LawrenceBarratt90/Dynatrace-Business-Outcome-Engine.git
+cd Dynatrace-Business-Outcome-Engine
 ```
 
 The repo doesn't include `node_modules` — you need to install them first. Then build the TypeScript agents (the server needs the compiled JS in the `dist/` folder):

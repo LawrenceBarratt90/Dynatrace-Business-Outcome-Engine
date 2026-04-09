@@ -1,7 +1,7 @@
 # Business Outcome Engine
 
 <p align="center">
-  <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/LawrenceBarratt90/Dynatrace-Business-Observability-Demonstrator" alt="QR code linking to the Business Outcome Engine repository on GitHub" />
+  <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://github.com/LawrenceBarratt90/Dynatrace-Business-Outcome-Engine" alt="QR code linking to the Business Outcome Engine repository on GitHub" />
 </p>
 
 Model any customer’s real business journey — their exact checkout flow, claims process, or patient care pathway — and turn it into a live, fully instrumented simulation inside Dynatrace. Describe the journey in plain language (or use AI to research it), and the Engine generates real microservices, realistic traffic, business events with revenue metadata, and executive dashboards — all wired into Dynatrace OneAgent, BizEvents, and Dynatrace Intelligence.
