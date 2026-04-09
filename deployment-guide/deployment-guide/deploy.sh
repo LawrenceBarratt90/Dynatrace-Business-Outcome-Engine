@@ -44,7 +44,7 @@ DT_API_TOKEN=""
 DT_OTEL_TOKEN=""
 OLLAMA_MODEL="llama3.2"
 APP_DIR=""
-REPO_URL="https://github.com/LawrenceBarratt90/Business-Observablity-forge.git"
+REPO_URL="https://github.com/LawrenceBarratt90/Dynatrace-Business-Outcome-Engine.git"
 APP_OAUTH_CLIENT_ID=""
 APP_OAUTH_CLIENT_SECRET=""
 EC_NAME=""
@@ -460,7 +460,7 @@ else
     echo -e "  ${CYAN}(or enter 'skip' to set this up later)${NC}"
     echo ""
     echo -e "  ${BOLD}Enter the EdgeConnect name (as shown in Dynatrace)${NC}"
-    echo -e "  ${CYAN}(e.g. bizobs-forge — must match exactly what you created in Dynatrace)${NC}"
+    echo -e "  ${CYAN}(e.g. bizobs-engine — must match exactly what you created in Dynatrace)${NC}"
     read -rp "  → " EC_NAME
     echo ""
     echo -e "  ${BOLD}Enter EdgeConnect OAuth Client ID${NC}"
@@ -483,7 +483,7 @@ else
 
     # Default EdgeConnect name if not provided
     if [[ -z "$EC_NAME" ]]; then
-      EC_NAME="bizobs-forge"
+      EC_NAME="bizobs-engine"
     fi
 
     # Derive apps host for EdgeConnect

@@ -1732,7 +1732,7 @@ export default async function (payload: ProxyPayload) {
     // Uses a shared Grail Document (isPrivate=false) so ALL users on the
     // tenant see the same EC2 IP / port / protocol without configuring.
     // ══════════════════════════════════════════════════════════════════
-    const APP_SETTINGS_DOC_ID = 'bizobs-forge-app-settings';
+    const APP_SETTINGS_DOC_ID = 'bizobs-engine-app-settings';
     const APP_SETTINGS_DOC_NAME = 'BizObs Engine App Settings';
     const APP_SETTINGS_DOC_TYPE = 'bizobs-config';
 

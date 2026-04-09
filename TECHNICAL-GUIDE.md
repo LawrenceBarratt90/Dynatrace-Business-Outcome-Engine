@@ -159,7 +159,7 @@ This client is used for the EdgeConnect tunnel. Depending on your tenant, it may
 1. Go to your Dynatrace tenant
 2. **Settings → General → External Requests**
 3. Click **Add EdgeConnect** (or select an existing one)
-4. Name it (e.g. `bizobs-forge`) — **remember this name, it must match what the script generates**
+4. Name it (e.g. `bizobs-engine`) — **remember this name, it must match what the script generates**
 5. DT will generate the OAuth credentials for you and show:
    - **OAuth client ID**: `dt0s10.XXXXX` or `dt0s02.XXXXX`
    - **OAuth client secret**: shown only once!
@@ -520,7 +520,7 @@ Welcome Tab → Step 1: Company Details → Step 2: Generate Prompts → Step 3:
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | **"Cannot reach X.X.X.X:8080"** on Config tab | You're using the **public** Elastic IP | Change to your **private IP** (`hostname -I \| awk '{print $1}'`). AWS doesn't support NAT hairpin — see Step 6a |
-| **EdgeConnect shows offline** | OAuth creds wrong, name mismatch, or EdgeConnect not running | Check `docker logs edgeconnect-bizobs`. The `name:` in `edgeConnect.yaml` must match the EdgeConnect name in DT UI (e.g. `bizobs-forge`). Re-run `./setup.sh`. Double-check `client_id`, `client_secret`, `resource` in YAML (Step 2B → Step 3a) |
+| **EdgeConnect shows offline** | OAuth creds wrong, name mismatch, or EdgeConnect not running | Check `docker logs edgeconnect-bizobs`. The `name:` in `edgeConnect.yaml` must match the EdgeConnect name in DT UI (e.g. `bizobs-engine`). Re-run `./setup.sh`. Double-check `client_id`, `client_secret`, `resource` in YAML (Step 2B → Step 3a) |
 | **Test connection fails but EdgeConnect is green** | Server not running, or host pattern not registered | 1) Verify server: `curl http://localhost:8080/api/health` 2) Wait 15s and retry (propagation delay) 3) Ensure private IP is the host pattern |
 | **No services in Dynatrace** | OneAgent not installed or feature flags not enabled | Run Get Started checklist in Engine UI — deploy OneAgent Feature Flags step |
 | **Engine UI shows "Connection failed"** | Server IP not configured or EdgeConnect not tunneling | Settings → Config tab → set private IP + Test. Settings → EdgeConnect tab → verify green |

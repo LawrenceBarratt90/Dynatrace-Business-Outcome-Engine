@@ -18,7 +18,7 @@
 #
 #  USAGE:
 #    # Option A: SSH in and run interactively (prompts for DT creds)
-#    curl -fsSL https://raw.githubusercontent.com/LawrenceBarratt90/Business-Observablity-forge/main/bootstrap-ec2.sh | bash
+#    curl -fsSL https://raw.githubusercontent.com/LawrenceBarratt90/Dynatrace-Business-Outcome-Engine/main/bootstrap-ec2.sh | bash
 #
 #    # Option B: Pass all credentials via CLI flags (CI/CD, no prompts)
 #    bash bootstrap-ec2.sh \
@@ -27,7 +27,7 @@
 #      --otel-token dt0c01.YYYY \
 #      --app-oauth-id dt0s02.XXXX \
 #      --app-oauth-secret dt0s02.XXXX.YYYY \
-#      --ec-name bizobs-forge \
+#      --ec-name bizobs-engine \
 #      --ec-client-id dt0s10.XXXX \
 #      --ec-client-secret dt0s10.XXXX.YYYY \
 #      --ec-resource urn:dtenvironment:abc123
@@ -74,8 +74,8 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-REPO_URL="https://github.com/LawrenceBarratt90/Business-Observablity-forge.git"
-INSTALL_DIR="/home/ec2-user/Business-Observablity-forge"
+REPO_URL="https://github.com/LawrenceBarratt90/Dynatrace-Business-Outcome-Engine.git"
+INSTALL_DIR="/home/ec2-user/Dynatrace-Business-Outcome-Engine"
 
 echo -e "${BOLD}"
 echo "╔══════════════════════════════════════════════════════════════╗"

@@ -12,7 +12,7 @@
 import { functions } from '@dynatrace-sdk/app-utils';
 
 // Well-known document name shared across all users
-const APP_SETTINGS_DOC_NAME = 'bizobs-forge-app-settings';
+const APP_SETTINGS_DOC_NAME = 'bizobs-engine-app-settings';
 const LOCAL_STORAGE_KEY = 'bizobs_api_settings';
 
 export interface AppSettings {

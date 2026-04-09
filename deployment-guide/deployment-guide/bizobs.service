@@ -1,6 +1,6 @@
 [Unit]
 Description=BizObs Partner PowerUp Application
-Documentation=https://github.com/LawrenceBarratt90/Business-Observablity-forge
+Documentation=https://github.com/LawrenceBarratt90/Dynatrace-Business-Outcome-Engine
 After=network.target
 Wants=network-online.target
 

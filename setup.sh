@@ -3,8 +3,8 @@
 #  Business Outcome Engine — One-Command Setup
 # ============================================================
 #  Usage:
-#    git clone https://github.com/LawrenceBarratt90/Business-Observablity-forge.git
-#    cd Business-Observablity-forge && ./setup.sh
+#    git clone https://github.com/LawrenceBarratt90/Dynatrace-Business-Outcome-Engine.git
+#    cd Dynatrace-Business-Outcome-Engine && ./setup.sh
 #
 #  The script will prompt you for values if setup.conf doesn't exist.
 #  Or pre-fill setup.conf and it runs non-interactively.
@@ -396,7 +396,7 @@ ok "Created .dt-credentials.json"
 step "Step 4/6: Starting EdgeConnect"
 
 cat > "$SCRIPT_DIR/edgeconnect/edgeConnect.yaml" << EOF
-name: bizobs-forge
+name: bizobs-engine
 api_endpoint_host: $(echo "$APPS_URL" | sed 's|https://||')
 oauth:
   client_id: ${EC_OAUTH_CLIENT_ID}

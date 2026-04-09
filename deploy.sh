@@ -470,7 +470,7 @@ else
     echo -e "  ${CYAN}(or enter 'skip' to set this up later)${NC}"
     echo ""
     echo -e "  ${BOLD}Enter the EdgeConnect name (as shown in Dynatrace)${NC}"
-    echo -e "  ${CYAN}(e.g. bizobs-forge — must match exactly what you created in Dynatrace)${NC}"
+    echo -e "  ${CYAN}(e.g. bizobs-engine — must match exactly what you created in Dynatrace)${NC}"
     read -rp "  → " EC_NAME
     echo ""
     echo -e "  ${BOLD}Enter EdgeConnect OAuth Client ID${NC}"
@@ -502,7 +502,7 @@ else
     fi
 
     # Use provided name or default
-    EC_NAME="${EC_NAME:-bizobs-forge}"
+    EC_NAME="${EC_NAME:-bizobs-engine}"
 
     # Auto-detect server IPs for EdgeConnect host patterns
     # The platform needs to know which hosts to route through this EdgeConnect
