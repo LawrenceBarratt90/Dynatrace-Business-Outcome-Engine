@@ -4437,7 +4437,7 @@ router.get('/field-repo', (req, res) => {
 // that are specific to the actual deployed journey data.
 // ============================================================================
 
-router.post('/forge-tiles', async (req, res) => {
+router.post('/engine-tiles', async (req, res) => {
   const startTime = Date.now();
   try {
     const { fields, preset, companyName, journeyType, timeframe, services } = req.body || {};
@@ -4588,7 +4588,7 @@ JSON array only. No markdown. No explanation.${repoContext}`;
       ollamaResult.eval_count || 0,
       elapsed
     );
-    await logGenAISpan(spanAttrs, 'forge_tile_generation');
+    await logGenAISpan(spanAttrs, 'engine_tile_generation');
 
     // Parse the JSON array from Ollama's response
     let jsonText = rawText;
@@ -4673,10 +4673,10 @@ JSON array only. No markdown. No explanation.${repoContext}`;
 // The proxy kicks off a job, then polls for results.
 // ============================================================================
 
-const _forgeTileJobs = new Map(); // jobId → { status, tiles, meta, error, startTime }
+const _engineTileJobs = new Map(); // jobId → { status, tiles, meta, error, startTime }
 
-router.post('/forge-tiles-async', async (req, res) => {
-  const jobId = `forge-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+router.post('/engine-tiles-async', async (req, res) => {
+  const jobId = `engine-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const { fields, preset, companyName, journeyType, timeframe, services } = req.body || {};
 
   if (!fields || !Array.isArray(fields) || fields.length === 0) {
@@ -4684,12 +4684,12 @@ router.post('/forge-tiles-async', async (req, res) => {
   }
 
   // Store job as pending and respond immediately
-  _forgeTileJobs.set(jobId, { status: 'running', tiles: null, meta: null, error: null, startTime: Date.now() });
+  _engineTileJobs.set(jobId, { status: 'running', tiles: null, meta: null, error: null, startTime: Date.now() });
 
   // Clean up old jobs (keep last 50)
-  if (_forgeTileJobs.size > 50) {
-    const keys = [..._forgeTileJobs.keys()];
-    for (let i = 0; i < keys.length - 50; i++) _forgeTileJobs.delete(keys[i]);
+  if (_engineTileJobs.size > 50) {
+    const keys = [..._engineTileJobs.keys()];
+    for (let i = 0; i < keys.length - 50; i++) _engineTileJobs.delete(keys[i]);
   }
 
   res.json({ success: true, jobId });
@@ -4697,7 +4697,7 @@ router.post('/forge-tiles-async', async (req, res) => {
   // Run Ollama generation in background (after response)
   try {
     // Reuse the synchronous endpoint's internal URL to call ourselves
-    const internalUrl = `http://localhost:${process.env.PORT || 8080}/api/ai-dashboard/forge-tiles`;
+    const internalUrl = `http://localhost:${process.env.PORT || 8080}/api/ai-dashboard/engine-tiles`;
     const result = await fetch(internalUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -4706,17 +4706,17 @@ router.post('/forge-tiles-async', async (req, res) => {
     });
     const data = await result.json();
     if (data.success) {
-      _forgeTileJobs.set(jobId, { status: 'complete', tiles: data.tiles, meta: data.meta, error: null, startTime: _forgeTileJobs.get(jobId)?.startTime });
+      _engineTileJobs.set(jobId, { status: 'complete', tiles: data.tiles, meta: data.meta, error: null, startTime: _engineTileJobs.get(jobId)?.startTime });
     } else {
-      _forgeTileJobs.set(jobId, { status: 'failed', tiles: null, meta: null, error: data.error || 'Generation failed', startTime: _forgeTileJobs.get(jobId)?.startTime });
+      _engineTileJobs.set(jobId, { status: 'failed', tiles: null, meta: null, error: data.error || 'Generation failed', startTime: _engineTileJobs.get(jobId)?.startTime });
     }
   } catch (err) {
-    _forgeTileJobs.set(jobId, { status: 'failed', tiles: null, meta: null, error: err.message, startTime: _forgeTileJobs.get(jobId)?.startTime });
+    _engineTileJobs.set(jobId, { status: 'failed', tiles: null, meta: null, error: err.message, startTime: _engineTileJobs.get(jobId)?.startTime });
   }
 });
 
-router.get('/forge-tiles-status/:jobId', (req, res) => {
-  const job = _forgeTileJobs.get(req.params.jobId);
+router.get('/engine-tiles-status/:jobId', (req, res) => {
+  const job = _engineTileJobs.get(req.params.jobId);
   if (!job) {
     return res.status(404).json({ success: false, error: 'Job not found' });
   }

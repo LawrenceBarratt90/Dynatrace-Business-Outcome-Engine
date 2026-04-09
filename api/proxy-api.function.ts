@@ -10,7 +10,7 @@ import { documentsClient, environmentSharesClient } from '@dynatrace-sdk/client-
 import { queryExecutionClient } from '@dynatrace-sdk/client-query';
 
 interface ProxyPayload {
-  action: 'simulate-journey' | 'simulate-vcarb-race' | 'vcarb-race-status' | 'stop-vcarb-race' | 'get-saved-config' | 'test-connection' | 'get-services' | 'stop-all-services' | 'stop-company-services' | 'get-dormant-services' | 'clear-dormant-services' | 'clear-company-dormant' | 'chaos-get-active' | 'chaos-get-recipes' | 'chaos-inject' | 'chaos-revert' | 'chaos-revert-all' | 'chaos-get-targeted' | 'chaos-remove-target' | 'chaos-smart' | 'ec-create' | 'ec-update-patterns' | 'detect-builtin-settings' | 'deploy-builtin-settings' | 'deploy-workflow' | 'debug-builtin-schema' | 'generate-dashboard' | 'generate-dashboard-async' | 'get-dashboard-status' | 'deploy-dashboard' | 'deploy-ai-dashboard' | 'mcp-generate-deploy-dashboard' | 'list-saved-dashboards' | 'load-saved-dashboard' | 'delete-saved-dashboard' | 'deploy-business-flow' | 'list-business-flows' | 'delete-business-flows' | 'generate-pdf' | 'generate-doc' | 'load-app-settings' | 'save-app-settings' | 'check-journey-assets' | 'create-notebook' | 'execute-dql' | 'forge-ai-tiles' | 'forge-tiles-status' | 'field-repo-get' | 'librarian-history' | 'librarian-stats' | 'librarian-analyze';
+  action: 'simulate-journey' | 'simulate-vcarb-race' | 'vcarb-race-status' | 'stop-vcarb-race' | 'get-saved-config' | 'test-connection' | 'get-services' | 'stop-all-services' | 'stop-company-services' | 'get-dormant-services' | 'clear-dormant-services' | 'clear-company-dormant' | 'chaos-get-active' | 'chaos-get-recipes' | 'chaos-inject' | 'chaos-revert' | 'chaos-revert-all' | 'chaos-get-targeted' | 'chaos-remove-target' | 'chaos-smart' | 'ec-create' | 'ec-update-patterns' | 'detect-builtin-settings' | 'deploy-builtin-settings' | 'deploy-workflow' | 'debug-builtin-schema' | 'generate-dashboard' | 'generate-dashboard-async' | 'get-dashboard-status' | 'deploy-dashboard' | 'deploy-ai-dashboard' | 'mcp-generate-deploy-dashboard' | 'list-saved-dashboards' | 'load-saved-dashboard' | 'delete-saved-dashboard' | 'deploy-business-flow' | 'list-business-flows' | 'delete-business-flows' | 'generate-pdf' | 'generate-doc' | 'load-app-settings' | 'save-app-settings' | 'check-journey-assets' | 'create-notebook' | 'execute-dql' | 'engine-ai-tiles' | 'engine-tiles-status' | 'field-repo-get' | 'librarian-history' | 'librarian-stats' | 'librarian-analyze';
   apiHost: string;
   apiPort: string;
   apiProtocol: string;
@@ -1821,7 +1821,7 @@ export default async function (payload: ProxyPayload) {
     }
 
     /* ── Engine Dashboards: AI-generated tiles via Ollama (async job model) ── */
-    if (action === 'forge-ai-tiles') {
+    if (action === 'engine-ai-tiles') {
       try {
         const reqBody = payload.body as {
           fields?: { name: string; type: string; sampleValue?: string | number }[];
@@ -1840,9 +1840,9 @@ export default async function (payload: ProxyPayload) {
         if (!fields || fields.length === 0) {
           return { success: false, error: 'No fields discovered for AI tile generation' };
         }
-        console.log(`[proxy-api] forge-ai-tiles: starting async job for ${fields.length} fields, ${reqBody?.preset} preset`);
+        console.log(`[proxy-api] engine-ai-tiles: starting async job for ${fields.length} fields, ${reqBody?.preset} preset`);
         // Start the async job — returns immediately with a jobId
-        const resp = await fetchWithRetry(`${baseUrl}/api/ai-dashboard/forge-tiles-async`, {
+        const resp = await fetchWithRetry(`${baseUrl}/api/ai-dashboard/engine-tiles-async`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           signal: AbortSignal.timeout(15000),
@@ -1858,24 +1858,24 @@ export default async function (payload: ProxyPayload) {
         const data = await resp.json();
         return data;
       } catch (err: any) {
-        console.error('[proxy-api] forge-ai-tiles error:', err.message);
+        console.error('[proxy-api] engine-ai-tiles error:', err.message);
         return { success: false, error: err.message || 'Engine AI Tiles request failed' };
       }
     }
 
     /* ── Engine Dashboards: poll for AI tile generation status ── */
-    if (action === 'forge-tiles-status') {
+    if (action === 'engine-tiles-status') {
       try {
         const { jobId } = (payload.body || {}) as { jobId?: string };
         if (!jobId) return { success: false, error: 'jobId required' };
-        const resp = await fetchWithRetry(`${baseUrl}/api/ai-dashboard/forge-tiles-status/${encodeURIComponent(jobId)}`, {
+        const resp = await fetchWithRetry(`${baseUrl}/api/ai-dashboard/engine-tiles-status/${encodeURIComponent(jobId)}`, {
           method: 'GET',
           signal: AbortSignal.timeout(15000),
         });
         const data = await resp.json();
         return data;
       } catch (err: any) {
-        console.error('[proxy-api] forge-tiles-status error:', err.message);
+        console.error('[proxy-api] engine-tiles-status error:', err.message);
         return { success: false, error: err.message || 'Status check failed' };
       }
     }

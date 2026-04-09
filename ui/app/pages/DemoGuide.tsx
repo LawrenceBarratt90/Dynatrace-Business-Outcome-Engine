@@ -90,7 +90,7 @@ const DEMO_PATHS: DemoPath[] = [
     ],
   },
   {
-    id: 'forge-dashboards',
+    id: 'engine-dashboards',
     icon: '📊',
     title: 'Engine Dashboards Deep Dive',
     subtitle: 'Four persona-based preset dashboards — Developer, Operations, Executive, Dynatrace Intelligence',
@@ -491,7 +491,7 @@ const PERSONAS: Persona[] = [
       { step: 'Auto-remediate with Fix-It', detail: 'Let AI fix the problem — emphasize speed and zero manual intervention.' },
       { step: 'Show the AppEngine app itself', detail: 'Point out this is a Dynatrace-native app — Strato components, EdgeConnect, serverless functions.' },
     ],
-    suggestedPaths: ['quick-start', 'forge-dashboards', 'chaos-and-fix'],
+    suggestedPaths: ['quick-start', 'engine-dashboards', 'chaos-and-fix'],
   },
   {
     id: 'sre',
@@ -577,7 +577,7 @@ const PERSONAS: Persona[] = [
       { step: 'Switch to Developer preset', detail: 'Show the Developer view: service health RED table, latency percentiles, error trends, traces & exceptions, and log analysis.' },
       { step: 'Break something and show impact', detail: 'Inject chaos on a payment service. Switch to the Executive preset and show revenue impact, error trends, and IT problems climbing.' },
     ],
-    suggestedPaths: ['quick-start', 'forge-dashboards', 'chaos-and-fix'],
+    suggestedPaths: ['quick-start', 'engine-dashboards', 'chaos-and-fix'],
   },
   {
     id: 'devops',
@@ -639,7 +639,7 @@ const PERSONAS: Persona[] = [
       { step: '9. LiveDebugger deep-dive (optional, 2 min)', detail: 'Open LiveDebugger on a service process. Set breakpoints on lines 697 (error injection), 708 (full error object), and 996 (service chain call) in dynamic-step-service.js. Capture snapshots showing injected errors, customer data, and trace context.', dtLink: { label: 'LiveDebugger', url: `${TENANT_URL}/ui/apps/dynatrace.devobs.debugger/debugger` } },
       { step: '10. Platform story close (30 sec)', detail: 'Remind them: this is an AppEngine app. Built with React + Strato. Deployed to Dynatrace. Customers can build their own.' },
     ],
-    suggestedPaths: ['quick-start', 'chaos-and-fix', 'genai-observability', 'forge-dashboards', 'live-debugger'],
+    suggestedPaths: ['quick-start', 'chaos-and-fix', 'genai-observability', 'engine-dashboards', 'live-debugger'],
   },
   {
     id: 'ai-ml',
@@ -700,7 +700,7 @@ const PERSONAS: Persona[] = [
       { step: 'Break a step and show business impact', detail: 'Inject errors on "Add to Cart". Show how downstream steps (Checkout, Payment) are affected.' },
       { step: 'Query journey data with DQL', detail: 'In a Notebook, show a custom query filtering by journey step and status.', dtLink: { label: 'Notebooks', url: `${TENANT_URL}/ui/apps/dynatrace.notebooks` } },
     ],
-    suggestedPaths: ['quick-start', 'forge-dashboards', 'chaos-and-fix'],
+    suggestedPaths: ['quick-start', 'engine-dashboards', 'chaos-and-fix'],
   },
 ];
 
@@ -903,7 +903,7 @@ export const DemoGuide = () => {
                 { label: 'Problems', url: `${TENANT_URL}/ui/apps/dynatrace.davis.problems/` },
                 { label: 'Traces', url: `${TENANT_URL}/ui/apps/dynatrace.distributedtracing/` },
                 { label: 'Dashboards', url: `${TENANT_URL}/ui/apps/dynatrace.dashboards` },
-                { label: 'Engine Dashboards', url: `${TENANT_URL}/ui/apps/my.bizobs.generator.master/ui/forge-dashboards` },
+                { label: 'Engine Dashboards', url: `${TENANT_URL}/ui/apps/my.bizobs.generator.master/ui/engine-dashboards` },
                 { label: 'GenAI Observability', url: `${TENANT_URL}/ui/apps/dynatrace.genai.observability/overview` },
                 { label: 'Notebooks', url: `${TENANT_URL}/ui/apps/dynatrace.notebooks` },
                 { label: 'LiveDebugger', url: `${TENANT_URL}/ui/apps/dynatrace.devobs.debugger/debugger` },
@@ -950,7 +950,7 @@ export const DemoGuide = () => {
                 }}>
                   <strong>What next?</strong> After completing {currentPath.title}, try the other paths.
                   {selectedPath === 'quick-start' && ' "Engine Dashboards Deep Dive" explores all 4 preset dashboards, or try "Chaos & Fix-It" once your services are running.'}
-                  {selectedPath === 'forge-dashboards' && ' "Chaos & Fix-It" to break things and watch the dashboards react, or "GenAI Observability" to see AI-powered features.'}
+                  {selectedPath === 'engine-dashboards' && ' "Chaos & Fix-It" to break things and watch the dashboards react, or "GenAI Observability" to see AI-powered features.'}
                   {selectedPath === 'chaos-and-fix' && ' "Autonomous Operations" shows the full closed loop with AI memory, or "Traces & OpenTelemetry" shows what\'s happening under the hood.'}
                   {selectedPath === 'autonomous-ops' && ' "GenAI Observability" for a deep dive into all the AI spans generated during the autonomous loop.'}
                   {selectedPath === 'traces-and-otel' && ' "GenAI Observability" shows how Dynatrace monitors LLM calls, or try "LiveDebugger" for code-level debugging.'}

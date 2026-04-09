@@ -472,7 +472,7 @@ The Dynatrace AppEngine app has 8 routes:
 | **Services** | `/services` | Live service dashboard with start/stop controls per company (accessible via direct URL) |
 | **Chaos Control** | `/chaos` | Select a service, pick a chaos type, inject — with live active faults list |
 | **Fix-It Agent** | `/fixit` | Trigger automated diagnosis and remediation |
-| **Engine Dashboards** | `/forge-dashboards` | DQL-powered dashboard presets (Security, DI, Infra, etc.) + Librarian modal overlay for AI-driven incident analysis |
+| **Engine Dashboards** | `/engine-dashboards` | DQL-powered dashboard presets (Security, DI, Infra, etc.) + Librarian modal overlay for AI-driven incident analysis |
 | **Settings** | `/settings` | Configure server IP, API tokens, EdgeConnect credentials |
 | **Demo Guide** | `/demo-guide` | Interactive walkthrough paths for demos (Quick Start, Chaos & Fix-It, Traces, Platform, LiveDebugger) |
 | **Solutions** | `/solutions` | 55+ industry verticals with Dynatrace capability mapping, clickable demo journeys |

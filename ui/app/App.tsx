@@ -7,7 +7,7 @@ import { FixItAgent } from './pages/FixItAgent';
 import { SettingsPage } from './pages/SettingsPage';
 import { DemoGuide } from './pages/DemoGuide';
 import { SolutionsPage } from './pages/SolutionsPage';
-import { ForgeDashboardsPage } from './pages/ForgeDashboardsPage';
+import { EngineDashboardsPage } from './pages/EngineDashboardsPage';
 import { VCARBDashboard } from './pages/VCARBDashboard';
 import { VCARBPreRace } from './pages/VCARBPreRace';
 import { VCARBLiveRace } from './pages/VCARBLiveRace';
@@ -22,7 +22,7 @@ export const App = () => {
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/demo-guide" element={<DemoGuide />} />
         <Route path="/solutions" element={<SolutionsPage />} />
-        <Route path="/forge-dashboards" element={<ForgeDashboardsPage />} />
+        <Route path="/engine-dashboards" element={<EngineDashboardsPage />} />
         <Route path="/vcarb" element={<VCARBDashboard />} />
         <Route path="/vcarb/pre-race" element={<VCARBPreRace />} />
         <Route path="/vcarb/race" element={<VCARBLiveRace />} />

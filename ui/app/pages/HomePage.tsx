@@ -15,7 +15,7 @@ import { getEnvironmentUrl } from '@dynatrace-sdk/app-environment';
 
 import { generateCsuitePrompt, generateJourneyPrompt, PROMPT_DESCRIPTIONS } from '../constants/promptTemplates';
 import { INITIAL_TEMPLATES, InitialTemplate } from '../constants/initialTemplates';
-import { FORGE_LOGO } from '../constants/forgeLogo';
+import { ENGINE_LOGO } from '../constants/engineLogo';
 import { VCARB_CAR } from '../constants/vcarbCar';
 import { InfoButton } from '../components/InfoButton';
 import appConfig from '../../../app.config.json';
@@ -2582,7 +2582,7 @@ export const HomePage = () => {
         <TitleBar>
           <TitleBar.Title>
             <Flex alignItems="center" gap={8}>
-              <img src={FORGE_LOGO} alt="BizObs Engine" style={{ width: 32, height: 32, borderRadius: 6 }} />
+              <img src={ENGINE_LOGO} alt="BizObs Engine" style={{ width: 32, height: 32, borderRadius: 6 }} />
               <span style={{ background: 'linear-gradient(135deg, #6c2c9c, #00d4ff)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 700 }}>
                 Business Outcome Engine
               </span>
@@ -2872,7 +2872,7 @@ export const HomePage = () => {
               {/* Engine Dashboards */}
               <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
               <Link
-                to="/forge-dashboards"
+                to="/engine-dashboards"
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                   width: 140, padding: '8px 0', borderRadius: 8,

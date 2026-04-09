@@ -2189,7 +2189,7 @@ function useLibrarian() {
    MAIN PAGE COMPONENT
    ═══════════════════════════════════════════════════════════════ */
 
-export const ForgeDashboardsPage = () => {
+export const EngineDashboardsPage = () => {
   const [preset, setPreset] = useState<DashboardPreset>('developer');
   const [companyName, setCompanyName] = useState('');
   const [journeyType, setJourneyType] = useState('');
