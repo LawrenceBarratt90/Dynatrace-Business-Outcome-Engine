@@ -107,7 +107,8 @@ export const HomePage = () => {
   const [generationStatus, setGenerationStatus] = useState('');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({ 
     appTemplates: false, 
-    myTemplates: false 
+    myTemplates: false,
+    vcarbDemo: false 
   });
   // Initialize apiSettings from localStorage immediately (before SDK loads)
   const [apiSettings, setApiSettingsState] = useState(() => {
@@ -161,7 +162,13 @@ export const HomePage = () => {
   const [clearingDormantCompany, setClearingDormantCompany] = useState<string | null>(null);
 
   // Settings modal tab state
-  const [settingsTab, setSettingsTab] = useState<'config' | 'edgeconnect'>('config');
+  const [settingsTab, setSettingsTab] = useState<'config' | 'edgeconnect' | 'system'>('config');
+
+  // System maintenance state
+  const [systemHealth, setSystemHealth] = useState<any>(null);
+  const [isLoadingHealth, setIsLoadingHealth] = useState(false);
+  const [isRunningCleanup, setIsRunningCleanup] = useState(false);
+  const [cleanupResult, setCleanupResult] = useState<any>(null);
 
   // EdgeConnect state
   const [edgeConnects, setEdgeConnects] = useState<any[]>([]);
@@ -180,10 +187,20 @@ export const HomePage = () => {
   // Tooltip state for header buttons
   const [showServicesTooltip, setShowServicesTooltip] = useState(false);
   const [showSettingsTooltip, setShowSettingsTooltip] = useState(false);
-  const [showChaosTooltip, setShowChaosTooltip] = useState(false);
-  const [showJourneysTooltip, setShowJourneysTooltip] = useState(false);
   const [showGetStartedTooltip, setShowGetStartedTooltip] = useState(false);
-  const [showDashboardTooltip, setShowDashboardTooltip] = useState(false);
+  const [showNavMenu, setShowNavMenu] = useState(false);
+  const navMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close nav menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (navMenuRef.current && !navMenuRef.current.contains(e.target as Node)) {
+        setShowNavMenu(false);
+      }
+    };
+    if (showNavMenu) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showNavMenu]);
 
   // VCARB Race state
   const navigate = useNavigate();
@@ -202,7 +219,7 @@ export const HomePage = () => {
   const [isGeneratingDashboard, setIsGeneratingDashboard] = useState(false);
 
   // Generate Visuals modal sub-tab state
-  const [visualsSubTab, setVisualsSubTab] = useState<'dashboard' | 'saved' | 'pdf'>('dashboard');
+  const [visualsSubTab, setVisualsSubTab] = useState<'dashboard' | 'saved' | 'pdf'>('pdf');
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [pdfStatus, setPdfStatus] = useState('');
   const [dashboardStatus, setDashboardStatus] = useState('');
@@ -691,6 +708,41 @@ export const HomePage = () => {
     setTimeout(() => setShowSettingsModal(false), 800);
   };
 
+  // ── System Maintenance Logic ──────────────────────────────
+  const loadSystemHealth = async () => {
+    setIsLoadingHealth(true);
+    setCleanupResult(null);
+    try {
+      const result = await callProxyWithRetry(
+        { action: 'system-health', apiHost: apiSettings.host, apiPort: apiSettings.port, apiProtocol: apiSettings.protocol }
+      ) as any;
+      if (result.success) {
+        setSystemHealth(result);
+      } else {
+        setSystemHealth({ error: result.error || 'Failed to load system health' });
+      }
+    } catch (err: any) {
+      setSystemHealth({ error: err.message || 'Connection failed' });
+    }
+    setIsLoadingHealth(false);
+  };
+
+  const runSystemCleanup = async (itemIds?: string[]) => {
+    setIsRunningCleanup(true);
+    setCleanupResult(null);
+    try {
+      const result = await callProxyWithRetry(
+        { action: 'system-cleanup', apiHost: apiSettings.host, apiPort: apiSettings.port, apiProtocol: apiSettings.protocol, body: itemIds ? { itemIds } : {} }
+      ) as any;
+      setCleanupResult(result);
+      // Refresh health after cleanup
+      loadSystemHealth();
+    } catch (err: any) {
+      setCleanupResult({ success: false, error: err.message || 'Cleanup failed' });
+    }
+    setIsRunningCleanup(false);
+  };
+
   const testConnectionFromModal = async () => {
     setIsTestingConnection(true);
     setSettingsStatus('🔄 Testing connection...');
@@ -1072,7 +1124,7 @@ export const HomePage = () => {
     setDashboardJourneyType('');
     setDashboardGenerationStatus('');
     setPdfStatus('');
-    setVisualsSubTab('dashboard');
+    setVisualsSubTab('pdf');
     setIsLoadingDashboardData(true);
 
     try {
@@ -1120,7 +1172,7 @@ export const HomePage = () => {
   // Deploy a saved dashboard to Dynatrace (re-use MCP deploy)
   const deploySavedDashboard = async (item: any) => {
     setDashboardGenerationStatus(`⏳ Deploying saved dashboard: ${item.company} / ${item.journeyType}...`);
-    setVisualsSubTab('dashboard');
+    setVisualsSubTab('pdf');
     try {
       const result = await callProxyWithRetry({
         action: 'mcp-generate-deploy-dashboard',
@@ -1903,7 +1955,7 @@ export const HomePage = () => {
         </div>
 
         {/* My Templates Section */}
-        <div style={{ marginBottom: 16 }}>
+        <div style={{ marginBottom: 24 }}>
           <div 
             onClick={() => toggleSection('myTemplates')}
             style={{
@@ -2080,6 +2132,107 @@ export const HomePage = () => {
                   </div>
                 ))
               )}
+            </div>
+          )}
+        </div>
+        {/* vCarb Demo Section */}
+        <div style={{ marginBottom: 16 }}>
+          <div 
+            onClick={() => toggleSection('vcarbDemo')}
+            style={{
+              padding: 14,
+              background: 'linear-gradient(135deg, rgba(225, 6, 0, 0.25), rgba(30, 144, 255, 0.15))',
+              borderRadius: 10,
+              border: '2px solid rgba(225, 6, 0, 0.6)',
+              cursor: 'pointer',
+              marginBottom: 12,
+              boxShadow: '0 2px 8px rgba(225, 6, 0, 0.2)'
+            }}
+          >
+            <Flex justifyContent="space-between" alignItems="center">
+              <Flex alignItems="center" gap={12}>
+                <div style={{ fontSize: 20 }}>{expandedSections.vcarbDemo ? '📂' : '📁'}</div>
+                <div>
+                  <Strong style={{ fontSize: 15, display: 'block' }}>🏎️ vCarb Demo</Strong>
+                  <Paragraph style={{ fontSize: 11, marginBottom: 0, marginTop: 2, opacity: 0.8 }}>
+                    F1 Race Weekend Operations demo
+                  </Paragraph>
+                </div>
+              </Flex>
+              <div style={{
+                background: 'rgba(225, 6, 0, 0.8)',
+                color: 'white',
+                padding: '4px 12px',
+                borderRadius: 14,
+                fontSize: 12,
+                fontWeight: 700
+              }}>
+                1
+              </div>
+            </Flex>
+          </div>
+
+          {expandedSections.vcarbDemo && (
+            <div style={{ paddingLeft: 8 }}>
+              <div style={{
+                padding: 16,
+                background: 'linear-gradient(135deg, rgba(225, 6, 0, 0.08), rgba(30, 144, 255, 0.08))',
+                borderRadius: 10,
+                border: '1px solid rgba(225, 6, 0, 0.3)',
+                marginBottom: 12
+              }}>
+                <Flex alignItems="center" gap={12} style={{ marginBottom: 12 }}>
+                  <img
+                    src={VCARB_CAR}
+                    alt="VCARB Race Car"
+                    style={{
+                      height: 48, borderRadius: 8, objectFit: 'cover',
+                      border: '2px solid rgba(225,6,0,0.4)',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                    }}
+                  />
+                  <div>
+                    <Strong style={{ fontSize: 14, display: 'block' }}>VCARB Race Weekend</Strong>
+                    <Paragraph style={{ fontSize: 11, marginBottom: 0, opacity: 0.7 }}>
+                      Simulate a full F1 race weekend with telemetry, pit stops, and strategy
+                    </Paragraph>
+                  </div>
+                </Flex>
+                <Flex gap={8}>
+                  <button
+                    onClick={startVcarbRace}
+                    disabled={isStartingRace}
+                    style={{
+                      flex: 1, padding: '10px 16px', borderRadius: 8, border: 'none',
+                      background: isStartingRace ? 'rgba(225,6,0,0.4)' : 'linear-gradient(135deg, #e10600, #ff4136)',
+                      color: 'white', fontWeight: 700, fontSize: 13,
+                      cursor: isStartingRace ? 'wait' : 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 2px 8px rgba(225,6,0,0.3)',
+                    }}
+                    onMouseOver={e => { if (!isStartingRace) { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(225,6,0,0.4)'; } }}
+                    onMouseOut={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 2px 8px rgba(225,6,0,0.3)'; }}
+                  >
+                    {isStartingRace ? '🏁 Starting...' : '🏎️ Start the Race'}
+                  </button>
+                  <Link to="/vcarb" style={{
+                    display: 'flex', alignItems: 'center', gap: 6,
+                    padding: '10px 16px', borderRadius: 8,
+                    textDecoration: 'none',
+                    background: 'rgba(30,144,255,0.1)',
+                    border: '1px solid rgba(30,144,255,0.4)',
+                    color: '#1e90ff', fontWeight: 600, fontSize: 13,
+                    transition: 'all 0.2s ease',
+                  }}>
+                    🏎️ Race Hub
+                  </Link>
+                </Flex>
+                {raceStatus && (
+                  <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: 'rgba(225,6,0,0.1)', border: '1px solid rgba(225,6,0,0.3)', fontSize: 12, fontFamily: 'monospace' }}>
+                    {raceStatus}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -2691,246 +2844,90 @@ export const HomePage = () => {
                 </div>
               </div>
 
-              {/* Journeys */}
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+              {/* Navigation Dropdown */}
+              <div ref={navMenuRef} style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
                 <button
-                  onClick={openJourneysModal}
+                  onClick={() => setShowNavMenu(prev => !prev)}
                   style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    width: 140, padding: '8px 0', borderRadius: 8,
-                    background: 'linear-gradient(135deg, rgba(0,161,201,0.12), rgba(0,212,255,0.06))',
-                    border: '1.5px solid rgba(0,161,201,0.4)',
-                    color: '#00a1c9', fontWeight: 600, fontSize: 12,
-                    cursor: 'pointer', transition: 'all 0.2s ease',
-                  }}
-                  onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseOut={e => { e.currentTarget.style.transform = 'none'; }}
-                >
-                  <span style={{ fontSize: 14 }}>🗺️</span> Journeys
-                </button>
-                <div style={{ position: 'relative', display: 'inline-block' }}
-                  onMouseEnter={() => setShowJourneysTooltip(true)}
-                  onMouseLeave={() => setShowJourneysTooltip(false)}
-                >
-                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,161,201,0.12)', border: '1.5px solid rgba(0,161,201,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'help', fontSize: 10, fontWeight: 700, color: '#00a1c9' }}>?</div>
-                  {showJourneysTooltip && (
-                    <div style={{ position: 'absolute', top: 24, right: 0, width: 280, padding: 12, borderRadius: 10, background: Colors.Background.Surface.Default, border: `1.5px solid ${Colors.Border.Neutral.Default}`, boxShadow: '0 8px 24px rgba(0,0,0,0.25)', zIndex: 10000, fontSize: 12, lineHeight: 1.6 }}>
-                      <Strong style={{ fontSize: 13, marginBottom: 6, display: 'block' }}>🗺️ Active Journeys</Strong>
-                      <div>View all running journeys grouped by company name and journey type.</div>
-                      <div style={{ marginTop: 6 }}><Strong>Services</Strong> — Links to Dynatrace Services Explorer filtered by company</div>
-                      <div><Strong>Dashboards</Strong> — Links to Dynatrace Dashboards for each company</div>
-                      <div style={{ marginTop: 6, opacity: 0.6 }}>Dashboards are automatically generated when you create services.</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Nemesis */}
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                <button
-                  onClick={openChaosModal}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    width: 140, padding: '8px 0', borderRadius: 8,
-                    background: 'linear-gradient(135deg, rgba(181,137,0,0.12), rgba(220,50,47,0.06))',
-                    border: '1.5px solid rgba(181,137,0,0.4)',
-                    color: '#b58900', fontWeight: 600, fontSize: 12,
-                    cursor: 'pointer', transition: 'all 0.2s ease',
-                  }}
-                  onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseOut={e => { e.currentTarget.style.transform = 'none'; }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 64 64" style={{ flexShrink: 0 }}>
-                    <circle cx="32" cy="34" r="22" fill="#6b8e23"/>
-                    <ellipse cx="22" cy="28" rx="6" ry="7" fill="white"/>
-                    <ellipse cx="42" cy="28" rx="6" ry="7" fill="white"/>
-                    <circle cx="23" cy="28" r="3.5" fill="#dc322f"/>
-                    <circle cx="43" cy="28" r="3.5" fill="#dc322f"/>
-                    <path d="M22 42 Q32 50 42 42" stroke="white" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
-                    <rect x="24" y="42" width="3" height="4" rx="1" fill="white" transform="rotate(-8 25.5 44)"/>
-                    <rect x="30.5" y="43" width="3" height="4.5" rx="1" fill="white"/>
-                    <rect x="37" y="42" width="3" height="4" rx="1" fill="white" transform="rotate(8 38.5 44)"/>
-                    <path d="M14 16 Q18 24 22 22" stroke="#6b8e23" strokeWidth="3" fill="none" strokeLinecap="round"/>
-                    <path d="M50 16 Q46 24 42 22" stroke="#6b8e23" strokeWidth="3" fill="none" strokeLinecap="round"/>
-                    <ellipse cx="12" cy="14" rx="4" ry="5" fill="#6b8e23"/>
-                    <ellipse cx="52" cy="14" rx="4" ry="5" fill="#6b8e23"/>
-                  </svg>
-                  Nemesis
-                  {activeFaults.length > 0 && (
-                    <span style={{ background: '#dc322f', color: 'white', borderRadius: 8, padding: '1px 5px', fontSize: 10, fontWeight: 700, minWidth: 16, textAlign: 'center' as const }}>{activeFaults.length}</span>
-                  )}
-                </button>
-                <div style={{ position: 'relative', display: 'inline-block' }}
-                  onMouseEnter={() => setShowChaosTooltip(true)}
-                  onMouseLeave={() => setShowChaosTooltip(false)}
-                >
-                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(181,137,0,0.12)', border: '1.5px solid rgba(181,137,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'help', fontSize: 10, fontWeight: 700, color: '#b58900' }}>?</div>
-                  {showChaosTooltip && (
-                    <div style={{ position: 'absolute', top: 24, right: 0, width: 280, padding: 12, borderRadius: 10, background: Colors.Background.Surface.Default, border: `1.5px solid ${Colors.Border.Neutral.Default}`, boxShadow: '0 8px 24px rgba(0,0,0,0.25)', zIndex: 10000, fontSize: 12, lineHeight: 1.6 }}>
-                      <Strong style={{ fontSize: 13, marginBottom: 6, display: 'block' }}>👹 Chaos Nemesis Agent</Strong>
-                      <div>Inject faults into running services to test resilience and trigger Dynatrace problem detection.</div>
-                      <div style={{ marginTop: 6 }}><Strong>Single Service</Strong> — Target one specific service</div>
-                      <div><Strong>Smart Chaos</Strong> — Describe what to break in plain English; AI picks the attack</div>
-                      <div style={{ marginTop: 6, opacity: 0.6 }}>All chaos events are recorded as Dynatrace deployment events.</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Generate Visuals */}
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                <button
-                  onClick={openGenerateDashboardModal}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    width: 140, padding: '8px 0', borderRadius: 8,
-                    background: 'linear-gradient(135deg, rgba(0,161,201,0.12), rgba(0,212,255,0.08))',
-                    border: '1.5px solid rgba(0,161,201,0.4)',
-                    color: '#00a1c9', fontWeight: 600, fontSize: 12,
-                    cursor: 'pointer', transition: 'all 0.2s ease',
-                  }}
-                  onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
-                  onMouseOut={e => { e.currentTarget.style.transform = 'none'; }}
-                >
-                  <span style={{ fontSize: 14 }}>🎨</span> Generate Visuals
-                </button>
-                <div style={{ position: 'relative', display: 'inline-block' }}
-                  onMouseEnter={() => setShowDashboardTooltip(true)}
-                  onMouseLeave={() => setShowDashboardTooltip(false)}
-                >
-                  <div style={{ width: 18, height: 18, borderRadius: '50%', background: 'rgba(0,161,201,0.12)', border: '1.5px solid rgba(0,161,201,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'help', fontSize: 10, fontWeight: 700, color: '#00a1c9' }}>?</div>
-                  {showDashboardTooltip && (
-                    <div style={{ position: 'absolute', top: 24, right: 0, width: 260, padding: 12, borderRadius: 10, background: Colors.Background.Surface.Default, border: `1.5px solid ${Colors.Border.Neutral.Default}`, boxShadow: '0 8px 24px rgba(0,0,0,0.25)', zIndex: 10000, fontSize: 12, lineHeight: 1.6 }}>
-                      <Strong style={{ fontSize: 13, marginBottom: 6, display: 'block' }}>🎨 Generate Visuals</Strong>
-                      <div>Create dashboards and executive summary documents for your running journeys.</div>
-                      <div style={{ marginTop: 6 }}><Strong>Dashboard</Strong> — Generate & download Dynatrace dashboard JSON</div>
-                      <div><Strong>Executive Summary</Strong> — Download a Word-convertible summary document</div>
-                      <div style={{ marginTop: 6, opacity: 0.6 }}>Select a company and journey type to get started.</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Demo Guide */}
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-              <Link
-                to="/demo-guide"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  width: 140, padding: '8px 0', borderRadius: 8,
-                  background: 'linear-gradient(135deg, rgba(0,212,255,0.12), rgba(108,44,156,0.06))',
-                  border: '1.5px solid rgba(0,180,220,0.4)',
-                  color: '#00b4dc', fontWeight: 600, fontSize: 12,
-                  cursor: 'pointer', transition: 'all 0.2s ease',
-                  textDecoration: 'none',
-                }}
-              >
-                <span style={{ fontSize: 14 }}>📖</span> Demo Guide
-              </Link>
-              <InfoButton
-                title="📖 Demo Guide"
-                description="Interactive walkthrough for demoing the BizObs Demonstrator to different audiences."
-                sections={[
-                  { label: '🗺️ Guided Paths', detail: '8 step-by-step demo walkthroughs covering every feature' },
-                  { label: '👥 Persona Demos', detail: '8 persona-tailored flows with talking points and focus areas' },
-                  { label: '🔗 Dynatrace Links', detail: 'Quick-jump links to Services, Traces, GenAI Observability, and more' },
-                ]}
-                footer="Switch between Guided Paths and Persona Demos inside the page."
-                color="#00b4dc"
-              />
-              </div>
-
-              {/* Vertical Solutions */}
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-              <Link
-                to="/solutions"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  width: 140, padding: '8px 0', borderRadius: 8,
-                  background: 'linear-gradient(135deg, rgba(39,174,96,0.12), rgba(108,44,156,0.06))',
-                  border: '1.5px solid rgba(39,174,96,0.4)',
-                  color: '#27ae60', fontWeight: 600, fontSize: 12,
-                  cursor: 'pointer', transition: 'all 0.2s ease',
-                  textDecoration: 'none',
-                }}
-              >
-                <span style={{ fontSize: 14 }}>🏢</span> Solutions
-              </Link>
-              <InfoButton
-                title="🏢 Vertical Solutions"
-                description="Industry-specific journey templates with pre-built integrations and KPIs."
-                sections={[
-                  { label: '🏭 Industries', detail: 'Browse sectors like Retail, Healthcare, Financial Services, and more' },
-                  { label: '🔌 Integrations', detail: 'Partner integrations mapped to each industry vertical' },
-                  { label: '📊 KPIs & ROI', detail: 'Business metrics and talking points tailored to each vertical' },
-                ]}
-                footer="Use these templates to quickly generate industry-specific demos."
-                color="#27ae60"
-              />
-              </div>
-
-              {/* Demonstrator Dashboards */}
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-              <Link
-                to="/demonstrator-dashboards"
-                style={{
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  width: 140, padding: '8px 0', borderRadius: 8,
-                  background: 'linear-gradient(135deg, rgba(52,152,219,0.12), rgba(0,212,255,0.06))',
-                  border: '1.5px solid rgba(52,152,219,0.4)',
-                  color: '#3498db', fontWeight: 600, fontSize: 12,
-                  cursor: 'pointer', transition: 'all 0.2s ease',
-                  textDecoration: 'none',
-                }}
-              >
-                <span style={{ fontSize: 14 }}>📊</span> Dashboards
-              </Link>
-              <InfoButton
-                title="📊 Demonstrator Dashboards"
-                description="Eight persona-based preset dashboards with live DQL-powered tiles."
-                sections={[
-                  { label: '🔧 Developer', detail: 'RED metrics, latency percentiles, errors, traces, logs' },
-                  { label: '⚙️ Operations', detail: 'Host health, CPU/memory, processes, availability' },
-                  { label: '👔 Executive', detail: 'Revenue, SLA, journey funnel, customer churn' },
-                  { label: '🧠 Intelligence', detail: 'Problems, root cause, anomalies, MTTD/MTTR' },
-                  { label: '🤖 GenAI', detail: 'LLM calls, tokens, model latency, embeddings' },
-                  { label: '🔒 Security', detail: 'Security events, attacks, categories, trends, affected entities' },
-                  { label: '📋 SRE', detail: 'Availability, error budget, latency percentiles' },
-                  { label: '📝 Biz Events', detail: 'Event volume, types, errors by service/journey/company' },
-                ]}
-                footer="All tiles run live DQL queries and can be filtered by company, journey, and timeframe."
-                color="#3498db"
-              />
-              </div>
-
-              {/* Settings */}
-              <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', gap: 3 }}>
-                <button
-                  onClick={openSettingsModal}
-                  style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                    width: 140, padding: '8px 0', borderRadius: 8,
-                    background: 'linear-gradient(135deg, rgba(108,44,156,0.12), rgba(0,212,255,0.06))',
-                    border: '1.5px solid rgba(108,44,156,0.4)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    padding: '8px 18px', borderRadius: 8,
+                    background: showNavMenu
+                      ? 'linear-gradient(135deg, rgba(108,44,156,0.25), rgba(0,161,201,0.15))'
+                      : 'linear-gradient(135deg, rgba(108,44,156,0.12), rgba(0,161,201,0.06))',
+                    border: '1.5px solid rgba(108,44,156,0.5)',
                     color: Colors.Theme.Primary['70'], fontWeight: 600, fontSize: 12,
                     cursor: 'pointer', transition: 'all 0.2s ease',
                   }}
-                  onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                  onMouseOver={e => { if (!showNavMenu) e.currentTarget.style.transform = 'translateY(-1px)'; }}
                   onMouseOut={e => { e.currentTarget.style.transform = 'none'; }}
                 >
-                  <span style={{ fontSize: 14 }}>⚙️</span> Settings
+                  <span style={{ fontSize: 14 }}>☰</span>
+                  Navigate
+                  <span style={{
+                    fontSize: 10, transition: 'transform 0.2s ease',
+                    display: 'inline-block',
+                    transform: showNavMenu ? 'rotate(180deg)' : 'rotate(0deg)',
+                  }}>▼</span>
                 </button>
-                <InfoButton
-                  title="⚙️ API Settings"
-                  description="Configure the connection to your BizObs Demonstrator server."
-                  sections={[
-                    { label: 'Host', detail: 'IP address or hostname of your server' },
-                    { label: 'Port', detail: 'Server port (default 8080)' },
-                    { label: 'Protocol', detail: 'HTTP for internal, HTTPS for production' },
-                  ]}
-                  footer="Use 'Test' to verify connectivity before saving."
-                  color={Colors.Theme.Primary['70']}
-                />
+
+                {showNavMenu && (
+                  <div style={{
+                    position: 'absolute', top: '100%', right: 0, marginTop: 6,
+                    width: 260, borderRadius: 12,
+                    background: Colors.Background.Surface.Default,
+                    border: `1.5px solid ${Colors.Border.Neutral.Default}`,
+                    boxShadow: '0 12px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05)',
+                    zIndex: 10001, overflow: 'hidden',
+                    animation: 'navMenuSlideIn 0.15s ease-out',
+                  }}>
+                    <div style={{ padding: '10px 14px 6px', borderBottom: `1px solid ${Colors.Border.Neutral.Default}` }}>
+                      <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: 1.2, color: Colors.Theme.Primary['70'], opacity: 0.7 }}>Navigation</span>
+                    </div>
+                    {[
+                      { icon: '🗺️', label: 'Journeys', color: '#00a1c9', action: () => { openJourneysModal(); setShowNavMenu(false); } },
+                      { icon: '👹', label: 'Nemesis', color: '#b58900', badge: activeFaults.length > 0 ? activeFaults.length : undefined, action: () => { openChaosModal(); setShowNavMenu(false); } },
+                      { icon: '🎨', label: 'Generate Visuals', color: '#00a1c9', action: () => { openGenerateDashboardModal(); setShowNavMenu(false); } },
+                      { icon: '📖', label: 'Demo Guide', color: '#00b4dc', route: '/demo-guide' },
+                      { icon: '🏢', label: 'Solutions', color: '#27ae60', route: '/solutions' },
+                      { icon: '📊', label: 'Dashboards', color: '#3498db', route: '/demonstrator-dashboards' },
+                      { icon: '⚙️', label: 'Settings', color: Colors.Theme.Primary['70'] as string, action: () => { openSettingsModal(); setShowNavMenu(false); } },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        onClick={() => {
+                          if (item.route) { navigate(item.route); setShowNavMenu(false); }
+                          else if (item.action) item.action();
+                        }}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 12,
+                          padding: '10px 16px', cursor: 'pointer',
+                          transition: 'background 0.15s ease',
+                          borderBottom: idx < 6 ? `1px solid rgba(255,255,255,0.04)` : 'none',
+                        }}
+                        onMouseOver={e => { e.currentTarget.style.background = `linear-gradient(90deg, ${item.color}18, transparent)`; }}
+                        onMouseOut={e => { e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        <span style={{
+                          width: 32, height: 32, borderRadius: 8,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          background: `${item.color}18`,
+                          border: `1px solid ${item.color}40`,
+                          fontSize: 16,
+                        }}>{item.icon}</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 13, fontWeight: 600, color: item.color }}>{item.label}</div>
+                        </div>
+                        {item.badge && (
+                          <span style={{
+                            background: '#dc322f', color: 'white', borderRadius: 8,
+                            padding: '2px 7px', fontSize: 10, fontWeight: 700,
+                          }}>{item.badge}</span>
+                        )}
+                        <span style={{ fontSize: 12, opacity: 0.3 }}>›</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Feedback */}
@@ -2955,51 +2952,7 @@ export const HomePage = () => {
               </a>
               </div>
 
-              {/* Start The Race — VCARB car image button + Dashboard link */}
-              <Flex alignItems="center" gap={6}>
-                <button
-                  onClick={startVcarbRace}
-                  disabled={isStartingRace}
-                  style={{
-                    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                    padding: 0, border: 'none', background: 'none',
-                    cursor: isStartingRace ? 'wait' : 'pointer',
-                    opacity: isStartingRace ? 0.6 : 1,
-                    transition: 'all 0.2s ease',
-                  }}
-                  onMouseOver={e => { if (!isStartingRace) { e.currentTarget.style.transform = 'translateY(-2px) scale(1.05)'; } }}
-                  onMouseOut={e => { e.currentTarget.style.transform = 'none'; }}
-                  title={raceStatus || 'Start VCARB F1 Race Weekend Operations'}
-                >
-                  <img
-                    src={VCARB_CAR}
-                    alt="VCARB Race Car"
-                    style={{
-                      height: 36, borderRadius: 6, objectFit: 'cover',
-                      border: isStartingRace ? '2px solid #e10600' : '2px solid rgba(225,6,0,0.3)',
-                      boxShadow: isStartingRace ? '0 0 12px rgba(225,6,0,0.5)' : '0 2px 8px rgba(0,0,0,0.2)',
-                      transition: 'all 0.2s ease',
-                    }}
-                  />
-                  <span style={{
-                    fontSize: 8, fontWeight: 800, letterSpacing: '0.5px',
-                    color: isStartingRace ? '#e10600' : 'rgba(225,6,0,0.7)',
-                    textTransform: 'uppercase',
-                    whiteSpace: 'nowrap',
-                  }}>
-                    {isStartingRace ? '🏁 Starting...' : 'Start the Race'}
-                  </span>
-                </button>
-                <Link to="/vcarb" style={{
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
-                  textDecoration: 'none', padding: '4px 8px', borderRadius: 8,
-                  background: 'linear-gradient(135deg, rgba(225,6,0,0.15), rgba(30,144,255,0.15))',
-                  border: '1px solid rgba(225,6,0,0.3)', transition: 'all 0.2s ease',
-                }}>
-                  <span style={{ fontSize: 16 }}>🏎️</span>
-                  <span style={{ fontSize: 7, fontWeight: 800, letterSpacing: '0.5px', color: '#e10600', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>Race Hub</span>
-                </Link>
-              </Flex>
+
             </Flex>
           </TitleBar.Action>
         </TitleBar>
@@ -3090,8 +3043,8 @@ export const HomePage = () => {
                 <Flex alignItems="center" gap={12}>
                   <span style={{ fontSize: 24 }}>⚙️</span>
                   <div>
-                    <Strong style={{ color: 'white', fontSize: 16 }}>API Settings</Strong>
-                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>Configure BizObs Demonstrator connection</div>
+                    <Strong style={{ color: 'white', fontSize: 16 }}>Settings</Strong>
+                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>Configuration & System Maintenance</div>
                   </div>
                 </Flex>
                 <Flex alignItems="center" gap={8}>
@@ -3100,7 +3053,33 @@ export const HomePage = () => {
               </Flex>
             </div>
 
-            {/* Config */}
+            {/* Tab Navigation */}
+            <div style={{ padding: '0 24px', borderBottom: `1px solid ${Colors.Border.Neutral.Default}`, background: 'rgba(0,0,0,0.02)' }}>
+              <Flex gap={0}>
+                {([
+                  { id: 'config', icon: '🔌', label: 'API Config' },
+                  { id: 'system', icon: '💾', label: 'System' },
+                ] as const).map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => { setSettingsTab(tab.id); if (tab.id === 'system' && !systemHealth) loadSystemHealth(); }}
+                    style={{
+                      padding: '12px 20px', border: 'none', cursor: 'pointer',
+                      background: settingsTab === tab.id ? 'transparent' : 'transparent',
+                      borderBottom: settingsTab === tab.id ? `2px solid ${Colors.Theme.Primary['70']}` : '2px solid transparent',
+                      color: settingsTab === tab.id ? Colors.Theme.Primary['70'] : Colors.Text.Neutral.Default,
+                      fontWeight: settingsTab === tab.id ? 700 : 400,
+                      fontSize: 13, transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <span style={{ marginRight: 6 }}>{tab.icon}</span>{tab.label}
+                  </button>
+                ))}
+              </Flex>
+            </div>
+
+            {/* Config Tab */}
+            {settingsTab === 'config' && (
             <div style={{ padding: 24 }}>
               {/* Status */}
               {settingsStatus && (
@@ -3192,6 +3171,172 @@ export const HomePage = () => {
                 )}
               </div>
             </div>
+            )}
+
+            {/* System Maintenance Tab */}
+            {settingsTab === 'system' && (
+            <div style={{ padding: 24 }}>
+              <Flex alignItems="center" justifyContent="space-between" style={{ marginBottom: 16 }}>
+                <div>
+                  <Strong style={{ fontSize: 15, display: 'block' }}>💾 System Health & Disk Cleanup</Strong>
+                  <Paragraph style={{ fontSize: 12, marginBottom: 0, marginTop: 4, opacity: 0.7 }}>
+                    Cross-platform — works on Linux, macOS & Windows. Auto-cleans on server boot when disk {'>'} 90%.
+                  </Paragraph>
+                </div>
+                <button onClick={loadSystemHealth} disabled={isLoadingHealth}
+                  style={{ padding: '6px 14px', borderRadius: 8, border: `1px solid ${Colors.Border.Neutral.Default}`, background: 'transparent', cursor: isLoadingHealth ? 'wait' : 'pointer', fontSize: 12, fontWeight: 600 }}>
+                  {isLoadingHealth ? '⏳ Scanning...' : '🔍 Scan'}
+                </button>
+              </Flex>
+
+              {/* Cleanup Result */}
+              {cleanupResult && (
+                <div style={{ padding: 12, marginBottom: 16, borderRadius: 8, fontSize: 12, fontFamily: 'monospace',
+                  background: cleanupResult.success ? 'rgba(115,190,40,0.12)' : 'rgba(220,50,47,0.12)',
+                  border: `1px solid ${cleanupResult.success ? Colors.Theme.Success['70'] : '#dc322f'}` }}>
+                  {cleanupResult.success
+                    ? `✅ Cleanup complete — freed ${cleanupResult.totalFreedFormatted}`
+                    : `❌ ${cleanupResult.error}`}
+                  {cleanupResult.cleaned && cleanupResult.cleaned.length > 0 && (
+                    <div style={{ marginTop: 8 }}>
+                      {cleanupResult.cleaned.map((c: any, i: number) => (
+                        <div key={i} style={{ marginTop: 2, fontSize: 11 }}>
+                          {c.success ? '✅' : '⚠️'} {c.message}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {systemHealth?.error && (
+                <div style={{ padding: 12, borderRadius: 8, background: 'rgba(220,50,47,0.08)', border: '1px solid rgba(220,50,47,0.3)', fontSize: 13, marginBottom: 16 }}>
+                  ❌ {systemHealth.error}
+                </div>
+              )}
+
+              {systemHealth && !systemHealth.error && (
+                <>
+                  {/* Disk Usage Bar */}
+                  <div style={{ marginBottom: 20, padding: 16, borderRadius: 10, border: `1px solid ${Colors.Border.Neutral.Default}`, background: 'rgba(0,0,0,0.02)' }}>
+                    <Flex justifyContent="space-between" alignItems="center" style={{ marginBottom: 8 }}>
+                      <Strong style={{ fontSize: 13 }}>Disk Usage</Strong>
+                      <span style={{ fontSize: 12, fontFamily: 'monospace',
+                        color: systemHealth.disk?.percent >= 95 ? '#dc322f' : systemHealth.disk?.percent >= 85 ? '#f39c12' : Colors.Theme.Success['70'],
+                        fontWeight: 700 }}>
+                        {systemHealth.disk?.percent}%
+                      </span>
+                    </Flex>
+                    <div style={{ width: '100%', height: 12, borderRadius: 6, background: 'rgba(0,0,0,0.08)', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${Math.min(systemHealth.disk?.percent || 0, 100)}%`, height: '100%', borderRadius: 6,
+                        background: systemHealth.disk?.percent >= 95 ? 'linear-gradient(90deg, #dc322f, #ff4136)'
+                          : systemHealth.disk?.percent >= 85 ? 'linear-gradient(90deg, #f39c12, #e67e22)'
+                          : `linear-gradient(90deg, ${Colors.Theme.Success['70']}, #2ecc71)`,
+                        transition: 'width 0.5s ease',
+                      }} />
+                    </div>
+                    <Flex justifyContent="space-between" style={{ marginTop: 6, fontSize: 11, opacity: 0.6 }}>
+                      <span>Free: {systemHealth.disk?.free ? (systemHealth.disk.free / 1024 / 1024 / 1024).toFixed(1) + ' GB' : '?'}</span>
+                      <span>Total: {systemHealth.disk?.total ? (systemHealth.disk.total / 1024 / 1024 / 1024).toFixed(1) + ' GB' : '?'}</span>
+                    </Flex>
+                    {systemHealth.criticalThreshold && (
+                      <div style={{ marginTop: 8, padding: 8, borderRadius: 6, background: 'rgba(220,50,47,0.1)', border: '1px solid rgba(220,50,47,0.3)', fontSize: 12, fontWeight: 600, color: '#dc322f' }}>
+                        ⚠️ CRITICAL — Disk nearly full! Run cleanup immediately.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* System Info */}
+                  <Flex gap={12} style={{ marginBottom: 20 }}>
+                    <div style={{ flex: 1, padding: 12, borderRadius: 8, border: `1px solid ${Colors.Border.Neutral.Default}`, background: 'rgba(0,0,0,0.02)' }}>
+                      <div style={{ fontSize: 11, opacity: 0.5, marginBottom: 4 }}>Platform</div>
+                      <Strong style={{ fontSize: 13 }}>{systemHealth.platform === 'linux' ? '🐧 Linux' : systemHealth.platform === 'darwin' ? '🍎 macOS' : systemHealth.platform === 'win32' ? '🪟 Windows' : systemHealth.platform}</Strong>
+                    </div>
+                    <div style={{ flex: 1, padding: 12, borderRadius: 8, border: `1px solid ${Colors.Border.Neutral.Default}`, background: 'rgba(0,0,0,0.02)' }}>
+                      <div style={{ fontSize: 11, opacity: 0.5, marginBottom: 4 }}>Memory</div>
+                      <Strong style={{ fontSize: 13 }}>{systemHealth.memory?.usedPercent}% used</Strong>
+                    </div>
+                    <div style={{ flex: 1, padding: 12, borderRadius: 8, border: `1px solid ${Colors.Border.Neutral.Default}`, background: 'rgba(0,0,0,0.02)' }}>
+                      <div style={{ fontSize: 11, opacity: 0.5, marginBottom: 4 }}>Reclaimable</div>
+                      <Strong style={{ fontSize: 13, color: Colors.Theme.Success['70'] }}>{systemHealth.totalCleanableFormatted}</Strong>
+                    </div>
+                  </Flex>
+
+                  {/* Cleanable Items */}
+                  {systemHealth.cleanable && systemHealth.cleanable.length > 0 && (
+                    <div style={{ marginBottom: 16 }}>
+                      <Flex justifyContent="space-between" alignItems="center" style={{ marginBottom: 10 }}>
+                        <Strong style={{ fontSize: 13 }}>🗂️ Cleanable Items</Strong>
+                        <button onClick={() => runSystemCleanup()} disabled={isRunningCleanup}
+                          style={{
+                            padding: '8px 20px', borderRadius: 8, border: 'none',
+                            background: isRunningCleanup ? 'rgba(115,190,40,0.3)' : `linear-gradient(135deg, ${Colors.Theme.Success['70']}, #2ecc71)`,
+                            color: 'white', fontWeight: 700, fontSize: 13, cursor: isRunningCleanup ? 'wait' : 'pointer',
+                            boxShadow: '0 2px 8px rgba(115,190,40,0.2)', transition: 'all 0.2s ease',
+                          }}>
+                          {isRunningCleanup ? '🧹 Cleaning...' : `🧹 Clean All Safe (${systemHealth.totalCleanableFormatted})`}
+                        </button>
+                      </Flex>
+                      <div style={{ maxHeight: 300, overflow: 'auto' }}>
+                        {systemHealth.cleanable.map((item: any) => (
+                          <Flex key={item.id} alignItems="center" justifyContent="space-between"
+                            style={{ padding: '8px 12px', marginBottom: 4, borderRadius: 8,
+                              border: `1px solid ${item.safe ? 'rgba(115,190,40,0.2)' : 'rgba(220,160,0,0.3)'}`,
+                              background: item.safe ? 'rgba(115,190,40,0.04)' : 'rgba(220,160,0,0.04)' }}>
+                            <Flex alignItems="center" gap={8}>
+                              <span style={{ fontSize: 14 }}>
+                                {item.category === 'logs' ? '📋' : item.category === 'cache' ? '💽' : item.category === 'temp' ? '🗑️' : item.category === 'build' ? '🔨' : '📦'}
+                              </span>
+                              <div>
+                                <div style={{ fontSize: 13, fontWeight: 600 }}>{item.label}</div>
+                                {item.note && <div style={{ fontSize: 10, opacity: 0.5 }}>{item.note}</div>}
+                              </div>
+                            </Flex>
+                            <Flex alignItems="center" gap={8}>
+                              <span style={{ fontSize: 12, fontFamily: 'monospace', fontWeight: 600 }}>
+                                {item.size > 0 ? (item.size >= 1073741824 ? (item.size / 1073741824).toFixed(1) + ' GB' : item.size >= 1048576 ? (item.size / 1048576).toFixed(1) + ' MB' : (item.size / 1024).toFixed(0) + ' KB') : '—'}
+                              </span>
+                              {item.safe ? (
+                                <button onClick={() => runSystemCleanup([item.id])} disabled={isRunningCleanup}
+                                  style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${Colors.Theme.Success['70']}`, background: 'rgba(115,190,40,0.08)', cursor: isRunningCleanup ? 'wait' : 'pointer', fontSize: 11, fontWeight: 600, color: Colors.Theme.Success['70'] }}>
+                                  Clean
+                                </button>
+                              ) : (
+                                <span style={{ fontSize: 11, opacity: 0.4, fontStyle: 'italic' }}>manual</span>
+                              )}
+                            </Flex>
+                          </Flex>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {systemHealth.cleanable && systemHealth.cleanable.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: 32, opacity: 0.5 }}>
+                      <div style={{ fontSize: 40, marginBottom: 12 }}>✨</div>
+                      <Paragraph>System is clean — nothing to reclaim.</Paragraph>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {!systemHealth && !isLoadingHealth && (
+                <div style={{ textAlign: 'center', padding: 32, opacity: 0.5 }}>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>💾</div>
+                  <Paragraph>Click <strong>Scan</strong> to analyze server disk usage and find reclaimable space.</Paragraph>
+                </div>
+              )}
+
+              {isLoadingHealth && (
+                <div style={{ textAlign: 'center', padding: 32 }}>
+                  <div style={{ fontSize: 40, marginBottom: 12 }}>⏳</div>
+                  <Paragraph>Scanning file system...</Paragraph>
+                </div>
+              )}
+            </div>
+            )}
+
           </div>
         </div>
       )}
@@ -4104,58 +4249,20 @@ export const HomePage = () => {
                   <span style={{ fontSize: 24 }}>🎨</span>
                   <div>
                     <Strong style={{ color: 'white', fontSize: 16 }}>Generate Visuals</Strong>
-                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>Dashboards & Executive Summary Documents</div>
+                    <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>Executive Summary Documents</div>
                   </div>
                 </Flex>
                 <button onClick={() => setShowGenerateDashboardModal(false)} style={{ background: 'none', border: 'none', color: 'white', fontSize: 20, cursor: 'pointer', padding: 4 }}>✕</button>
               </Flex>
             </div>
 
-            {/* Sub-tab Selector */}
-            <div style={{ display: 'flex', borderBottom: `1px solid ${Colors.Border.Neutral.Default}` }}>
-              <button
-                onClick={() => setVisualsSubTab('dashboard')}
-                style={{
-                  flex: 1, padding: '12px 0', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13,
-                  background: visualsSubTab === 'dashboard' ? 'rgba(0,161,201,0.1)' : 'transparent',
-                  color: visualsSubTab === 'dashboard' ? '#00a1c9' : 'inherit',
-                  borderBottom: visualsSubTab === 'dashboard' ? '3px solid #00a1c9' : '3px solid transparent',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                📊 Dashboard
-              </button>
-              <button
-                onClick={() => { setVisualsSubTab('saved'); loadSavedDashboards(); }}
-                style={{
-                  flex: 1, padding: '12px 0', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13,
-                  background: visualsSubTab === 'saved' ? 'rgba(115,190,40,0.1)' : 'transparent',
-                  color: visualsSubTab === 'saved' ? '#73be28' : 'inherit',
-                  borderBottom: visualsSubTab === 'saved' ? '3px solid #73be28' : '3px solid transparent',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                💾 Saved
-              </button>
-              <button
-                onClick={() => setVisualsSubTab('pdf')}
-                style={{
-                  flex: 1, padding: '12px 0', border: 'none', cursor: 'pointer', fontWeight: 600, fontSize: 13,
-                  background: visualsSubTab === 'pdf' ? 'rgba(108,44,156,0.1)' : 'transparent',
-                  color: visualsSubTab === 'pdf' ? '#6c2c9c' : 'inherit',
-                  borderBottom: visualsSubTab === 'pdf' ? '3px solid #6c2c9c' : '3px solid transparent',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                📄 Executive Summary
-              </button>
-            </div>
+            {/* Sub-tab Selector — only Executive Summary visible */}
 
             {/* Content */}
             <div style={{ padding: 24 }}>
 
-              {/* ===== Dashboard Sub-Tab ===== */}
-              {visualsSubTab === 'dashboard' && (
+              {/* ===== Dashboard Sub-Tab (hidden) ===== */}
+              {false && visualsSubTab === 'dashboard' && (
                 <>
                   {/* Status Message */}
                   {dashboardGenerationStatus && (
@@ -4166,7 +4273,7 @@ export const HomePage = () => {
                       {dashboardUrl && dashboardGenerationStatus.includes('✅') && (
                         <div style={{ marginTop: 8 }}>
                           <a
-                            href={dashboardUrl}
+                            href={dashboardUrl ?? undefined}
                             target="_blank"
                             rel="noopener noreferrer"
                             style={{ color: '#00a1c9', fontWeight: 700, textDecoration: 'none', fontSize: 14 }}
@@ -4352,8 +4459,8 @@ export const HomePage = () => {
                 </>
               )}
 
-              {/* ===== Saved Dashboards Sub-Tab ===== */}
-              {visualsSubTab === 'saved' && (
+              {/* ===== Saved Dashboards Sub-Tab (hidden) ===== */}
+              {false && visualsSubTab === 'saved' && (
                 <>
                   {isLoadingSavedDashboards ? (
                     <div style={{ padding: 24, textAlign: 'center', opacity: 0.6 }}>⏳ Loading saved dashboards...</div>
