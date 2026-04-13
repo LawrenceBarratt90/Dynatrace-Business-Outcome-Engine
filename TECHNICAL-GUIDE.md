@@ -108,7 +108,7 @@ This is a **single unified repo** — it contains both the Demonstrator (server)
 
 ```bash
 sudo git clone https://github.com/LawrenceBarratt90/Business-Observability-Demonstrator.git
-cd Dynatrace-Business-Outcome-Engine
+cd Business-Observability-Demonstrator
 chmod +x setup.sh
 sudo ./setup.sh
 ```
@@ -539,14 +539,14 @@ To completely remove the Demonstrator from a host and start fresh, use the inclu
 ### Uninstall (keep Ollama)
 
 ```bash
-cd /home/ec2-user/Dynatrace-Business-Outcome-Engine
+cd /home/ec2-user/Business-Observability-Demonstrator
 bash uninstall.sh
 ```
 
 ### Uninstall (remove everything including Ollama)
 
 ```bash
-cd /home/ec2-user/Dynatrace-Business-Outcome-Engine
+cd /home/ec2-user/Business-Observability-Demonstrator
 bash uninstall.sh --all
 ```
 
@@ -567,7 +567,7 @@ After uninstalling, clone and run setup:
 ```bash
 cd /home/ec2-user
 git clone https://github.com/LawrenceBarratt90/Business-Observability-Demonstrator.git
-cd Dynatrace-Business-Outcome-Engine
+cd Business-Observability-Demonstrator
 ./setup.sh
 ```
 
@@ -640,7 +640,7 @@ The `otel.cjs` bootstrap:
 | File | Purpose |
 |------|--------|
 | `PARTNER-EVENT-TALK-TRACK-AND-DEMO.md` | 8-section partner event demo guide |
-| `Business-Outcome-Engine-Partner-Event.pptx` | 16-slide, 16:9 partner presentation |
+| `Business-Observability-Demonstrator-Partner-Event.pptx` | 16-slide, 16:9 partner presentation |
 | `generate-partner-ppt.py` | Python script to regenerate the PowerPoint deck |
 | `BUSINESS-GUIDE.md` | Business perspective and value proposition |
 

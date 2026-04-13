@@ -16,7 +16,7 @@
 #  To reinstall after uninstall:
 #    cd /home/ec2-user
 #    git clone https://github.com/LawrenceBarratt90/Business-Observability-Demonstrator.git
-#    cd Dynatrace-Business-Outcome-Engine && ./setup.sh
+#    cd Dynatrace-Business-Observability-Forge && ./setup.sh
 # ============================================================
 
 set -euo pipefail
@@ -155,7 +155,7 @@ echo ""
 echo -e "  ${BOLD}To reinstall:${NC}"
 echo -e "    cd /home/ec2-user"
 echo -e "    git clone https://github.com/LawrenceBarratt90/Business-Observability-Demonstrator.git"
-echo -e "    cd Dynatrace-Business-Outcome-Engine"
+echo -e "    cd Dynatrace-Business-Observability-Forge"
 echo -e "    ./setup.sh"
 echo ""
 
