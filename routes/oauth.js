@@ -15,7 +15,7 @@ const userTokens = new Map();
 // OAuth configuration for Dynatrace Sprint
 const oauth2Config = {
   client: {
-    id: process.env.DT_OAUTH_CLIENT_ID || 'bizobs-generator',
+    id: process.env.DT_OAUTH_CLIENT_ID || 'bizobs-demonstrator',
     secret: process.env.DT_OAUTH_CLIENT_SECRET || ''
   },
   auth: {

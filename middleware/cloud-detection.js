@@ -13,7 +13,7 @@ if (environment.isCloud) {
     platform: environment.platform,
     dynatraceUrl: process.env.DYNATRACE_URL,
     dynatraceToken: process.env.DYNATRACE_TOKEN,
-    serviceName: 'bizobs-generator-cloud'
+    serviceName: 'bizobs-demonstrator-cloud'
   });
 } else {
   console.log('🖥️ Local/VM environment detected');

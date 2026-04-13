@@ -53,7 +53,7 @@ interface ApiSettingsFull {
 }
 
 const DEFAULT_SETTINGS: ApiSettingsFull = {
-  apiHost: 'bizobs-generator',
+  apiHost: 'bizobs-demonstrator',
   apiPort: '8080',
   apiProtocol: 'http',
   enableAutoGeneration: false,
@@ -179,7 +179,7 @@ export const HomePage = () => {
   const [isCheckingMatch, setIsCheckingMatch] = useState(false);
   const [isCreatingEC, setIsCreatingEC] = useState(false);
   // EdgeConnect config inputs (for YAML generation & verification)
-  const [ecName, setEcName] = useState('bizobs');
+  const [ecName, setEcName] = useState('bizobs-demonstrator');
   const [ecHostPattern, setEcHostPattern] = useState('');
   const [ecClientId, setEcClientId] = useState('');
   const [ecClientSecret, setEcClientSecret] = useState('');
@@ -553,7 +553,7 @@ export const HomePage = () => {
     if (ecAutoPopulatedRef.current || edgeConnects.length === 0) return;
     // Only auto-populate if settings are still at defaults (no user-saved value)
     const currentHost = apiSettings.host;
-    if (currentHost && currentHost !== 'localhost' && currentHost !== 'bizobs-generator') return;
+    if (currentHost && currentHost !== 'localhost' && currentHost !== 'bizobs-demonstrator') return;
     // Extract the first valid host pattern from an online EdgeConnect (prefer online, fallback to any)
     const onlineEc = edgeConnects.find((ec: any) => (ec.metadata?.instances || []).length > 0) || edgeConnects[0];
     const patterns: string[] = onlineEc?.hostPatterns || [];
@@ -621,7 +621,7 @@ export const HomePage = () => {
 
   // Generate YAML from EdgeConnect credentials
   const generateEcYaml = () => {
-    return `name: ${ecName.trim() || 'bizobs'}\napi_endpoint_host: ${TENANT_HOST}\noauth:\n  client_id: ${ecClientId.trim() || '<your-client-id>'}\n  client_secret: ${ecClientSecret.trim() || '<your-client-secret>'}\n  resource: urn:dtenvironment:${TENANT_ID}\n  endpoint: ${SSO_ENDPOINT}`;
+    return `name: ${ecName.trim() || 'bizobs-demonstrator'}\napi_endpoint_host: ${TENANT_HOST}\noauth:\n  client_id: ${ecClientId.trim() || '<your-client-id>'}\n  client_secret: ${ecClientSecret.trim() || '<your-client-secret>'}\n  resource: urn:dtenvironment:${TENANT_ID}\n  endpoint: ${SSO_ENDPOINT}`;
   };
 
   // Derived: is any EdgeConnect online?
