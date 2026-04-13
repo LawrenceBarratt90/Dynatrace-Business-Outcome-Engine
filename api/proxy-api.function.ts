@@ -543,25 +543,20 @@ export default async function (payload: ProxyPayload) {
         const result = await settingsObjectsClient.getSettingsObjects({
           schemaIds: 'builtin:dt-javascript-runtime.allowed-outbound-connections',
           fields: 'objectId,value',
-          pageSize: 500,
+          pageSize: 1,
         });
-        const items = result.items || [];
-        detected['outbound-github-models'] = items.some(
-          (i: any) => i.value?.host === 'models.inference.ai.azure.com'
-        );
-        // Also check if enforcement is disabled (all hosts allowed)
-        if (!detected['outbound-github-models']) {
-          try {
-            const enfResult = await settingsObjectsClient.getSettingsObjects({
-              schemaIds: 'builtin:dt-javascript-runtime.allowed-outbound-connections.enforced',
-              fields: 'objectId,value',
-              pageSize: 1,
-            });
-            const enf = enfResult.items?.[0]?.value as any;
-            if (enf?.enforced === false) {
-              detected['outbound-github-models'] = true;
-            }
-          } catch { /* enforcement schema may not exist — that's fine */ }
+        const item = result.items?.[0];
+        const aoc = (item?.value as any)?.allowedOutboundConnections;
+        if (aoc) {
+          // If enforcement is disabled, all hosts are allowed
+          if (aoc.enforced === false) {
+            detected['outbound-github-models'] = true;
+          } else {
+            const hostList: string[] = aoc.hostList || [];
+            detected['outbound-github-models'] = hostList.includes('models.inference.ai.azure.com');
+          }
+        } else {
+          detected['outbound-github-models'] = false;
         }
       } catch (e: any) {
         console.log(`[detect] Outbound allowlist detection error: ${e.message}`);
@@ -1043,21 +1038,41 @@ export default async function (payload: ProxyPayload) {
             const existing = await settingsObjectsClient.getSettingsObjects({
               schemaIds: 'builtin:dt-javascript-runtime.allowed-outbound-connections',
               fields: 'objectId,value',
-              pageSize: 500,
+              pageSize: 1,
             });
-            const alreadyAllowed = (existing.items || []).some(
-              (i: any) => i.value?.host === 'models.inference.ai.azure.com'
-            );
-            if (alreadyAllowed) {
-              results['outbound-github-models'] = { success: true, error: 'Already in allowlist — no changes needed' };
+            const item = existing.items?.[0];
+            const aoc = (item?.value as any)?.allowedOutboundConnections;
+
+            if (aoc) {
+              const hostList: string[] = aoc.hostList || [];
+              if (hostList.includes('models.inference.ai.azure.com')) {
+                results['outbound-github-models'] = { success: true, error: 'Already in allowlist — no changes needed' };
+              } else {
+                // Update existing object — add host to the list
+                await settingsObjectsClient.putSettingsObjectByObjectId({
+                  objectId: item!.objectId,
+                  body: {
+                    value: {
+                      allowedOutboundConnections: {
+                        enforced: aoc.enforced !== false,
+                        hostList: [...hostList, 'models.inference.ai.azure.com'],
+                      },
+                    },
+                  },
+                });
+                results['outbound-github-models'] = { success: true };
+              }
             } else {
+              // No settings object exists yet — create one
               await settingsObjectsClient.postSettingsObjects({
                 body: [{
                   schemaId: 'builtin:dt-javascript-runtime.allowed-outbound-connections',
                   scope: 'environment',
                   value: {
-                    host: 'models.inference.ai.azure.com',
-                    port: -1,
+                    allowedOutboundConnections: {
+                      enforced: true,
+                      hostList: ['models.inference.ai.azure.com'],
+                    },
                   },
                 }],
               });
