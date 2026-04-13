@@ -4575,6 +4575,10 @@ app.use((err, req, res, next) => {
     if (systemMaintenanceRouter.autoCleanupOnBoot) {
       systemMaintenanceRouter.autoCleanupOnBoot().catch(e => console.warn('[auto-cleanup] Boot cleanup failed:', e.message));
     }
+    // Scheduled hourly disk cleanup (acts if disk > 85%)
+    if (systemMaintenanceRouter.startScheduledCleanup) {
+      systemMaintenanceRouter.startScheduledCleanup();
+    }
     app.locals.port = PORT;
 
   // --- Pre-startup dependency validation ---
