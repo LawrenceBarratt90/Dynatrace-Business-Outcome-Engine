@@ -20,6 +20,7 @@ interface WalkthroughStep {
   where: string;
   dtLink?: DtLink;
   tip?: string;
+  dql?: string[];
 }
 interface DemoPath {
   id: string;
@@ -451,9 +452,13 @@ const DEMO_PATHS: DemoPath[] = [
       },
       {
         title: 'Query business events with DQL',
-        action: 'Open a Notebook and run: fetch bizevents | summarize count(), by:{event.type} — this shows all the business event types flowing through the system. Try: fetch bizevents | filter event.type == "bizobs.journey.step" | summarize count(), by:{step_name, status} — to see step-by-step conversion and failure rates.',
+        action: 'Open a Notebook and run these DQL queries to explore business events flowing through the system:',
         where: 'Dynatrace',
         dtLink: { label: 'Notebooks', url: `${TENANT_URL}/ui/apps/dynatrace.notebooks` },
+        dql: [
+          'fetch bizevents\n| summarize count(), by:{event.type}',
+          'fetch bizevents\n| filter event.type == "bizobs.journey.step"\n| summarize count(), by:{step_name, status}',
+        ],
       },
       {
         title: 'Correlate logs with traces',
@@ -503,9 +508,13 @@ const DEMO_PATHS: DemoPath[] = [
       },
       {
         title: 'Query security data with DQL',
-        action: 'Open a Notebook and run: fetch events | filter event.kind == "SECURITY_EVENT" | summarize count(), by:{event.category} — this shows security event categories. You can also query: fetch entities | filter type == "dt.entity.process_group_instance" | filter isNotNull(securityProblem) — to find processes with security issues.',
+        action: 'Open a Notebook and run these DQL queries to explore security data:',
         where: 'Dynatrace',
         dtLink: { label: 'Notebooks', url: `${TENANT_URL}/ui/apps/dynatrace.notebooks` },
+        dql: [
+          'fetch events\n| filter event.kind == "SECURITY_EVENT"\n| summarize count(), by:{event.category}',
+          'fetch entities\n| filter type == "dt.entity.process_group_instance"\n| filter isNotNull(securityProblem)',
+        ],
       },
       {
         title: 'View the Security Dashboard preset',
@@ -515,49 +524,49 @@ const DEMO_PATHS: DemoPath[] = [
     ],
   },
   {
-    id: 'davis-ai',
+    id: 'dynatrace-intelligence',
     icon: '🧠',
-    title: 'Davis AI Deep Dive',
+    title: 'Dynatrace Intelligence Deep Dive',
     subtitle: 'Anomaly detection, root cause analysis, impact analysis, and AI-powered problem resolution',
     color: '#e74c3c',
     steps: [
       {
-        title: 'Understand what Davis monitors',
-        action: 'Davis AI automatically baselines every metric on every entity — services, hosts, processes. It detects anomalies without any manual thresholds. With the BizObs services running, Davis is already watching error rates, response times, throughput, and infrastructure metrics.',
+        title: 'Understand what Dynatrace Intelligence monitors',
+        action: 'Dynatrace Intelligence automatically baselines every metric on every entity — services, hosts, processes. It detects anomalies without any manual thresholds. With the BizObs services running, Dynatrace Intelligence is already watching error rates, response times, throughput, and infrastructure metrics.',
         where: 'Conceptual overview',
-        tip: 'Davis uses deterministic AI, not LLMs. It gives precise, explainable root cause analysis — not probabilistic guesses. This is the key differentiator.',
+        tip: 'Dynatrace Intelligence uses deterministic AI, not LLMs. It gives precise, explainable root cause analysis — not probabilistic guesses. This is the key differentiator.',
       },
       {
-        title: 'Create a problem for Davis to detect',
-        action: 'Go to Chaos Control and inject a fault — try 40% errors on a payment service, or 2000ms latency on a checkout service. Davis needs sustained anomalous traffic to trigger, so keep auto-load running and wait 2-3 minutes.',
+        title: 'Create a problem for Dynatrace Intelligence to detect',
+        action: 'Go to Chaos Control and inject a fault — try 40% errors on a payment service, or 2000ms latency on a checkout service. Dynatrace Intelligence needs sustained anomalous traffic to trigger, so keep auto-load running and wait 2-3 minutes.',
         where: 'This app → Chaos Control',
         tip: 'Higher error rates (40%+) trigger faster. Latency injection at 2000ms+ is also very visible. The key is sustained traffic through the affected service.',
       },
       {
         title: 'Watch the problem card appear',
-        action: 'Open the Problems view. Within minutes, Davis creates a problem card with: (1) the root cause entity, (2) the impacted services/entities, (3) the anomaly type (error rate increase, response time degradation), and (4) the precise time it started.',
+        action: 'Open the Problems view. Within minutes, Dynatrace Intelligence creates a problem card with: (1) the root cause entity, (2) the impacted services/entities, (3) the anomaly type (error rate increase, response time degradation), and (4) the precise time it started.',
         where: 'Dynatrace',
         dtLink: { label: 'Problems', url: `${TENANT_URL}/ui/apps/dynatrace.davis.problems/` },
       },
       {
         title: 'Analyze root cause',
-        action: 'Click into the problem card. Davis shows the root cause entity and the full dependency chain. It traces the problem from the point of impact through the topology to the originating entity. The "Related events" section shows what changed.',
+        action: 'Click into the problem card. Dynatrace Intelligence shows the root cause entity and the full dependency chain. It traces the problem from the point of impact through the topology to the originating entity. The "Related events" section shows what changed.',
         where: 'Dynatrace → Problems → click a problem',
-        tip: 'Davis uses SmartScape topology (which services call which) to determine causality, not just correlation. This is why it pinpoints root cause, not just symptoms.',
+        tip: 'Dynatrace Intelligence uses SmartScape topology (which services call which) to determine causality, not just correlation. This is why it pinpoints root cause, not just symptoms.',
       },
       {
         title: 'Check the impact analysis',
-        action: 'In the problem card, look at the "Impact" section. Davis shows which services, hosts, and application components are affected. With the BizObs journey services, you\'ll see the downstream cascade — e.g. a payment error impacts checkout, which impacts the overall journey.',
+        action: 'In the problem card, look at the "Impact" section. Dynatrace Intelligence shows which services, hosts, and application components are affected. With the BizObs journey services, you\'ll see the downstream cascade — e.g. a payment error impacts checkout, which impacts the overall journey.',
         where: 'Dynatrace → Problems → Impact tab',
       },
       {
         title: 'View the anomaly timeline',
-        action: 'In the problem card, check the event timeline. It shows the sequence: when the anomaly started, when Davis correlated it, which entities were added to the problem. This tells the story of the incident.',
+        action: 'In the problem card, check the event timeline. It shows the sequence: when the anomaly started, when Dynatrace Intelligence correlated it, which entities were added to the problem. This tells the story of the incident.',
         where: 'Dynatrace → Problems → Events tab',
       },
       {
         title: 'Fix and watch the problem close',
-        action: 'Go to Chaos Control and revert the fault (or use Fix-It to auto-remediate). Watch the problem card in Dynatrace — Davis will close it automatically when metrics return to baseline. The resolution time is tracked.',
+        action: 'Go to Chaos Control and revert the fault (or use Fix-It to auto-remediate). Watch the problem card in Dynatrace — Dynatrace Intelligence will close it automatically when metrics return to baseline. The resolution time is tracked.',
         where: 'This app → Chaos Control + Dynatrace Problems',
         dtLink: { label: 'Problems', url: `${TENANT_URL}/ui/apps/dynatrace.davis.problems/` },
         tip: 'The full cycle — fault → detection → analysis → resolution → closure — is the core Dynatrace story. MTTD (mean time to detect) and MTTR (mean time to resolve) are both visible in the timeline.',
@@ -584,25 +593,37 @@ const DEMO_PATHS: DemoPath[] = [
       },
       {
         title: 'Query distributed traces',
-        action: 'Add a DQL section and run: fetch spans | filter dt.entity.service != "" | summarize count(), avgDuration = avg(duration), errorCount = countIf(otel.status_code == "ERROR"), by:{dt.entity.service} | sort count() desc — this gives you a service health overview from trace data.',
+        action: 'Add a DQL section and run the query below — it gives you a service health overview from trace data.',
         where: 'Dynatrace → Notebook',
         tip: 'DQL (Dynatrace Query Language) queries Grail — the unified data lakehouse. Every data type (spans, metrics, logs, events, entities) uses the same query language.',
+        dql: [
+          'fetch spans\n| filter dt.entity.service != ""\n| summarize count(), avgDuration = avg(duration), errorCount = countIf(otel.status_code == "ERROR"), by:{dt.entity.service}\n| sort count() desc',
+        ],
       },
       {
         title: 'Query business events',
-        action: 'Run: fetch bizevents | filter event.type == "bizobs.journey.step" | summarize successes = countIf(status == "success"), failures = countIf(status == "error"), by:{step_name} | fieldsAdd successRate = round(successes * 100.0 / (successes + failures), decimals:1) — shows conversion rate per journey step.',
+        action: 'Run the query below to see conversion rate per journey step:',
         where: 'Dynatrace → Notebook',
+        dql: [
+          'fetch bizevents\n| filter event.type == "bizobs.journey.step"\n| summarize successes = countIf(status == "success"), failures = countIf(status == "error"), by:{step_name}\n| fieldsAdd successRate = round(successes * 100.0 / (successes + failures), decimals:1)',
+        ],
       },
       {
         title: 'Query problems and events',
-        action: 'Run: fetch events | filter event.kind == "DAVIS_PROBLEM" | fields timestamp, display_id, title, event.status, root_cause_entity_name, affected_entity_ids | sort timestamp desc — this shows all Davis-detected problems with root cause.',
+        action: 'Run the query below to see all Dynatrace Intelligence-detected problems with root cause:',
         where: 'Dynatrace → Notebook',
+        dql: [
+          'fetch events\n| filter event.kind == "DAVIS_PROBLEM"\n| fields timestamp, display_id, title, event.status, root_cause_entity_name, affected_entity_ids\n| sort timestamp desc',
+        ],
       },
       {
         title: 'Build a custom visualization',
-        action: 'Take any query result and switch the visualization type — table, time series, bar chart, pie chart, single value. DQL results are immediately visualizable without any extra configuration. Try a timeseries query: fetch spans | makeTimeseries count(), by:{dt.entity.service}.',
+        action: 'Take any query result and switch the visualization type — table, time series, bar chart, pie chart, single value. DQL results are immediately visualizable without any extra configuration. Try the timeseries query below.',
         where: 'Dynatrace → Notebook',
         tip: 'Notebooks support mixing DQL sections, markdown commentary, and visualizations. They\'re great for incident postmortems, capacity reviews, and executive reports.',
+        dql: [
+          'fetch spans\n| makeTimeseries count(), by:{dt.entity.service}',
+        ],
       },
       {
         title: 'Export tiles to a Notebook',
@@ -640,7 +661,7 @@ const PERSONAS: Persona[] = [
       { step: 'Auto-remediate with Fix-It', detail: 'Let AI fix the problem — emphasize speed and zero manual intervention.' },
       { step: 'Show the AppEngine app itself', detail: 'Point out this is a Dynatrace-native app — Strato components, EdgeConnect, serverless functions.' },
     ],
-    suggestedPaths: ['quick-start', 'demonstrator-dashboards', 'davis-ai', 'chaos-and-fix'],
+    suggestedPaths: ['quick-start', 'demonstrator-dashboards', 'dynatrace-intelligence', 'chaos-and-fix'],
   },
   {
     id: 'sre',
@@ -669,7 +690,7 @@ const PERSONAS: Persona[] = [
       { step: 'Verify in Dynatrace', detail: 'Show error rates dropping, problem closing. Highlight zero human intervention.', dtLink: { label: 'Services', url: `${TENANT_URL}/ui/apps/dynatrace.services` } },
       { step: 'Show golden signals on Demonstrator Dashboards', detail: 'Open Demonstrator Dashboards → Developer preset. Show traffic, latency (p50/p90/p99), errors, and service health tiles with RED metrics table.' },
     ],
-    suggestedPaths: ['chaos-and-fix', 'slo-reliability', 'autonomous-ops', 'davis-ai'],
+    suggestedPaths: ['chaos-and-fix', 'slo-reliability', 'autonomous-ops', 'dynatrace-intelligence'],
   },
   {
     id: 'developer',
@@ -784,7 +805,7 @@ const PERSONAS: Persona[] = [
       { step: '8. LiveDebugger deep-dive (optional, 2 min)', detail: 'Open LiveDebugger on a service process. Set breakpoints on lines 697 (error injection), 708 (full error object), and 996 (service chain call) in dynamic-step-service.js. Capture snapshots showing injected errors, customer data, and trace context.', dtLink: { label: 'LiveDebugger', url: `${TENANT_URL}/ui/apps/dynatrace.devobs.debugger/debugger` } },
       { step: '9. Platform story close (30 sec)', detail: 'Remind them: this is an AppEngine app. Built with React + Strato. Deployed to Dynatrace. Customers can build their own.' },
     ],
-    suggestedPaths: ['quick-start', 'chaos-and-fix', 'demonstrator-dashboards', 'live-debugger', 'slo-reliability', 'davis-ai'],
+    suggestedPaths: ['quick-start', 'chaos-and-fix', 'demonstrator-dashboards', 'live-debugger', 'slo-reliability', 'dynatrace-intelligence'],
   },
   {
     id: 'product-manager',
@@ -858,14 +879,14 @@ const PERSONAS: Persona[] = [
     talkingPoints: [
       'DQL queries every data type in Dynatrace from a single language: fetch spans, fetch bizevents, fetch events, fetch logs, fetch metrics, fetch entities. No tool switching.',
       'Grail is the unified data lakehouse — all observability signals land in one place. Cross-correlate traces with logs with business events in a single query.',
-      'The Demonstrator generates rich data across all types: distributed traces from services, business events from journeys, Davis problems from chaos, logs from processes, and host metrics from OneAgent.',
+      'The Demonstrator generates rich data across all types: distributed traces from services, business events from journeys, Dynatrace Intelligence problems from chaos, logs from processes, and host metrics from OneAgent.',
       'Notebooks combine DQL queries, markdown documentation, and visualizations in a shareable document — ideal for incident postmortems, capacity reviews, and custom reports.',
     ],
     demoFlow: [
       { step: 'Create a Notebook', detail: 'Open Notebooks and create a new one. Add a title like "BizObs Data Analysis — [date]".', dtLink: { label: 'Notebooks', url: `${TENANT_URL}/ui/apps/dynatrace.notebooks` } },
       { step: 'Query spans (traces)', detail: 'Add a DQL section: fetch spans | filter dt.entity.service != "" | summarize count(), avgDuration = avg(duration), by:{dt.entity.service} | sort count() desc — service health overview.' },
       { step: 'Query business events', detail: 'Add another section: fetch bizevents | filter event.type == "bizobs.journey.step" | summarize count(), by:{step_name, status} — journey step conversion analysis.' },
-      { step: 'Query Davis problems', detail: 'Run: fetch events | filter event.kind == "DAVIS_PROBLEM" | fields timestamp, display_id, title, event.status — problem history.' },
+      { step: 'Query Dynatrace Intelligence problems', detail: 'Run: fetch events | filter event.kind == "DAVIS_PROBLEM" | fields timestamp, display_id, title, event.status — problem history.' },
       { step: 'Build a time series', detail: 'Run: fetch spans | makeTimeseries count(), by:{dt.entity.service} — shows request volume over time per service. Switch to chart view.' },
       { step: 'Export a dashboard preset to Notebook', detail: 'Go to Demonstrator Dashboards, select Developer preset, click "Export to Notebook". Show how all DQL tiles become Notebook sections ready to customize.' },
     ],
@@ -918,6 +939,24 @@ export const DemoGuide = () => {
       {expandedStep === index && (
         <div style={{ padding: '0 16px 16px 56px' }}>
           <Paragraph style={{ fontSize: 13, lineHeight: 1.7, marginBottom: 12 }}>{step.action}</Paragraph>
+          {step.dql && step.dql.length > 0 && step.dql.map((query, qi) => (
+            <div key={qi} style={{
+              position: 'relative', marginBottom: 10, borderRadius: 8, overflow: 'hidden',
+              border: `1px solid ${color}33`, background: 'rgba(0,0,0,0.25)',
+            }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 10px', background: `${color}15`, borderBottom: `1px solid ${color}22` }}>
+                <span style={{ fontSize: 10, fontWeight: 700, textTransform: 'uppercase' as const, letterSpacing: 1, color, opacity: 0.8 }}>DQL</span>
+                <button
+                  onClick={() => { navigator.clipboard.writeText(query); }}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', color: Colors.Text.Neutral.Subdued, fontSize: 11, padding: '2px 6px', borderRadius: 4 }}
+                  title="Copy DQL to clipboard"
+                >📋 Copy</button>
+              </div>
+              <pre style={{ margin: 0, padding: '10px 14px', fontSize: 12, lineHeight: 1.6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", overflowX: 'auto', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                <code>{query}</code>
+              </pre>
+            </div>
+          ))}
           {step.tip && (
             <div style={{
               padding: '8px 14px', borderRadius: 8,
@@ -960,7 +999,7 @@ export const DemoGuide = () => {
               title="📖 Demo Guide"
               description="Interactive walkthrough for demoing the BizObs Demonstrator to different audiences."
               sections={[
-                { label: '🗺️ Guided Paths', detail: '12 step-by-step walkthroughs: Quick Start, Dashboards, Chaos & Fix-It, Autonomous Ops, Traces, LiveDebugger, Platform, SLOs & Guardian, Logs & Biz Events, Security, Davis AI, Notebooks & DQL' },
+                { label: '🗺️ Guided Paths', detail: '12 step-by-step walkthroughs: Quick Start, Dashboards, Chaos & Fix-It, Autonomous Ops, Traces, LiveDebugger, Platform, SLOs & Guardian, Logs & Biz Events, Security, Dynatrace Intelligence, Notebooks & DQL' },
                 { label: '👥 Persona Demos', detail: '9 persona-tailored demo flows with talking points, focus areas, and suggested paths' },
                 { label: '🔗 Dynatrace Links', detail: 'Quick links to Services, Problems, Traces, SLOs, Application Security, Dashboards, Notebooks, and LiveDebugger' },
                 { label: 'Expand steps', detail: 'Click any step to see detailed actions, tips, and direct links to Dynatrace apps' },
@@ -1123,15 +1162,15 @@ export const DemoGuide = () => {
                   <strong>What next?</strong> After completing {currentPath.title}, try the other paths.
                   {selectedPath === 'quick-start' && ' "Demonstrator Dashboards Deep Dive" explores all preset dashboards, or try "Chaos & Fix-It" once your services are running.'}
                   {selectedPath === 'demonstrator-dashboards' && ' "Chaos & Fix-It" to break things and watch the dashboards react, or "SLOs & Site Reliability Guardian" to set quality gates.'}
-                  {selectedPath === 'chaos-and-fix' && ' "Davis AI Deep Dive" to analyze the problem in depth, or "Autonomous Operations" for the full closed loop.'}
+                  {selectedPath === 'chaos-and-fix' && ' "Dynatrace Intelligence Deep Dive" to analyze the problem in depth, or "Autonomous Operations" for the full closed loop.'}
                   {selectedPath === 'autonomous-ops' && ' "Traces & OpenTelemetry" for a deep dive into distributed traces, or "SLOs & Site Reliability Guardian" to set quality gates on the services.'}
                   {selectedPath === 'traces-and-otel' && ' Try "Logs & Business Events" to analyze the other data types, or "LiveDebugger" for code-level debugging.'}
                   {selectedPath === 'live-debugger' && ' "Platform & Architecture" covers how the whole system connects, or "Notebooks & DQL" for custom analysis.'}
                   {selectedPath === 'platform' && ' Try "Security & Vulnerability Management" to see the security posture, or "SLOs & Site Reliability Guardian" for reliability gates.'}
-                  {selectedPath === 'slo-reliability' && ' "Davis AI Deep Dive" to see how Dynatrace detects and analyzes problems, or "Chaos & Fix-It" to test your SLOs against real faults.'}
+                  {selectedPath === 'slo-reliability' && ' "Dynatrace Intelligence Deep Dive" to see how Dynatrace detects and analyzes problems, or "Chaos & Fix-It" to test your SLOs against real faults.'}
                   {selectedPath === 'log-biz-events' && ' "Notebooks & DQL Mastery" to build custom analysis, or "Traces & OpenTelemetry" to see the distributed traces behind the events.'}
-                  {selectedPath === 'security' && ' "Platform & Architecture" to understand the infrastructure being secured, or "Davis AI Deep Dive" for problem detection.'}
-                  {selectedPath === 'davis-ai' && ' "SLOs & Site Reliability Guardian" to set quality gates, or "Chaos & Fix-It" to auto-remediate the problems Davis finds.'}
+                  {selectedPath === 'security' && ' "Platform & Architecture" to understand the infrastructure being secured, or "Dynatrace Intelligence Deep Dive" for problem detection.'}
+                  {selectedPath === 'dynatrace-intelligence' && ' "SLOs & Site Reliability Guardian" to set quality gates, or "Chaos & Fix-It" to auto-remediate the problems Dynatrace Intelligence finds.'}
                   {selectedPath === 'notebooks-dql' && ' "Logs & Business Events" to explore more data types, or "Demonstrator Dashboards" to see pre-built DQL dashboards.'}
                 </div>
               </>

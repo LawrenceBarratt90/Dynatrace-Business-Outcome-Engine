@@ -101,20 +101,20 @@ const PRESET_OVERVIEW: Record<DashboardPreset, { headline: string; bullets: stri
     bullets: [
       'Revenue and order volume trends built from business events flowing through Grail in real-time',
       'Journey funnel analysis showing step-by-step conversion and drop-off rates across customer paths',
-      'IT impact on business: Davis-detected problems mapped to estimated revenue at risk and affected customers',
+      'IT impact on business: Dynatrace Intelligence-detected problems mapped to estimated revenue at risk and affected customers',
       'SLA compliance tracking with processing time thresholds — correlating technical SLAs to business outcomes',
     ],
-    poweredBy: 'Grail Biz Events, Davis Problems, DPS Business Analytics',
+    poweredBy: 'Grail Biz Events, Dynatrace Intelligence Problems, DPS Business Analytics',
   },
   intelligence: {
-    headline: 'Davis AI-powered problem detection and root cause analysis — automatic anomaly correlation across your full stack.',
+    headline: 'Dynatrace Intelligence-powered problem detection and root cause analysis — automatic anomaly correlation across your full stack.',
     bullets: [
-      'Active problem tracking with automatic root cause identification by Dynatrace Davis AI engine',
+      'Active problem tracking with automatic root cause identification by Dynatrace Intelligence engine',
       'Problem categorization and affected service mapping using Smartscape topology dependencies',
       'Business impact quantification — errors mapped to revenue at risk and affected customer count',
-      'Davis event timeline combining anomaly detection, problem correlation, and deployment tracking',
+      'Dynatrace Intelligence event timeline combining anomaly detection, problem correlation, and deployment tracking',
     ],
-    poweredBy: 'Davis AI, Smartscape Topology, Grail Problem Store, Anomaly Detection',
+    poweredBy: 'Dynatrace Intelligence, Smartscape Topology, Grail Problem Store, Anomaly Detection',
   },
   security: {
     headline: 'Security posture monitoring — track security events, attack patterns, and affected entities in real-time.',
@@ -124,7 +124,7 @@ const PRESET_OVERVIEW: Record<DashboardPreset, { headline: string; bullets: stri
       'Affected entity mapping connecting security events to specific services and infrastructure components',
       'Full event detail table with status tracking for security incident response workflows',
     ],
-    poweredBy: 'Runtime Application Protection, Grail Security Events, Davis AI',
+    poweredBy: 'Runtime Application Protection, Grail Security Events, Dynatrace Intelligence',
   },
   sre: {
     headline: 'Site reliability engineering metrics — availability, error budgets, latency percentiles, and HTTP status tracking.',
@@ -132,9 +132,9 @@ const PRESET_OVERVIEW: Record<DashboardPreset, { headline: string; bullets: stri
       'Global availability percentage computed from real request success/failure ratios across all services',
       'Latency percentile tracking (p50/p90/p99) at both global and per-service granularity from Grail',
       'Service reliability ranking by error rate — identify the weakest links in your architecture instantly',
-      'HTTP status code breakdown (2xx/4xx/5xx) with active Davis problem correlation for incident context',
+      'HTTP status code breakdown (2xx/4xx/5xx) with active Dynatrace Intelligence problem correlation for incident context',
     ],
-    poweredBy: 'Grail Metrics, Davis Problems, DPS Service Analytics',
+    poweredBy: 'Grail Metrics, Dynatrace Intelligence Problems, DPS Service Analytics',
   },
   logs: {
     headline: 'Business event analytics — complete visibility into event flow across journeys, services, and companies.',
@@ -964,7 +964,7 @@ function getCandidates(companyName: string, journeyType: string, preset: Dashboa
 
       // ── ANOMALY EVENTS ──
       { id: 'di-anomaly-banner', title: 'ANOMALY EVENTS', vizType: 'sectionBanner', width: 3, icon: '📡', accent: '#4fc3f7', dql: '' },
-      { id: 'di-events-ts', title: 'Davis Event Timeline', vizType: 'timeseries', width: 2, icon: '📊', accent: '#4fc3f7', desc: 'Dynatrace Intelligence event timeline — includes anomaly detections and problem events for root cause correlation.',
+      { id: 'di-events-ts', title: 'Dynatrace Intelligence Event Timeline', vizType: 'timeseries', width: 2, icon: '📊', accent: '#4fc3f7', desc: 'Dynatrace Intelligence event timeline — includes anomaly detections and problem events for root cause correlation.',
         dql: `fetch events, from:${timeframe}\n| filter event.kind == "DAVIS_EVENT" or event.kind == "DAVIS_PROBLEM"\n| makeTimeseries count = count(), by:{event.kind}` },
       { id: 'di-event-types', title: 'Event Type Distribution', vizType: 'donut', width: 1, icon: '🎯', accent: '#4fc3f7', desc: 'Anomaly event categories breakdown — shows whether issues are primarily availability, performance, or error-related.',
         dql: `fetch events, from:${timeframe}\n| filter event.kind == "DAVIS_EVENT" or event.kind == "DAVIS_PROBLEM"\n| summarize count = count(), by:{event.category}\n| sort count desc\n| limit 10` },

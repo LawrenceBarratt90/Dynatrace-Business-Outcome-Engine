@@ -274,6 +274,12 @@ export const HomePage = () => {
   const [ghResult1, setGhResult1] = useState('');
   const [ghResult2, setGhResult2] = useState('');
 
+  // AI Generation Modal state — full automated pipeline
+  const [showAiGenModal, setShowAiGenModal] = useState(false);
+  const [aiGenSteps, setAiGenSteps] = useState<Array<{ label: string; status: 'pending' | 'running' | 'done' | 'error'; detail?: string }>>([]);
+  const [aiGenComplete, setAiGenComplete] = useState(false);
+  const [aiGenError, setAiGenError] = useState('');
+
   // Toast notification state
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
@@ -1624,6 +1630,146 @@ export const HomePage = () => {
     showToast(`Template "${templateName}" saved!`, 'success');
   };
 
+  // ── Full AI Generation Pipeline (modal flow) ─────────────
+  const runAiGenerationPipeline = async () => {
+    type StepObj = { label: string; status: 'pending' | 'running' | 'done' | 'error'; detail?: string };
+    const steps: StepObj[] = [
+      { label: 'Generating C-Suite Analysis', status: 'pending' },
+      { label: 'Generating Journey Config', status: 'pending' },
+      { label: 'Validating JSON', status: 'pending' },
+      { label: 'Creating Services', status: 'pending' },
+      { label: 'Saving to My Templates', status: 'pending' },
+    ];
+    setAiGenSteps([...steps]);
+    setAiGenComplete(false);
+    setAiGenError('');
+    setShowAiGenModal(true);
+
+    const updateStep = (idx: number, update: Partial<StepObj>) => {
+      steps[idx] = { ...steps[idx], ...update };
+      setAiGenSteps([...steps]);
+    };
+
+    try {
+      // Build prompts
+      const csuite = generateCsuitePrompt({ companyName, domain, requirements });
+      const journey = generateJourneyPrompt({ companyName, domain, requirements });
+      setPrompt1(csuite);
+      setPrompt2(journey);
+
+      // Step 1: Generate C-Suite Analysis
+      updateStep(0, { status: 'running' });
+      setGhGenerating1(true);
+      setGhResult1('');
+      const res1 = await callProxyWithRetry({
+        action: 'github-copilot-generate',
+        apiHost: '', apiPort: '', apiProtocol: '',
+        body: { prompt: csuite, model: ghCopilotModel },
+      });
+      setGhGenerating1(false);
+      if (!res1.success) {
+        throw new Error(`C-Suite generation failed: ${res1.error}`);
+      }
+      setGhResult1(res1.data.content);
+      updateStep(0, { status: 'done', detail: `Model: ${res1.data.model}` });
+
+      // Step 2: Generate Journey Config
+      updateStep(1, { status: 'running' });
+      setGhGenerating2(true);
+      setGhResult2('');
+      const contextPrefix = `Here is the C-suite analysis from the previous step:\n\n${res1.data.content}\n\nNow, based on that context:\n\n`;
+      const res2 = await callProxyWithRetry({
+        action: 'github-copilot-generate',
+        apiHost: '', apiPort: '', apiProtocol: '',
+        body: { prompt: contextPrefix + journey, model: ghCopilotModel },
+      });
+      setGhGenerating2(false);
+      if (!res2.success) {
+        throw new Error(`Journey generation failed: ${res2.error}`);
+      }
+      setGhResult2(res2.data.content);
+      updateStep(1, { status: 'done', detail: `Model: ${res2.data.model}` });
+
+      // Step 3: Validate JSON
+      updateStep(2, { status: 'running' });
+      let cleanJson = res2.data.content.trim();
+      if (cleanJson.startsWith('```')) {
+        cleanJson = cleanJson.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+      }
+      const parsedResponse = JSON.parse(cleanJson);
+      if (!parsedResponse.journey && !parsedResponse.steps) {
+        throw new Error('Invalid response: missing "journey" or "steps" field');
+      }
+      setCopilotResponse(cleanJson);
+      const journeyConfig = parsedResponse.journey || parsedResponse;
+      const jType = journeyConfig.journeyType || parsedResponse.journey?.journeyType || domain;
+      const stepCount = (journeyConfig.steps || parsedResponse.steps || []).length;
+      updateStep(2, { status: 'done', detail: `${stepCount} steps · ${jType}` });
+
+      // Step 4: Generate Services
+      updateStep(3, { status: 'running' });
+      setIsGeneratingServices(true);
+      const result = await callProxyWithRetry({
+        action: 'simulate-journey',
+        apiHost: apiSettings.host,
+        apiPort: apiSettings.port,
+        apiProtocol: apiSettings.protocol,
+        body: parsedResponse,
+      }, 5, 2000) as any;
+      setIsGeneratingServices(false);
+      if (!result.success) {
+        throw new Error(result.error || `Service creation failed (status ${result.status})`);
+      }
+      const data = result.data as any;
+      const jObj = data?.journey;
+      const jId = jObj?.journeyId || data?.journeyId || 'N/A';
+      const jCompany = jObj?.steps?.[0]?.companyName || data?.companyName || companyName;
+      updateStep(3, { status: 'done', detail: `Journey: ${jId}` });
+
+      // Auto-deploy Business Flow
+      const fullSteps = (journeyConfig.steps || parsedResponse.steps || []).map((s: any) => ({
+        ...s,
+        stepName: s.stepName || s.name,
+        serviceName: s.serviceName || s.service,
+        companyName: s.companyName || jCompany,
+      }));
+      autoDeployBusinessFlow(jCompany, jType, fullSteps);
+
+      // Step 5: Auto-save to My Templates
+      updateStep(4, { status: 'running' });
+      const autoTemplateName = `${companyName} - ${jType}`;
+      const newTemplate: PromptTemplate = {
+        id: `template_${Date.now()}`,
+        name: autoTemplateName,
+        companyName,
+        domain,
+        requirements,
+        csuitePrompt: csuite,
+        journeyPrompt: journey,
+        response: cleanJson,
+        createdAt: new Date().toISOString(),
+        isPreloaded: false,
+      };
+      const updated = [...savedTemplates, newTemplate];
+      setSavedTemplates(updated);
+      localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(updated));
+      saveTenantField({ promptTemplates: JSON.stringify(updated) });
+      updateStep(4, { status: 'done', detail: `Saved as "${autoTemplateName}"` });
+
+      setAiGenComplete(true);
+      setGenerationStatus(`✅ Services created successfully! Journey ID: ${jId}`);
+      setActiveTab('step2');
+      setStep2Phase('generate');
+    } catch (err: any) {
+      setGhGenerating1(false);
+      setGhGenerating2(false);
+      setIsGeneratingServices(false);
+      const failedIdx = steps.findIndex(s => s.status === 'running');
+      if (failedIdx >= 0) updateStep(failedIdx, { status: 'error', detail: err.message });
+      setAiGenError(err.message);
+    }
+  };
+
   const loadTemplate = (templateId: string) => {
     const template = savedTemplates.find(t => t.id === templateId);
     if (template) {
@@ -2476,75 +2622,23 @@ export const HomePage = () => {
                     }
                   </select>
                 )}
-                {/* Generate with AI button */}
+                {/* Generate with AI button — opens automated pipeline modal */}
                 <Button
                   variant="accent"
                   disabled={!companyName || !domain || !ghCopilotConfigured || ghGeneratingAll}
-                  onClick={async () => {
-                    setGhGeneratingAll(true);
-                    // Generate prompts inline to avoid race condition with useEffect
-                    const csuite = generateCsuitePrompt({ companyName, domain, requirements });
-                    const journey = generateJourneyPrompt({ companyName, domain, requirements });
-                    setPrompt1(csuite);
-                    setPrompt2(journey);
-                    setActiveTab('step2');
-                    setStep2Phase('prompts');
-                    try {
-                      // Generate Prompt 1
-                      setGhGenerating1(true);
-                      setGhResult1('');
-                      const res1 = await callProxyWithRetry({
-                        action: 'github-copilot-generate',
-                        apiHost: '', apiPort: '', apiProtocol: '',
-                        body: { prompt: csuite, model: ghCopilotModel },
-                      });
-                      setGhGenerating1(false);
-                      if (!res1.success) {
-                        showToast(`❌ Prompt 1: ${res1.error}`, 'error', 6000);
-                        if (res1.code === 'NO_CREDENTIAL') { setShowSettingsModal(true); setSettingsTab('copilot'); }
-                        setGhGeneratingAll(false);
-                        return;
-                      }
-                      setGhResult1(res1.data.content);
-                      showToast(`✅ C-suite analysis generated (${res1.data.model})`, 'success');
-
-                      // Generate Prompt 2 with Prompt 1 result as context
-                      setGhGenerating2(true);
-                      setGhResult2('');
-                      const contextPrefix = `Here is the C-suite analysis from the previous step:\n\n${res1.data.content}\n\nNow, based on that context:\n\n`;
-                      const res2 = await callProxyWithRetry({
-                        action: 'github-copilot-generate',
-                        apiHost: '', apiPort: '', apiProtocol: '',
-                        body: { prompt: contextPrefix + journey, model: ghCopilotModel },
-                      });
-                      setGhGenerating2(false);
-                      if (!res2.success) {
-                        showToast(`❌ Prompt 2: ${res2.error}`, 'error', 6000);
-                        setGhGeneratingAll(false);
-                        return;
-                      }
-                      setGhResult2(res2.data.content);
-                      showToast(`✅ Journey config generated — auto-loading response`, 'success');
-
-                      // Auto-load the journey response and advance to paste/validate step
-                      // Strip markdown code fences if present (AI sometimes wraps JSON in ```json...```)
-                      let cleanJson = res2.data.content.trim();
-                      if (cleanJson.startsWith('```')) {
-                        cleanJson = cleanJson.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
-                      }
-                      setCopilotResponse(cleanJson);
-                      setStep2Phase('response');
-                    } catch (err: any) {
-                      setGhGenerating1(false);
-                      setGhGenerating2(false);
-                      showToast(`❌ ${err.message}`, 'error');
-                    }
-                    setGhGeneratingAll(false);
+                  onClick={() => runAiGenerationPipeline()}
+                  title={!ghCopilotConfigured ? 'Configure GitHub PAT in Settings → GitHub Copilot first' : `Generate, validate & deploy with AI using ${ghCopilotModel}`}
+                  style={{
+                    padding: '10px 24px', opacity: !ghCopilotConfigured ? 0.4 : 1,
+                    fontWeight: 700, fontSize: 14,
+                    background: ghCopilotConfigured ? 'linear-gradient(135deg, rgba(115,190,40,0.9), rgba(0,161,201,0.9))' : undefined,
+                    color: ghCopilotConfigured ? 'white' : undefined,
+                    border: ghCopilotConfigured ? 'none' : undefined,
+                    borderRadius: 10,
+                    boxShadow: ghCopilotConfigured ? '0 4px 16px rgba(115,190,40,0.3)' : undefined,
                   }}
-                  title={!ghCopilotConfigured ? 'Configure GitHub PAT in Settings → GitHub Copilot first' : `Generate both prompts with AI using ${ghCopilotModel}`}
-                  style={{ padding: '8px 20px', opacity: !ghCopilotConfigured ? 0.4 : 1 }}
                 >
-                  {ghGeneratingAll ? '⏳ Generating...' : '✨ Generate with AI'}
+                  ✨ Generate with AI
                 </Button>
                 {/* Manual path */}
                 <Button 
@@ -5421,7 +5515,7 @@ export const HomePage = () => {
                     </div>
                     <div style={{ flex: 1 }}>
                       <Strong style={{ fontSize: 13, textDecoration: isStepComplete('automation-workflow') ? 'line-through' : 'none', opacity: isStepComplete('automation-workflow') ? 0.6 : 1 }}>Fix-It Agent Workflow Deployed</Strong>
-                      <div style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>Davis problem → Dynatrace Intelligence analysis → autonomous remediation via HTTP</div>
+                      <div style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>Dynatrace Intelligence problem → analysis → autonomous remediation via HTTP</div>
                       {isStepComplete('automation-workflow') && <div style={{ fontSize: 10, marginTop: 3, color: '#2e7d32' }}>✅ Detected — <a href={`${TENANT_URL}/ui/apps/dynatrace.automations`} target="_blank" rel="noopener noreferrer" style={{ color: '#4169e1', fontSize: 10 }}>View in Workflows →</a></div>}
                       {!isStepComplete('automation-workflow') && <div style={{ fontSize: 10, marginTop: 3, opacity: 0.5 }}>Download the workflow JSON → upload in Dynatrace Workflows</div>}
                     </div>
@@ -5519,6 +5613,120 @@ export const HomePage = () => {
           </button>
         </div>
       )}
+      {/* ── AI Generation Pipeline Modal ───────────────── */}
+      {showAiGenModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10003, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.65)' }} />
+          <div style={{
+            position: 'relative', width: 520, background: Colors.Background.Surface.Default,
+            borderRadius: 20, border: `2px solid ${aiGenComplete ? 'rgba(115,190,40,0.6)' : aiGenError ? 'rgba(220,50,47,0.6)' : 'rgba(0,161,201,0.4)'}`,
+            boxShadow: '0 24px 64px rgba(0,0,0,0.4)', overflow: 'hidden',
+          }}>
+            {/* Header */}
+            <div style={{
+              padding: '20px 24px',
+              background: aiGenComplete
+                ? 'linear-gradient(135deg, rgba(115,190,40,0.9), rgba(0,180,0,0.8))'
+                : aiGenError
+                  ? 'linear-gradient(135deg, rgba(220,50,47,0.9), rgba(180,30,30,0.8))'
+                  : 'linear-gradient(135deg, rgba(0,161,201,0.9), rgba(108,44,156,0.9))',
+            }}>
+              <Flex alignItems="center" gap={12}>
+                <div style={{ fontSize: 32 }}>{aiGenComplete ? '🎉' : aiGenError ? '⚠️' : '✨'}</div>
+                <div>
+                  <Strong style={{ color: 'white', fontSize: 18 }}>
+                    {aiGenComplete ? 'Generation Complete!' : aiGenError ? 'Generation Failed' : 'AI Generation Pipeline'}
+                  </Strong>
+                  <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 2 }}>
+                    {aiGenComplete ? 'Services are live and template saved' : aiGenError ? 'Check the error below and retry' : `Model: ${ghCopilotModel} • ${companyName}`}
+                  </div>
+                </div>
+              </Flex>
+            </div>
+
+            {/* Steps */}
+            <div style={{ padding: '20px 24px' }}>
+              {aiGenSteps.map((step, idx) => (
+                <div key={idx} style={{
+                  display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: idx < aiGenSteps.length - 1 ? 16 : 0,
+                  opacity: step.status === 'pending' ? 0.4 : 1,
+                  transition: 'opacity 0.3s ease',
+                }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 16, fontWeight: 700,
+                    background: step.status === 'done' ? 'rgba(115,190,40,0.15)' : step.status === 'error' ? 'rgba(220,50,47,0.15)' : step.status === 'running' ? 'rgba(0,161,201,0.15)' : 'rgba(120,120,120,0.1)',
+                    border: `2px solid ${step.status === 'done' ? 'rgba(115,190,40,0.5)' : step.status === 'error' ? 'rgba(220,50,47,0.5)' : step.status === 'running' ? 'rgba(0,161,201,0.5)' : 'rgba(120,120,120,0.2)'}`,
+                    color: step.status === 'done' ? '#73be28' : step.status === 'error' ? '#dc322f' : step.status === 'running' ? '#00a1c9' : Colors.Text.Neutral.Subdued,
+                  }}>
+                    {step.status === 'done' ? '✓' : step.status === 'error' ? '✕' : step.status === 'running' ? '⏳' : idx + 1}
+                  </div>
+                  <div style={{ flex: 1, paddingTop: 4 }}>
+                    <div style={{
+                      fontSize: 14, fontWeight: step.status === 'running' ? 700 : 600,
+                      color: step.status === 'running' ? Colors.Text.Neutral.Default : step.status === 'done' ? Colors.Text.Neutral.Default : Colors.Text.Neutral.Subdued,
+                    }}>
+                      {step.label}
+                      {step.status === 'running' && <span style={{ marginLeft: 8, fontSize: 12, opacity: 0.7 }}>...</span>}
+                    </div>
+                    {step.detail && (
+                      <div style={{
+                        fontSize: 11, marginTop: 3,
+                        color: step.status === 'error' ? '#dc322f' : 'rgba(115,190,40,0.9)',
+                        fontFamily: step.status === 'error' ? 'monospace' : 'inherit',
+                        wordBreak: 'break-word',
+                      }}>
+                        {step.detail}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {/* Progress bar */}
+              {!aiGenComplete && !aiGenError && (
+                <div style={{ marginTop: 20, height: 4, borderRadius: 2, background: 'rgba(120,120,120,0.15)', overflow: 'hidden' }}>
+                  <div style={{
+                    height: '100%', borderRadius: 2,
+                    background: 'linear-gradient(90deg, #00a1c9, #73be28)',
+                    width: `${(aiGenSteps.filter(s => s.status === 'done').length / aiGenSteps.length) * 100}%`,
+                    transition: 'width 0.5s ease',
+                  }} />
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div style={{ padding: '16px 24px', borderTop: `1px solid ${Colors.Border.Neutral.Default}`, display: 'flex', justifyContent: aiGenComplete || aiGenError ? 'space-between' : 'flex-end' }}>
+              {aiGenComplete && (
+                <Button
+                  variant="emphasized"
+                  onClick={() => { setShowAiGenModal(false); setActiveTab('step2'); setStep2Phase('generate'); }}
+                  style={{ padding: '8px 20px' }}
+                >
+                  View Results
+                </Button>
+              )}
+              {aiGenError && (
+                <Button
+                  variant="accent"
+                  onClick={() => runAiGenerationPipeline()}
+                  style={{ padding: '8px 20px' }}
+                >
+                  🔄 Retry
+                </Button>
+              )}
+              {(aiGenComplete || aiGenError) && (
+                <Button onClick={() => setShowAiGenModal(false)} style={{ padding: '8px 16px' }}>
+                  Close
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={{ position: 'fixed', bottom: 4, right: 8, fontSize: 9, color: 'rgba(255,255,255,0.18)', zIndex: 1, pointerEvents: 'none', fontFamily: 'monospace' }}>v{APP_VERSION}</div>
     </Page>
   );

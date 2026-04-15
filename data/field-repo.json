@@ -6804,47 +6804,47 @@
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 6.9
+        "sampleValue": 13.53
       },
       {
         "name": "channel",
         "type": "string",
-        "sampleValue": "call_centre"
+        "sampleValue": "partner_dealer"
       },
       {
         "name": "deviceType",
         "type": "string",
-        "sampleValue": "desktop"
+        "sampleValue": "mobile"
       },
       {
         "name": "region",
         "type": "string",
-        "sampleValue": "Regional"
+        "sampleValue": "Urban"
       },
       {
         "name": "customerSegmentValue",
         "type": "string",
-        "sampleValue": "enterprise"
+        "sampleValue": "consumer"
       },
       {
         "name": "loyaltyTier",
         "type": "string",
-        "sampleValue": "platinum"
+        "sampleValue": "silver"
       },
       {
         "name": "segment",
         "type": "string",
-        "sampleValue": "mobile_prepaid"
+        "sampleValue": "enterprise_5g"
       },
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "Family_Bundle"
+        "sampleValue": "Unlimited_Pro"
       },
       {
         "name": "ProductId",
         "type": "string",
-        "sampleValue": "TEL-FBR-003"
+        "sampleValue": "TEL-E5G-005"
       },
       {
         "name": "ProductType",
@@ -6854,27 +6854,27 @@
       {
         "name": "Price",
         "type": "numeric",
-        "sampleValue": 120
+        "sampleValue": 25
       },
       {
         "name": "dataUsageGB",
         "type": "numeric",
-        "sampleValue": 1000
+        "sampleValue": 85
       },
       {
         "name": "networkType",
         "type": "string",
-        "sampleValue": "5G_private"
+        "sampleValue": "fibre"
       },
       {
         "name": "contractLengthMonths",
         "type": "numeric",
-        "sampleValue": 36
+        "sampleValue": 18
       },
       {
         "name": "marketTrend",
         "type": "string",
-        "sampleValue": "satellite_connectivity"
+        "sampleValue": "5g_adoption"
       },
       {
         "name": "browser",
@@ -7023,8 +7023,8 @@
       "ActivationSetup",
       "OnboardingEngagement"
     ],
-    "lastUpdated": "2026-04-15T10:12:28.025Z",
-    "runCount": 86686
+    "lastUpdated": "2026-04-15T10:31:52.649Z",
+    "runCount": 87266
   },
   "leonardo|procurement engagement": {
     "companyName": "Leonardo",
@@ -16505,12 +16505,12 @@
       {
         "name": "orderTotal",
         "type": "numeric",
-        "sampleValue": 339.93
+        "sampleValue": 154.01
       },
       {
         "name": "transactionValue",
         "type": "numeric",
-        "sampleValue": 199.74
+        "sampleValue": 169.61
       },
       {
         "name": "averageOrderValue",
@@ -16625,17 +16625,17 @@
       {
         "name": "discountApplied",
         "type": "numeric",
-        "sampleValue": 6.81
+        "sampleValue": 7.18
       },
       {
         "name": "taxAmount",
         "type": "numeric",
-        "sampleValue": 27.19
+        "sampleValue": 12.32
       },
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 17.72
+        "sampleValue": 18.56
       },
       {
         "name": "channel",
@@ -16650,37 +16650,37 @@
       {
         "name": "region",
         "type": "string",
-        "sampleValue": "Birmingham"
+        "sampleValue": "Edinburgh"
       },
       {
         "name": "customerSegmentValue",
         "type": "string",
-        "sampleValue": "partnership"
+        "sampleValue": "charity"
       },
       {
         "name": "loyaltyTier",
         "type": "string",
-        "sampleValue": "strategic_account"
+        "sampleValue": "new_client"
       },
       {
         "name": "segment",
         "type": "string",
-        "sampleValue": "statutory_audit"
+        "sampleValue": "regulatory_audit"
       },
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "IT_Audit"
+        "sampleValue": "Internal_Audit"
       },
       {
         "name": "ProductId",
         "type": "string",
-        "sampleValue": "AUD-FOR-003"
+        "sampleValue": "AUD-INT-002"
       },
       {
         "name": "ProductType",
         "type": "string",
-        "sampleValue": "compliance"
+        "sampleValue": "statutory"
       },
       {
         "name": "Price",
@@ -16690,12 +16690,12 @@
       {
         "name": "auditRiskLevel",
         "type": "string",
-        "sampleValue": "medium"
+        "sampleValue": "critical"
       },
       {
         "name": "materialityThreshold",
         "type": "numeric",
-        "sampleValue": 200000
+        "sampleValue": 50000
       },
       {
         "name": "findingsCount",
@@ -16705,7 +16705,7 @@
       {
         "name": "marketTrend",
         "type": "string",
-        "sampleValue": "continuous_auditing"
+        "sampleValue": "esg_assurance"
       },
       {
         "name": "browser",
@@ -16854,8 +16854,8 @@
       "WorkpaperGeneration",
       "AuditReporting"
     ],
-    "lastUpdated": "2026-04-15T10:12:28.822Z",
-    "runCount": 133572
+    "lastUpdated": "2026-04-15T10:31:53.803Z",
+    "runCount": 134544
   },
   "asda|purchase journey": {
     "companyName": "Asda",
@@ -16914,32 +16914,32 @@
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "Premium Product"
+        "sampleValue": "Standard Product"
       },
       {
         "name": "ProductId",
         "type": "string",
-        "sampleValue": "SKU1002"
+        "sampleValue": "SKU1001"
       },
       {
         "name": "ProductType",
         "type": "string",
-        "sampleValue": "Electronics"
+        "sampleValue": "Home & Garden"
       },
       {
         "name": "Price",
         "type": "numeric",
-        "sampleValue": 49.99
+        "sampleValue": 39.99
       },
       {
         "name": "transactionValue",
         "type": "numeric",
-        "sampleValue": 53.02
+        "sampleValue": 155.11
       },
       {
         "name": "orderTotal",
         "type": "numeric",
-        "sampleValue": 275.12
+        "sampleValue": 88.63
       },
       {
         "name": "averageOrderValue",
@@ -16949,7 +16949,7 @@
       {
         "name": "customerLifetimeValue",
         "type": "numeric",
-        "sampleValue": 1217.11
+        "sampleValue": 1371
       },
       {
         "name": "revenuePerCustomer",
@@ -16964,17 +16964,17 @@
       {
         "name": "discountApplied",
         "type": "numeric",
-        "sampleValue": 10.92
+        "sampleValue": 19.42
       },
       {
         "name": "taxAmount",
         "type": "numeric",
-        "sampleValue": 22.01
+        "sampleValue": 7.09
       },
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 5.1
+        "sampleValue": 16.77
       },
       {
         "name": "pricingTier",
@@ -16994,17 +16994,17 @@
       {
         "name": "contractValue",
         "type": "numeric",
-        "sampleValue": 3042.02
+        "sampleValue": 3929.27
       },
       {
         "name": "annualRevenue",
         "type": "numeric",
-        "sampleValue": 3042.77
+        "sampleValue": 3427.5
       },
       {
         "name": "acquisitionCost",
         "type": "numeric",
-        "sampleValue": 30.82
+        "sampleValue": 55.82
       },
       {
         "name": "retentionProbability",
@@ -17019,7 +17019,7 @@
       {
         "name": "upsellPotential",
         "type": "numeric",
-        "sampleValue": 365.13
+        "sampleValue": 411.3
       },
       {
         "name": "crossSellOpportunity",
@@ -17044,7 +17044,7 @@
       {
         "name": "engagementScore",
         "type": "numeric",
-        "sampleValue": 73.38
+        "sampleValue": 65.91
       },
       {
         "name": "satisfactionRating",
@@ -17064,7 +17064,7 @@
       {
         "name": "timeToConversion",
         "type": "numeric",
-        "sampleValue": 13.69
+        "sampleValue": 8.62
       },
       {
         "name": "competitiveAdvantage",
@@ -17089,7 +17089,7 @@
       {
         "name": "processingTime",
         "type": "numeric",
-        "sampleValue": 20.18
+        "sampleValue": 13.92
       },
       {
         "name": "operationalCost",
@@ -17109,7 +17109,7 @@
       {
         "name": "costPerAcquisition",
         "type": "numeric",
-        "sampleValue": 36.98
+        "sampleValue": 66.98
       },
       {
         "name": "riskLevel",
@@ -17134,12 +17134,12 @@
       {
         "name": "growthPotential",
         "type": "numeric",
-        "sampleValue": 304.28
+        "sampleValue": 342.75
       },
       {
         "name": "futureValue",
         "type": "numeric",
-        "sampleValue": 1825.67
+        "sampleValue": 2056.5
       },
       {
         "name": "expansionOpportunity",
@@ -17388,7 +17388,7 @@
       "PaymentAuthorization",
       "OrderConfirmation"
     ],
-    "lastUpdated": "2026-04-15T10:12:28.584Z",
-    "runCount": 1002
+    "lastUpdated": "2026-04-15T10:31:53.741Z",
+    "runCount": 2063
   }
 }
