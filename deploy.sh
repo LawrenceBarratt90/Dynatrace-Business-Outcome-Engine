@@ -5,7 +5,6 @@
 #
 #  Usage (after git clone/pull):
 #    bash deploy.sh
-#    bash deploy.sh --skip-ollama
 #    bash deploy.sh --dt-url https://abc123.live.dynatrace.com \
 #                   --dt-token dt0c01.XXX \
 #                   --otel-token dt0c01.YYY
@@ -13,14 +12,13 @@
 #  This script handles everything:
 #    0. Pre-flight checks (disk space, git, Docker)
 #    1. Checks Node.js (installs if missing)
-#    2. Installs Ollama + pulls the LLM model (or skip with --skip-ollama)
-#    3. Runs npm install + TypeScript build
-#    4. Prompts for Dynatrace credentials → .dt-credentials.json + .env
-#    5. Creates runtime directories
-#    6. Starts the server with OpenTelemetry instrumentation
-#    7. (Optional) Deploys the Dynatrace AppEngine UI
-#    8. (Optional) Sets up EdgeConnect Docker tunnel
-#    9. (Optional) Installs Dynatrace OneAgent for full-stack monitoring
+#    2. Runs npm install + TypeScript build
+#    3. Prompts for Dynatrace credentials → .dt-credentials.json + .env
+#    4. Creates runtime directories
+#    5. Starts the server with OpenTelemetry instrumentation
+#    6. (Optional) Deploys the Dynatrace AppEngine UI
+#    7. (Optional) Sets up EdgeConnect Docker tunnel
+#    8. (Optional) Installs Dynatrace OneAgent for full-stack monitoring
 #
 # ============================================================
 
@@ -37,7 +35,7 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-TOTAL_STEPS=9
+TOTAL_STEPS=8
 step() { echo -e "\n${CYAN}${BOLD}[$1/$TOTAL_STEPS]${NC} ${BOLD}$2${NC}"; }
 ok()   { echo -e "  ${GREEN}✅ $1${NC}"; }
 warn() { echo -e "  ${YELLOW}⚠️  $1${NC}"; }
@@ -47,7 +45,6 @@ fail() { echo -e "  ${RED}❌ $1${NC}"; exit 1; }
 DT_URL=""
 DT_API_TOKEN=""
 DT_OTEL_TOKEN=""
-OLLAMA_MODEL="llama3.2"
 APP_OAUTH_CLIENT_ID=""
 APP_OAUTH_CLIENT_SECRET=""
 EC_CLIENT_ID=""
@@ -56,7 +53,6 @@ EC_NAME=""
 EC_RESOURCE=""
 SKIP_APPENGINE=""
 SKIP_EDGECONNECT=""
-SKIP_OLLAMA=""
 SKIP_ONEAGENT=""
 
 while [[ $# -gt 0 ]]; do
@@ -64,7 +60,6 @@ while [[ $# -gt 0 ]]; do
     --dt-url)           DT_URL="$2"; shift 2 ;;
     --dt-token)         DT_API_TOKEN="$2"; shift 2 ;;
     --otel-token)       DT_OTEL_TOKEN="$2"; shift 2 ;;
-    --model)            OLLAMA_MODEL="$2"; shift 2 ;;
     --app-oauth-id)     APP_OAUTH_CLIENT_ID="$2"; shift 2 ;;
     --app-oauth-secret) APP_OAUTH_CLIENT_SECRET="$2"; shift 2 ;;
     --ec-name)          EC_NAME="$2"; shift 2 ;;
@@ -73,7 +68,6 @@ while [[ $# -gt 0 ]]; do
     --ec-resource)      EC_RESOURCE="$2"; shift 2 ;;
     --skip-appengine)   SKIP_APPENGINE=1; shift ;;
     --skip-edgeconnect) SKIP_EDGECONNECT=1; shift ;;
-    --skip-ollama)      SKIP_OLLAMA=1; shift ;;
     --skip-oneagent)    SKIP_ONEAGENT=1; shift ;;
     -h|--help)
       echo "Usage: bash deploy.sh [OPTIONS]"
@@ -82,7 +76,6 @@ while [[ $# -gt 0 ]]; do
       echo "  --dt-url URL              Dynatrace environment URL"
       echo "  --dt-token TOKEN          Dynatrace API token (problems.read, metrics.read, etc.)"
       echo "  --otel-token TOKEN        Dynatrace OTel ingest token (traces, metrics, logs ingest)"
-      echo "  --model MODEL             Ollama model to use (default: llama3.2)"
       echo "  --app-oauth-id ID         AppEngine deploy OAuth client ID"
       echo "  --app-oauth-secret SECRET AppEngine deploy OAuth client secret"
       echo "  --ec-client-id ID         EdgeConnect OAuth client ID"
@@ -90,7 +83,6 @@ while [[ $# -gt 0 ]]; do
       echo "  --ec-resource URN         EdgeConnect OAuth resource (urn:dtenvironment:TENANT_ID)"
       echo "  --skip-appengine          Skip Dynatrace AppEngine UI deployment"
       echo "  --skip-edgeconnect        Skip EdgeConnect Docker setup"
-      echo "  --skip-ollama             Skip Ollama install (Lite mode — rule-based AI fallbacks)"
       echo "  --skip-oneagent           Skip Dynatrace OneAgent installation"
       echo ""
       echo "If credentials are not passed via CLI, the script will prompt for them."
@@ -109,7 +101,7 @@ echo -e "${BOLD}"
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║     Business Observability Demonstrator — Deploy                ║"
 echo "╠══════════════════════════════════════════════════════════╣"
-echo "║  Server + OTel + Ollama AI + AppEngine UI + EdgeConnect  ║"
+echo "║  Server + OTel + AppEngine UI + EdgeConnect               ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
@@ -143,7 +135,7 @@ if [[ -z "$SKIP_EDGECONNECT" ]]; then
   if command -v docker &>/dev/null; then
     ok "Docker available"
   else
-    warn "Docker not installed — will install in Step 8 if EdgeConnect is configured"
+    warn "Docker not installed — will install in Step 7 if EdgeConnect is configured"
   fi
 fi
 
@@ -172,59 +164,9 @@ else
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 2: Ollama (local AI engine)
+# Step 2: Install dependencies & build
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 2 "Ollama (local AI engine)"
-
-if [[ -n "$SKIP_OLLAMA" ]]; then
-  warn "Skipping Ollama (--skip-ollama flag set)"
-  warn "AI features will use rule-based fallbacks (OLLAMA_MODE=disabled)"
-  OLLAMA_MODE="disabled"
-else
-  OLLAMA_MODE="full"
-
-  if command -v ollama &>/dev/null; then
-    ok "Ollama already installed"
-  else
-    echo "  Installing Ollama..."
-    curl -fsSL https://ollama.com/install.sh | sh
-    ok "Ollama installed"
-  fi
-
-  # Start Ollama if not running
-  if ! curl -sf http://localhost:11434/api/tags &>/dev/null; then
-    echo "  Starting Ollama service..."
-    sudo systemctl enable ollama 2>/dev/null && sudo systemctl start ollama 2>/dev/null \
-      || (nohup ollama serve > /dev/null 2>&1 &)
-
-    echo -n "  Waiting for Ollama"
-    for i in {1..30}; do
-      if curl -sf http://localhost:11434/api/tags &>/dev/null; then break; fi
-      echo -n "."
-      sleep 2
-    done
-    echo ""
-
-    if ! curl -sf http://localhost:11434/api/tags &>/dev/null; then
-      fail "Ollama didn't start. Check: sudo systemctl status ollama"
-    fi
-  fi
-  ok "Ollama running on localhost:11434"
-
-  # Pull model if not present
-  if ollama list 2>/dev/null | grep -q "$OLLAMA_MODEL"; then
-    ok "Model '$OLLAMA_MODEL' already pulled"
-  else
-    echo "  Pulling model '$OLLAMA_MODEL' (this may take a few minutes)..."
-    ollama pull "$OLLAMA_MODEL"
-    ok "Model '$OLLAMA_MODEL' ready"
-  fi
-fi
-
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 3: Install dependencies & build
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 3 "Installing dependencies & building"
+step 2 "Installing dependencies & building"
 
 echo "  Running npm install (this may take a minute)..."
 npm install --loglevel=warn 2>&1 | tail -3
@@ -235,26 +177,26 @@ npx tsc --project tsconfig.json 2>&1 || warn "TypeScript build had warnings (may
 ok "Build complete — dist/ folder ready"
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 4: Dynatrace configuration
+# Step 3: Dynatrace configuration
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 4 "Dynatrace configuration"
+step 3 "Dynatrace configuration"
 
 # Create .env if missing
 if [[ ! -f .env ]]; then
   cat > .env << ENVEOF
 PORT=8080
 NODE_ENV=production
-OLLAMA_MODE=$OLLAMA_MODE
-OLLAMA_ENDPOINT=http://localhost:11434
-OLLAMA_MODEL=$OLLAMA_MODEL
+OLLAMA_MODE=disabled
 ENVEOF
-  ok "Created .env (OLLAMA_MODE=$OLLAMA_MODE)"
+  ok "Created .env"
 else
-  # Ensure OLLAMA_MODE is set in existing .env
-  if ! grep -q "OLLAMA_MODE" .env; then
-    echo "OLLAMA_MODE=$OLLAMA_MODE" >> .env
+  # Ensure OLLAMA_MODE is disabled in existing .env
+  if grep -q "OLLAMA_MODE" .env; then
+    sed -i 's/OLLAMA_MODE=.*/OLLAMA_MODE=disabled/' .env
+  else
+    echo "OLLAMA_MODE=disabled" >> .env
   fi
-  ok ".env already exists (ensured OLLAMA_MODE=$OLLAMA_MODE)"
+  ok ".env already exists (OLLAMA_MODE=disabled)"
 fi
 
 # Prompt for DT credentials if not provided
@@ -335,9 +277,9 @@ CREDSEOF
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 5: Prepare runtime
+# Step 4: Prepare runtime
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 5 "Preparing runtime"
+step 4 "Preparing runtime"
 
 mkdir -p logs services/.dynamic-runners public/assets saved-configs
 ok "Directories created"
@@ -351,9 +293,9 @@ pkill -f "node.*server.js" 2>/dev/null || true
 sleep 1
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 6: Start server with OpenTelemetry
+# Step 5: Start server with OpenTelemetry
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 6 "Starting BizObs Demonstrator with OpenTelemetry"
+step 5 "Starting BizObs Demonstrator with OpenTelemetry"
 
 truncate -s 0 logs/server.log 2>/dev/null || true
 node --require ./otel.cjs server.js >> logs/server.log 2>&1 &
@@ -386,9 +328,9 @@ else
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 7: Deploy Dynatrace AppEngine UI
+# Step 6: Deploy Dynatrace AppEngine UI
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 7 "Deploying Dynatrace AppEngine UI"
+step 6 "Deploying Dynatrace AppEngine UI"
 
 if [[ -n "$SKIP_APPENGINE" ]]; then
   warn "Skipped (--skip-appengine flag)"
@@ -440,9 +382,9 @@ else
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 8: EdgeConnect (Docker tunnel)
+# Step 7: EdgeConnect (Docker tunnel)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 8 "EdgeConnect (Dynatrace ↔ server tunnel)"
+step 7 "EdgeConnect (Dynatrace ↔ server tunnel)"
 
 if [[ -n "$SKIP_EDGECONNECT" ]]; then
   warn "Skipped (--skip-edgeconnect flag)"
@@ -624,9 +566,9 @@ ECEOF
 fi
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Step 9: Dynatrace OneAgent (full-stack monitoring)
+# Step 8: Dynatrace OneAgent (full-stack monitoring)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-step 9 "Dynatrace OneAgent (full-stack monitoring)"
+step 8 "Dynatrace OneAgent (full-stack monitoring)"
 
 if [[ -n "$SKIP_ONEAGENT" ]]; then
   warn "Skipped (--skip-oneagent flag)"
@@ -688,7 +630,6 @@ if [[ -n "$DT_URL" ]]; then
   echo -e "  ${BOLD}Dynatrace:${NC}      $DT_URL"
   echo -e "  ${BOLD}AppEngine UI:${NC}   Dynatrace → Apps → Business Observability Demonstrator"
   echo -e "  ${BOLD}View traces:${NC}    Distributed Traces → Ingested traces tab"
-  echo -e "  ${BOLD}AI Observability:${NC} Look for gen_ai.system = ollama"
   echo ""
   echo -e "  ${YELLOW}Remember to enable in Dynatrace Settings:${NC}"
   echo -e "    1. W3C Trace Context (Settings → OneAgent features)"

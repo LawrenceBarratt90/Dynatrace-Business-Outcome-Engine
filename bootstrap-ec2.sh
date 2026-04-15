@@ -36,7 +36,6 @@
 #    (paste this entire script into Advanced Details → User Data when launching)
 #
 #    # Extra flags:
-#      --skip-ollama       Lite mode (no AI, rule-based fallbacks)
 #      --skip-appengine    Skip Dynatrace AppEngine UI deployment
 #      --skip-edgeconnect  Skip EdgeConnect tunnel setup
 #      --skip-oneagent     Skip Dynatrace OneAgent install
@@ -66,8 +65,8 @@ while [[ $# -gt 0 ]]; do
       echo "All other flags are passed through to deploy.sh:"
       echo "  --dt-url, --dt-token, --otel-token, --app-oauth-id,"
       echo "  --app-oauth-secret, --ec-name, --ec-client-id,"
-      echo "  --ec-client-secret, --ec-resource, --model,"
-      echo "  --skip-ollama, --skip-appengine, --skip-edgeconnect,"
+      echo "  --ec-client-secret, --ec-resource,"
+      echo "  --skip-appengine, --skip-edgeconnect,"
       echo "  --skip-oneagent"
       exit 0 ;;
     *) DEPLOY_ARGS+=("$1"); shift ;;

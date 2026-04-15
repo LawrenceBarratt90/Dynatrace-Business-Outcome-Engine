@@ -6804,22 +6804,22 @@
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 19.34
+        "sampleValue": 6.33
       },
       {
         "name": "channel",
         "type": "string",
-        "sampleValue": "call_centre"
+        "sampleValue": "partner_dealer"
       },
       {
         "name": "deviceType",
         "type": "string",
-        "sampleValue": "in_store_kiosk"
+        "sampleValue": "mobile"
       },
       {
         "name": "region",
         "type": "string",
-        "sampleValue": "Regional"
+        "sampleValue": "Metro"
       },
       {
         "name": "customerSegmentValue",
@@ -6834,27 +6834,27 @@
       {
         "name": "segment",
         "type": "string",
-        "sampleValue": "broadband"
+        "sampleValue": "bundle"
       },
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "Starter_Plan"
+        "sampleValue": "Fibre_Broadband"
       },
       {
         "name": "ProductId",
         "type": "string",
-        "sampleValue": "TEL-E5G-005"
+        "sampleValue": "TEL-FBR-003"
       },
       {
         "name": "ProductType",
         "type": "string",
-        "sampleValue": "enterprise"
+        "sampleValue": "bundle"
       },
       {
         "name": "Price",
         "type": "numeric",
-        "sampleValue": 500
+        "sampleValue": 65
       },
       {
         "name": "dataUsageGB",
@@ -6864,17 +6864,17 @@
       {
         "name": "networkType",
         "type": "string",
-        "sampleValue": "5G"
+        "sampleValue": "5G_private"
       },
       {
         "name": "contractLengthMonths",
         "type": "numeric",
-        "sampleValue": 24
+        "sampleValue": 36
       },
       {
         "name": "marketTrend",
         "type": "string",
-        "sampleValue": "satellite_connectivity"
+        "sampleValue": "private_5g"
       },
       {
         "name": "browser",
@@ -7023,8 +7023,8 @@
       "ActivationSetup",
       "OnboardingEngagement"
     ],
-    "lastUpdated": "2026-04-15T07:51:00.050Z",
-    "runCount": 82486
+    "lastUpdated": "2026-04-15T08:41:22.297Z",
+    "runCount": 83992
   },
   "leonardo|procurement engagement": {
     "companyName": "Leonardo",
@@ -16505,12 +16505,12 @@
       {
         "name": "orderTotal",
         "type": "numeric",
-        "sampleValue": 336.58
+        "sampleValue": 261.44
       },
       {
         "name": "transactionValue",
         "type": "numeric",
-        "sampleValue": 237.67
+        "sampleValue": 122.69
       },
       {
         "name": "averageOrderValue",
@@ -16625,32 +16625,32 @@
       {
         "name": "discountApplied",
         "type": "numeric",
-        "sampleValue": 15.08
+        "sampleValue": 11.04
       },
       {
         "name": "taxAmount",
         "type": "numeric",
-        "sampleValue": 26.93
+        "sampleValue": 20.92
       },
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 5.02
+        "sampleValue": 15.84
       },
       {
         "name": "channel",
         "type": "string",
-        "sampleValue": "rfp_response"
+        "sampleValue": "website"
       },
       {
         "name": "deviceType",
         "type": "string",
-        "sampleValue": "laptop"
+        "sampleValue": "mobile"
       },
       {
         "name": "region",
         "type": "string",
-        "sampleValue": "London"
+        "sampleValue": "Bristol"
       },
       {
         "name": "customerSegmentValue",
@@ -16660,22 +16660,22 @@
       {
         "name": "loyaltyTier",
         "type": "string",
-        "sampleValue": "multi_year"
+        "sampleValue": "strategic_account"
       },
       {
         "name": "segment",
         "type": "string",
-        "sampleValue": "forensic_audit"
+        "sampleValue": "it_audit"
       },
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "Regulatory_Audit"
+        "sampleValue": "IT_Audit"
       },
       {
         "name": "ProductId",
         "type": "string",
-        "sampleValue": "AUD-FOR-003"
+        "sampleValue": "AUD-IT-004"
       },
       {
         "name": "ProductType",
@@ -16685,7 +16685,7 @@
       {
         "name": "Price",
         "type": "numeric",
-        "sampleValue": 35000
+        "sampleValue": 85000
       },
       {
         "name": "auditRiskLevel",
@@ -16700,12 +16700,12 @@
       {
         "name": "findingsCount",
         "type": "numeric",
-        "sampleValue": 8
+        "sampleValue": 28
       },
       {
         "name": "marketTrend",
         "type": "string",
-        "sampleValue": "continuous_auditing"
+        "sampleValue": "real_time_reporting"
       },
       {
         "name": "browser",
@@ -16854,7 +16854,7 @@
       "WorkpaperGeneration",
       "AuditReporting"
     ],
-    "lastUpdated": "2026-04-15T07:51:01.023Z",
-    "runCount": 126461
+    "lastUpdated": "2026-04-15T08:41:22.582Z",
+    "runCount": 129019
   }
 }
