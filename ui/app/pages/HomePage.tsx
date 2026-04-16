@@ -1663,7 +1663,7 @@ export const HomePage = () => {
       setGhResult1('');
       const res1 = await callProxyWithRetry({
         action: 'github-copilot-generate',
-        apiHost: '', apiPort: '', apiProtocol: '',
+        apiHost: apiSettings.host, apiPort: apiSettings.port, apiProtocol: apiSettings.protocol,
         body: { prompt: csuite, model: ghCopilotModel },
       });
       setGhGenerating1(false);
@@ -1681,7 +1681,7 @@ export const HomePage = () => {
       const contextPrefix = `Here is the C-suite analysis from the previous step:\n\n${res1.data.content}\n\nNow, based on that context:\n\n`;
       const res2 = await callProxyWithRetry({
         action: 'github-copilot-generate',
-        apiHost: '', apiPort: '', apiProtocol: '',
+        apiHost: apiSettings.host, apiPort: apiSettings.port, apiProtocol: apiSettings.protocol,
         body: { prompt: contextPrefix + journey, model: ghCopilotModel },
       });
       setGhGenerating2(false);
@@ -2837,7 +2837,7 @@ export const HomePage = () => {
                       try {
                         const res = await callProxyWithRetry({
                           action: 'github-copilot-generate',
-                          apiHost: '', apiPort: '', apiProtocol: '',
+                          apiHost: apiSettings.host, apiPort: apiSettings.port, apiProtocol: apiSettings.protocol,
                           body: { prompt: prompt1, model: ghCopilotModel },
                         });
                         if (res.success) {
@@ -2924,7 +2924,7 @@ export const HomePage = () => {
                         const contextPrefix = ghResult1 ? `Here is the C-suite analysis from the previous step:\n\n${ghResult1}\n\nNow, based on that context:\n\n` : '';
                         const res = await callProxyWithRetry({
                           action: 'github-copilot-generate',
-                          apiHost: '', apiPort: '', apiProtocol: '',
+                          apiHost: apiSettings.host, apiPort: apiSettings.port, apiProtocol: apiSettings.protocol,
                           body: { prompt: contextPrefix + prompt2, model: ghCopilotModel },
                         });
                         if (res.success) {

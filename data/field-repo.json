@@ -17951,32 +17951,32 @@
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "Budget Product"
+        "sampleValue": "Premium Product"
       },
       {
         "name": "ProductId",
         "type": "string",
-        "sampleValue": "SKU1001"
+        "sampleValue": "SKU1000"
       },
       {
         "name": "ProductType",
         "type": "string",
-        "sampleValue": "Electronics"
+        "sampleValue": "Home & Garden"
       },
       {
         "name": "Price",
         "type": "numeric",
-        "sampleValue": 39.99
+        "sampleValue": 49.99
       },
       {
         "name": "transactionValue",
         "type": "numeric",
-        "sampleValue": 180.5
+        "sampleValue": 101.02
       },
       {
         "name": "orderTotal",
         "type": "numeric",
-        "sampleValue": 285.41
+        "sampleValue": 215.26
       },
       {
         "name": "averageOrderValue",
@@ -17986,7 +17986,7 @@
       {
         "name": "customerLifetimeValue",
         "type": "numeric",
-        "sampleValue": 522.34
+        "sampleValue": 758.74
       },
       {
         "name": "revenuePerCustomer",
@@ -18001,17 +18001,17 @@
       {
         "name": "discountApplied",
         "type": "numeric",
-        "sampleValue": 12.27
+        "sampleValue": 18.21
       },
       {
         "name": "taxAmount",
         "type": "numeric",
-        "sampleValue": 22.83
+        "sampleValue": 17.22
       },
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 7.3
+        "sampleValue": 5.24
       },
       {
         "name": "pricingTier",
@@ -18031,17 +18031,17 @@
       {
         "name": "contractValue",
         "type": "numeric",
-        "sampleValue": 3055.84
+        "sampleValue": 2147.82
       },
       {
         "name": "annualRevenue",
         "type": "numeric",
-        "sampleValue": 1305.85
+        "sampleValue": 1896.85
       },
       {
         "name": "acquisitionCost",
         "type": "numeric",
-        "sampleValue": 40.78
+        "sampleValue": 40.11
       },
       {
         "name": "retentionProbability",
@@ -18056,7 +18056,7 @@
       {
         "name": "upsellPotential",
         "type": "numeric",
-        "sampleValue": 156.7
+        "sampleValue": 227.62
       },
       {
         "name": "crossSellOpportunity",
@@ -18081,7 +18081,7 @@
       {
         "name": "engagementScore",
         "type": "numeric",
-        "sampleValue": 75.89
+        "sampleValue": 76.82
       },
       {
         "name": "satisfactionRating",
@@ -18101,7 +18101,7 @@
       {
         "name": "timeToConversion",
         "type": "numeric",
-        "sampleValue": 11.43
+        "sampleValue": 13.24
       },
       {
         "name": "competitiveAdvantage",
@@ -18126,7 +18126,7 @@
       {
         "name": "processingTime",
         "type": "numeric",
-        "sampleValue": 29.24
+        "sampleValue": 12.54
       },
       {
         "name": "operationalCost",
@@ -18146,7 +18146,7 @@
       {
         "name": "costPerAcquisition",
         "type": "numeric",
-        "sampleValue": 48.94
+        "sampleValue": 48.13
       },
       {
         "name": "riskLevel",
@@ -18171,12 +18171,12 @@
       {
         "name": "growthPotential",
         "type": "numeric",
-        "sampleValue": 130.59
+        "sampleValue": 189.69
       },
       {
         "name": "futureValue",
         "type": "numeric",
-        "sampleValue": 783.51
+        "sampleValue": 1138.11
       },
       {
         "name": "expansionOpportunity",
@@ -18236,7 +18236,7 @@
       {
         "name": "paymentGateway",
         "type": "string",
-        "sampleValue": "Adyen"
+        "sampleValue": "Worldpay"
       },
       {
         "name": "paymentSuccess",
@@ -18291,7 +18291,7 @@
       {
         "name": "mobileResponsivenessScore",
         "type": "numeric",
-        "sampleValue": 0.98
+        "sampleValue": 0.96
       },
       {
         "name": "errorRate",
@@ -18311,17 +18311,17 @@
       {
         "name": "productName",
         "type": "string",
-        "sampleValue": "BMW 530e M Sport"
+        "sampleValue": "BMW M Performance Accessories"
       },
       {
         "name": "productSKU",
         "type": "string",
-        "sampleValue": "SKU-BMW-530E-2025"
+        "sampleValue": "SKU-BMW3T-2025"
       },
       {
         "name": "productPrice",
         "type": "numeric",
-        "sampleValue": 650
+        "sampleValue": 58000
       },
       {
         "name": "productCategory",
@@ -18391,7 +18391,7 @@
       {
         "name": "browserVersion",
         "type": "string",
-        "sampleValue": "Safari 18.0"
+        "sampleValue": "Safari 17"
       },
       {
         "name": "geoLocation",
@@ -18431,7 +18431,7 @@
       {
         "name": "customerSatisfactionScore",
         "type": "numeric",
-        "sampleValue": 4.7
+        "sampleValue": 8.6
       },
       {
         "name": "averageTransactionValue",
@@ -18451,7 +18451,7 @@
       {
         "name": "serviceBookingCompletionRate",
         "type": "numeric",
-        "sampleValue": 0.22
+        "sampleValue": 0.91
       },
       {
         "name": "paymentGatewayLatency",
@@ -18521,17 +18521,17 @@
       {
         "name": "leadSource",
         "type": "string",
-        "sampleValue": "website"
+        "sampleValue": "Google Ads"
       },
       {
         "name": "paymentMethods",
         "type": "string",
-        "sampleValue": "credit_card"
+        "sampleValue": "apple_pay"
       },
       {
         "name": "deliveryOptions",
         "type": "string",
-        "sampleValue": "in-dealership"
+        "sampleValue": "dealership_pickup"
       },
       {
         "name": "productVariant",
@@ -18546,7 +18546,7 @@
       {
         "name": "crmIntegrationStatus",
         "type": "string",
-        "sampleValue": "success"
+        "sampleValue": "healthy"
       },
       {
         "name": "analyticsPlatform",
@@ -18787,6 +18787,206 @@
         "name": "accountCreationLatencyMs",
         "type": "numeric",
         "sampleValue": 670
+      },
+      {
+        "name": "quoteToPurchaseRate",
+        "type": "numeric",
+        "sampleValue": 0.049
+      },
+      {
+        "name": "configuratorToQuoteRate",
+        "type": "numeric",
+        "sampleValue": 0.16
+      },
+      {
+        "name": "financeApplicationApprovalRate",
+        "type": "numeric",
+        "sampleValue": 0.68
+      },
+      {
+        "name": "averageSessionDuration",
+        "type": "numeric",
+        "sampleValue": 32
+      },
+      {
+        "name": "vehicleTransactionValue",
+        "type": "numeric",
+        "sampleValue": 35900
+      },
+      {
+        "name": "leasingContractValue",
+        "type": "numeric",
+        "sampleValue": 480
+      },
+      {
+        "name": "aftersalesRevenue",
+        "type": "numeric",
+        "sampleValue": 750
+      },
+      {
+        "name": "digitalServicesRevenue",
+        "type": "numeric",
+        "sampleValue": 280
+      },
+      {
+        "name": "abandonmentRate",
+        "type": "numeric",
+        "sampleValue": 0.13
+      },
+      {
+        "name": "errorRateCheckout",
+        "type": "numeric",
+        "sampleValue": 0.017
+      },
+      {
+        "name": "errorRateFinanceApplication",
+        "type": "numeric",
+        "sampleValue": 0.022
+      },
+      {
+        "name": "pageLoadTimeConfigurator",
+        "type": "numeric",
+        "sampleValue": 2.1
+      },
+      {
+        "name": "paymentProcessingDuration",
+        "type": "numeric",
+        "sampleValue": 3
+      },
+      {
+        "name": "dealershipApiLatency",
+        "type": "numeric",
+        "sampleValue": 0.8
+      },
+      {
+        "name": "inventoryApiLatency",
+        "type": "numeric",
+        "sampleValue": 1.1
+      },
+      {
+        "name": "accountCreationDuration",
+        "type": "numeric",
+        "sampleValue": 3
+      },
+      {
+        "name": "accountAuthenticationSuccessRate",
+        "type": "numeric",
+        "sampleValue": 0.98
+      },
+      {
+        "name": "userSessionFrictionScore",
+        "type": "numeric",
+        "sampleValue": 0.18
+      },
+      {
+        "name": "campaignId",
+        "type": "string",
+        "sampleValue": "camp_bmw_q4_2025"
+      },
+      {
+        "name": "userDeviceType",
+        "type": "string",
+        "sampleValue": "mobile"
+      },
+      {
+        "name": "sessionNavigationDepth",
+        "type": "numeric",
+        "sampleValue": 8
+      },
+      {
+        "name": "userLocation",
+        "type": "string",
+        "sampleValue": "London"
+      },
+      {
+        "name": "userAgeBracket",
+        "type": "string",
+        "sampleValue": "35-44"
+      },
+      {
+        "name": "crmSyncStatus",
+        "type": "string",
+        "sampleValue": "success"
+      },
+      {
+        "name": "analyticsTrackingStatus",
+        "type": "string",
+        "sampleValue": "active"
+      },
+      {
+        "name": "dealershipIntegrationStatus",
+        "type": "string",
+        "sampleValue": "connected"
+      },
+      {
+        "name": "financeProvider",
+        "type": "string",
+        "sampleValue": "BMW Financial Services"
+      },
+      {
+        "name": "connectedDriveActivationStatus",
+        "type": "string",
+        "sampleValue": "completed"
+      },
+      {
+        "name": "serviceBookingType",
+        "type": "string",
+        "sampleValue": "maintenance"
+      },
+      {
+        "name": "appointmentSlotAvailability",
+        "type": "numeric",
+        "sampleValue": 0.92
+      },
+      {
+        "name": "bookingConfirmationDuration",
+        "type": "numeric",
+        "sampleValue": 2
+      },
+      {
+        "name": "userFeedbackScore",
+        "type": "numeric",
+        "sampleValue": 4.7
+      },
+      {
+        "name": "transactionConfirmationStatus",
+        "type": "string",
+        "sampleValue": "successful"
+      },
+      {
+        "name": "userJourneyCompletionStatus",
+        "type": "string",
+        "sampleValue": "completed"
+      },
+      {
+        "name": "sessionConversionTimeframe",
+        "type": "numeric",
+        "sampleValue": 27
+      },
+      {
+        "name": "dropOffStepIndex",
+        "type": "numeric",
+        "sampleValue": 3
+      },
+      {
+        "name": "userEngagementScore",
+        "type": "numeric",
+        "sampleValue": 0.82
+      },
+      {
+        "name": "postTransactionSurveyScore",
+        "type": "numeric",
+        "sampleValue": 8.9
+      },
+      {
+        "name": "revenueAttributionSource",
+        "type": "string",
+        "sampleValue": "Paid Search"
+      },
+      {
+        "name": "channelType",
+        "type": "string",
+        "sampleValue": "web"
       }
     ],
     "services": [
@@ -18802,7 +19002,12 @@
       "AccountRegistrationService",
       "ReservationPurchaseInitiationService",
       "DealerAppointmentBookingService",
-      "ServiceBookingService"
+      "ServiceBookingService",
+      "VehicleBrowsingAndConfigurationService",
+      "QuoteRequestSubmissionService",
+      "ReservationOrPurchaseInitiationService",
+      "FinanceApplicationSubmissionService",
+      "DigitalServicesAndAccountCreationService"
     ],
     "steps": [
       "VehicleSearch",
@@ -18817,9 +19022,14 @@
       "AccountRegistration",
       "ReservationPurchaseInitiation",
       "DealerAppointmentBooking",
-      "ServiceBooking"
+      "ServiceBooking",
+      "VehicleBrowsingAndConfiguration",
+      "QuoteRequestSubmission",
+      "ReservationOrPurchaseInitiation",
+      "FinanceApplicationSubmission",
+      "DigitalServicesAndAccountCreation"
     ],
-    "lastUpdated": "2026-04-16T10:26:48.837Z",
-    "runCount": 863
+    "lastUpdated": "2026-04-16T10:32:56.931Z",
+    "runCount": 1079
   }
 }
