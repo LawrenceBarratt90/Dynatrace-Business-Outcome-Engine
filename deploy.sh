@@ -187,16 +187,21 @@ if [[ ! -f .env ]]; then
 PORT=8080
 NODE_ENV=production
 OLLAMA_MODE=full
+OLLAMA_MODEL=llama3.2:1b
 ENVEOF
   ok "Created .env"
 else
   # Ensure OLLAMA_MODE is set (default to full for AI agent observability)
   if grep -q "OLLAMA_MODE" .env; then
-    # Preserve existing setting
     ok ".env already exists (OLLAMA_MODE=$(grep OLLAMA_MODE .env | cut -d= -f2))"
   else
     echo "OLLAMA_MODE=full" >> .env
     ok ".env updated with OLLAMA_MODE=full"
+  fi
+  # Ensure OLLAMA_MODEL is set (default to 1B for CPU-only inference)
+  if ! grep -q "OLLAMA_MODEL" .env; then
+    echo "OLLAMA_MODEL=llama3.2:1b" >> .env
+    ok ".env updated with OLLAMA_MODEL=llama3.2:1b"
   fi
 fi
 
