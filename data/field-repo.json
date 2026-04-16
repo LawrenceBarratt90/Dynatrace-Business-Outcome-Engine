@@ -16914,7 +16914,7 @@
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "Budget Product"
+        "sampleValue": "Premium Product"
       },
       {
         "name": "ProductId",
@@ -16924,22 +16924,22 @@
       {
         "name": "ProductType",
         "type": "string",
-        "sampleValue": "Electronics"
+        "sampleValue": "Home & Garden"
       },
       {
         "name": "Price",
         "type": "numeric",
-        "sampleValue": 49.99
+        "sampleValue": 29.99
       },
       {
         "name": "transactionValue",
         "type": "numeric",
-        "sampleValue": 242.98
+        "sampleValue": 154.77
       },
       {
         "name": "orderTotal",
         "type": "numeric",
-        "sampleValue": 259.27
+        "sampleValue": 310.7
       },
       {
         "name": "averageOrderValue",
@@ -16949,7 +16949,7 @@
       {
         "name": "customerLifetimeValue",
         "type": "numeric",
-        "sampleValue": 572.1
+        "sampleValue": 799.95
       },
       {
         "name": "revenuePerCustomer",
@@ -16964,17 +16964,17 @@
       {
         "name": "discountApplied",
         "type": "numeric",
-        "sampleValue": 19.04
+        "sampleValue": 14.5
       },
       {
         "name": "taxAmount",
         "type": "numeric",
-        "sampleValue": 20.74
+        "sampleValue": 24.86
       },
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 11.67
+        "sampleValue": 15.59
       },
       {
         "name": "pricingTier",
@@ -16994,17 +16994,17 @@
       {
         "name": "contractValue",
         "type": "numeric",
-        "sampleValue": 1704.51
+        "sampleValue": 2990.95
       },
       {
         "name": "annualRevenue",
         "type": "numeric",
-        "sampleValue": 1430.25
+        "sampleValue": 1999.88
       },
       {
         "name": "acquisitionCost",
         "type": "numeric",
-        "sampleValue": 72.32
+        "sampleValue": 38.37
       },
       {
         "name": "retentionProbability",
@@ -17019,7 +17019,7 @@
       {
         "name": "upsellPotential",
         "type": "numeric",
-        "sampleValue": 171.63
+        "sampleValue": 239.99
       },
       {
         "name": "crossSellOpportunity",
@@ -17044,7 +17044,7 @@
       {
         "name": "engagementScore",
         "type": "numeric",
-        "sampleValue": 69.48
+        "sampleValue": 65.33
       },
       {
         "name": "satisfactionRating",
@@ -17064,7 +17064,7 @@
       {
         "name": "timeToConversion",
         "type": "numeric",
-        "sampleValue": 7.03
+        "sampleValue": 5.39
       },
       {
         "name": "competitiveAdvantage",
@@ -17089,7 +17089,7 @@
       {
         "name": "processingTime",
         "type": "numeric",
-        "sampleValue": 15.23
+        "sampleValue": 17.32
       },
       {
         "name": "operationalCost",
@@ -17109,7 +17109,7 @@
       {
         "name": "costPerAcquisition",
         "type": "numeric",
-        "sampleValue": 86.78
+        "sampleValue": 46.04
       },
       {
         "name": "riskLevel",
@@ -17134,12 +17134,12 @@
       {
         "name": "growthPotential",
         "type": "numeric",
-        "sampleValue": 143.03
+        "sampleValue": 199.99
       },
       {
         "name": "futureValue",
         "type": "numeric",
-        "sampleValue": 858.15
+        "sampleValue": 1199.93
       },
       {
         "name": "expansionOpportunity",
@@ -17764,8 +17764,8 @@
       "Checkout",
       "Payment"
     ],
-    "lastUpdated": "2026-04-16T20:10:08.536Z",
-    "runCount": 18199
+    "lastUpdated": "2026-04-16T20:12:20.980Z",
+    "runCount": 18318
   },
   "testchain corp|chain_test": {
     "companyName": "TestChain Corp",

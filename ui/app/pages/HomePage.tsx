@@ -2739,26 +2739,51 @@ export const HomePage = () => {
         <Flex gap={20}>
           {/* Pathway 1: Generate with GitHub Copilot AI */}
           <div
-            onClick={() => { setSelectedPathway('ai'); setActiveTab('step1'); }}
+            onClick={() => {
+              if (ghCopilotConfigured) {
+                setSelectedPathway('ai'); setActiveTab('step1');
+              } else {
+                setShowSettingsModal(true); setSettingsTab('copilot');
+              }
+            }}
             style={{
               flex: 1, padding: 24, borderRadius: 16, cursor: 'pointer',
-              background: 'linear-gradient(135deg, rgba(115,190,40,0.08), rgba(0,161,201,0.08))',
-              border: '2px solid rgba(115,190,40,0.4)',
-              boxShadow: '0 4px 16px rgba(115,190,40,0.1)',
+              background: ghCopilotConfigured
+                ? 'linear-gradient(135deg, rgba(115,190,40,0.08), rgba(0,161,201,0.08))'
+                : 'rgba(0,0,0,0.03)',
+              border: ghCopilotConfigured
+                ? '2px solid rgba(115,190,40,0.4)'
+                : `2px dashed ${Colors.Border.Neutral.Default}`,
+              boxShadow: ghCopilotConfigured ? '0 4px 16px rgba(115,190,40,0.1)' : 'none',
               transition: 'all 0.2s ease',
+              opacity: ghCopilotConfigured ? 1 : 0.55,
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(115,190,40,0.8)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(115,190,40,0.4)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+            onMouseEnter={(e) => {
+              if (ghCopilotConfigured) { e.currentTarget.style.borderColor = 'rgba(115,190,40,0.8)'; e.currentTarget.style.transform = 'translateY(-2px)'; }
+              else { e.currentTarget.style.opacity = '0.7'; }
+            }}
+            onMouseLeave={(e) => {
+              if (ghCopilotConfigured) { e.currentTarget.style.borderColor = 'rgba(115,190,40,0.4)'; e.currentTarget.style.transform = 'translateY(0)'; }
+              else { e.currentTarget.style.opacity = '0.55'; }
+            }}
           >
             <div style={{ textAlign: 'center', marginBottom: 16 }}>
               <div style={{
                 width: 64, height: 64, borderRadius: '50%', margin: '0 auto 12px',
-                background: 'linear-gradient(135deg, rgba(115,190,40,0.2), rgba(0,161,201,0.2))',
-                border: '2px solid rgba(115,190,40,0.5)',
+                background: ghCopilotConfigured
+                  ? 'linear-gradient(135deg, rgba(115,190,40,0.2), rgba(0,161,201,0.2))'
+                  : 'rgba(0,0,0,0.05)',
+                border: ghCopilotConfigured
+                  ? '2px solid rgba(115,190,40,0.5)'
+                  : `2px solid ${Colors.Border.Neutral.Default}`,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32,
-              }}>✨</div>
+              }}>{ghCopilotConfigured ? '✨' : '🔒'}</div>
               <Heading level={4} style={{ marginBottom: 4 }}>Generate with GitHub Copilot AI</Heading>
-              <Paragraph style={{ fontSize: 12, opacity: 0.7, marginBottom: 0 }}>Fully automated — AI generates everything</Paragraph>
+              <Paragraph style={{ fontSize: 12, opacity: 0.7, marginBottom: 0 }}>
+                {ghCopilotConfigured
+                  ? 'Fully automated — AI generates everything'
+                  : 'Requires GitHub PAT — click to configure in Settings'}
+              </Paragraph>
             </div>
             <Flex flexDirection="column" gap={8}>
               <Flex alignItems="center" gap={8}>
@@ -2777,10 +2802,12 @@ export const HomePage = () => {
             <div style={{ marginTop: 16, textAlign: 'center' }}>
               <div style={{
                 display: 'inline-block', padding: '10px 24px', borderRadius: 10, fontWeight: 700, fontSize: 14,
-                background: 'linear-gradient(135deg, rgba(115,190,40,0.9), rgba(0,161,201,0.9))',
+                background: ghCopilotConfigured
+                  ? 'linear-gradient(135deg, rgba(115,190,40,0.9), rgba(0,161,201,0.9))'
+                  : Colors.Border.Neutral.Default,
                 color: 'white',
               }}>
-                Start with AI →
+                {ghCopilotConfigured ? 'Start with AI →' : '🔧 Set Up GitHub Integration'}
               </div>
             </div>
           </div>
