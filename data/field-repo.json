@@ -16914,32 +16914,32 @@
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "Premium Product"
+        "sampleValue": "Standard Product"
       },
       {
         "name": "ProductId",
         "type": "string",
-        "sampleValue": "SKU1002"
+        "sampleValue": "SKU1001"
       },
       {
         "name": "ProductType",
         "type": "string",
-        "sampleValue": "Home & Garden"
+        "sampleValue": "Electronics"
       },
       {
         "name": "Price",
         "type": "numeric",
-        "sampleValue": 29.99
+        "sampleValue": 39.99
       },
       {
         "name": "transactionValue",
         "type": "numeric",
-        "sampleValue": 154.77
+        "sampleValue": 240.2
       },
       {
         "name": "orderTotal",
         "type": "numeric",
-        "sampleValue": 310.7
+        "sampleValue": 228.3
       },
       {
         "name": "averageOrderValue",
@@ -16949,7 +16949,7 @@
       {
         "name": "customerLifetimeValue",
         "type": "numeric",
-        "sampleValue": 799.95
+        "sampleValue": 732.91
       },
       {
         "name": "revenuePerCustomer",
@@ -16964,17 +16964,17 @@
       {
         "name": "discountApplied",
         "type": "numeric",
-        "sampleValue": 14.5
+        "sampleValue": 13.76
       },
       {
         "name": "taxAmount",
         "type": "numeric",
-        "sampleValue": 24.86
+        "sampleValue": 18.26
       },
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 15.59
+        "sampleValue": 8.58
       },
       {
         "name": "pricingTier",
@@ -16994,17 +16994,17 @@
       {
         "name": "contractValue",
         "type": "numeric",
-        "sampleValue": 2990.95
+        "sampleValue": 5719.54
       },
       {
         "name": "annualRevenue",
         "type": "numeric",
-        "sampleValue": 1999.88
+        "sampleValue": 1832.28
       },
       {
         "name": "acquisitionCost",
         "type": "numeric",
-        "sampleValue": 38.37
+        "sampleValue": 40.4
       },
       {
         "name": "retentionProbability",
@@ -17019,7 +17019,7 @@
       {
         "name": "upsellPotential",
         "type": "numeric",
-        "sampleValue": 239.99
+        "sampleValue": 219.87
       },
       {
         "name": "crossSellOpportunity",
@@ -17044,7 +17044,7 @@
       {
         "name": "engagementScore",
         "type": "numeric",
-        "sampleValue": 65.33
+        "sampleValue": 78.24
       },
       {
         "name": "satisfactionRating",
@@ -17064,7 +17064,7 @@
       {
         "name": "timeToConversion",
         "type": "numeric",
-        "sampleValue": 5.39
+        "sampleValue": 7.43
       },
       {
         "name": "competitiveAdvantage",
@@ -17089,7 +17089,7 @@
       {
         "name": "processingTime",
         "type": "numeric",
-        "sampleValue": 17.32
+        "sampleValue": 17.29
       },
       {
         "name": "operationalCost",
@@ -17109,7 +17109,7 @@
       {
         "name": "costPerAcquisition",
         "type": "numeric",
-        "sampleValue": 46.04
+        "sampleValue": 48.48
       },
       {
         "name": "riskLevel",
@@ -17134,12 +17134,12 @@
       {
         "name": "growthPotential",
         "type": "numeric",
-        "sampleValue": 199.99
+        "sampleValue": 183.23
       },
       {
         "name": "futureValue",
         "type": "numeric",
-        "sampleValue": 1199.93
+        "sampleValue": 1099.37
       },
       {
         "name": "expansionOpportunity",
@@ -17764,8 +17764,8 @@
       "Checkout",
       "Payment"
     ],
-    "lastUpdated": "2026-04-16T20:12:20.980Z",
-    "runCount": 18318
+    "lastUpdated": "2026-04-16T20:31:21.969Z",
+    "runCount": 19345
   },
   "testchain corp|chain_test": {
     "companyName": "TestChain Corp",
@@ -18137,32 +18137,32 @@
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "Budget Product"
+        "sampleValue": "Standard Product"
       },
       {
         "name": "ProductId",
         "type": "string",
-        "sampleValue": "SKU1001"
+        "sampleValue": "SKU1002"
       },
       {
         "name": "ProductType",
         "type": "string",
-        "sampleValue": "Home & Garden"
+        "sampleValue": "Electronics"
       },
       {
         "name": "Price",
         "type": "numeric",
-        "sampleValue": 39.99
+        "sampleValue": 49.99
       },
       {
         "name": "transactionValue",
         "type": "numeric",
-        "sampleValue": 191.97
+        "sampleValue": 159.42
       },
       {
         "name": "orderTotal",
         "type": "numeric",
-        "sampleValue": 348.48
+        "sampleValue": 283.62
       },
       {
         "name": "averageOrderValue",
@@ -18172,7 +18172,7 @@
       {
         "name": "customerLifetimeValue",
         "type": "numeric",
-        "sampleValue": 954.42
+        "sampleValue": 521.07
       },
       {
         "name": "revenuePerCustomer",
@@ -18187,17 +18187,17 @@
       {
         "name": "discountApplied",
         "type": "numeric",
-        "sampleValue": 8.63
+        "sampleValue": 9.76
       },
       {
         "name": "taxAmount",
         "type": "numeric",
-        "sampleValue": 27.88
+        "sampleValue": 22.69
       },
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 10.37
+        "sampleValue": 11.28
       },
       {
         "name": "pricingTier",
@@ -18217,17 +18217,17 @@
       {
         "name": "contractValue",
         "type": "numeric",
-        "sampleValue": 4744.94
+        "sampleValue": 2102.74
       },
       {
         "name": "annualRevenue",
         "type": "numeric",
-        "sampleValue": 2386.05
+        "sampleValue": 1302.68
       },
       {
         "name": "acquisitionCost",
         "type": "numeric",
-        "sampleValue": 64.67
+        "sampleValue": 63.59
       },
       {
         "name": "retentionProbability",
@@ -18242,7 +18242,7 @@
       {
         "name": "upsellPotential",
         "type": "numeric",
-        "sampleValue": 286.33
+        "sampleValue": 156.32
       },
       {
         "name": "crossSellOpportunity",
@@ -18267,7 +18267,7 @@
       {
         "name": "engagementScore",
         "type": "numeric",
-        "sampleValue": 75.12
+        "sampleValue": 62.21
       },
       {
         "name": "satisfactionRating",
@@ -18287,7 +18287,7 @@
       {
         "name": "timeToConversion",
         "type": "numeric",
-        "sampleValue": 8.41
+        "sampleValue": 5.04
       },
       {
         "name": "competitiveAdvantage",
@@ -18312,7 +18312,7 @@
       {
         "name": "processingTime",
         "type": "numeric",
-        "sampleValue": 19.41
+        "sampleValue": 25.7
       },
       {
         "name": "operationalCost",
@@ -18332,7 +18332,7 @@
       {
         "name": "costPerAcquisition",
         "type": "numeric",
-        "sampleValue": 77.6
+        "sampleValue": 76.31
       },
       {
         "name": "riskLevel",
@@ -18357,12 +18357,12 @@
       {
         "name": "growthPotential",
         "type": "numeric",
-        "sampleValue": 238.61
+        "sampleValue": 130.27
       },
       {
         "name": "futureValue",
         "type": "numeric",
-        "sampleValue": 1431.63
+        "sampleValue": 781.61
       },
       {
         "name": "expansionOpportunity",
@@ -18482,7 +18482,7 @@
       {
         "name": "errorRate",
         "type": "numeric",
-        "sampleValue": 0.007
+        "sampleValue": 0.013
       },
       {
         "name": "accessibilityCompliance",
@@ -18497,17 +18497,17 @@
       {
         "name": "productName",
         "type": "string",
-        "sampleValue": "BMW Roof Box"
+        "sampleValue": "BMW 5 Series Touring"
       },
       {
         "name": "productSKU",
         "type": "string",
-        "sampleValue": "BM-CDS-001"
+        "sampleValue": "PKG-MSP-001"
       },
       {
         "name": "productPrice",
         "type": "numeric",
-        "sampleValue": 48200
+        "sampleValue": 34990
       },
       {
         "name": "productCategory",
@@ -18617,7 +18617,7 @@
       {
         "name": "customerSatisfactionScore",
         "type": "numeric",
-        "sampleValue": 8.7
+        "sampleValue": 89
       },
       {
         "name": "averageTransactionValue",
@@ -18627,12 +18627,12 @@
       {
         "name": "depositAmount",
         "type": "numeric",
-        "sampleValue": 2000
+        "sampleValue": 1000
       },
       {
         "name": "financeApprovalRate",
         "type": "numeric",
-        "sampleValue": 0.73
+        "sampleValue": 0.85
       },
       {
         "name": "serviceBookingCompletionRate",
@@ -18647,7 +18647,7 @@
       {
         "name": "pageLoadTime",
         "type": "numeric",
-        "sampleValue": 1.5
+        "sampleValue": 2.1
       },
       {
         "name": "bookingEngineLatency",
@@ -18667,12 +18667,12 @@
       {
         "name": "browserType",
         "type": "string",
-        "sampleValue": "Safari"
+        "sampleValue": "Chrome"
       },
       {
         "name": "configuratorCompletionRate",
         "type": "numeric",
-        "sampleValue": 0.36
+        "sampleValue": 0.92
       },
       {
         "name": "financeApplicationDropOff",
@@ -18692,7 +18692,7 @@
       {
         "name": "riskScore",
         "type": "numeric",
-        "sampleValue": 0.06
+        "sampleValue": 0.07
       },
       {
         "name": "complianceCheckResult",
@@ -18712,12 +18712,12 @@
       {
         "name": "paymentMethods",
         "type": "string",
-        "sampleValue": "apple_pay"
+        "sampleValue": "card"
       },
       {
         "name": "deliveryOptions",
         "type": "string",
-        "sampleValue": "dealership_pickup"
+        "sampleValue": "Home Delivery"
       },
       {
         "name": "productVariant",
@@ -18752,7 +18752,7 @@
       {
         "name": "sessionEngagementScore",
         "type": "numeric",
-        "sampleValue": 91
+        "sampleValue": 0.76
       },
       {
         "name": "dropOffStep",
@@ -18772,7 +18772,7 @@
       {
         "name": "personalizationLevel",
         "type": "string",
-        "sampleValue": "high"
+        "sampleValue": "custom"
       },
       {
         "name": "accountUpdateFrequency",
@@ -18912,7 +18912,7 @@
       {
         "name": "customerFeedbackReceived",
         "type": "string",
-        "sampleValue": "yes"
+        "sampleValue": "Yes"
       },
       {
         "name": "paymentMethodsAvailable",
@@ -18957,7 +18957,7 @@
       {
         "name": "vehicleAvailabilityStatus",
         "type": "string",
-        "sampleValue": "in stock"
+        "sampleValue": "in_stock"
       },
       {
         "name": "accessorySelectionCount",
@@ -19348,6 +19348,136 @@
         "name": "accessoryOrderRevenue",
         "type": "numeric",
         "sampleValue": 638
+      },
+      {
+        "name": "checkoutConversionRate",
+        "type": "numeric",
+        "sampleValue": 0.07
+      },
+      {
+        "name": "financeApplicationRate",
+        "type": "numeric",
+        "sampleValue": 0.65
+      },
+      {
+        "name": "serviceBookingUplift",
+        "type": "numeric",
+        "sampleValue": 0.24
+      },
+      {
+        "name": "formAbandonmentRate",
+        "type": "numeric",
+        "sampleValue": 0.09
+      },
+      {
+        "name": "inventoryAvailabilityScore",
+        "type": "numeric",
+        "sampleValue": 0.98
+      },
+      {
+        "name": "paymentSuccessRate",
+        "type": "numeric",
+        "sampleValue": 0.99
+      },
+      {
+        "name": "averageBasketSize",
+        "type": "numeric",
+        "sampleValue": 1
+      },
+      {
+        "name": "upsellAccessoryRate",
+        "type": "numeric",
+        "sampleValue": 0.48
+      },
+      {
+        "name": "customerLoyaltyStatus",
+        "type": "string",
+        "sampleValue": "Gold"
+      },
+      {
+        "name": "crmLeadId",
+        "type": "string",
+        "sampleValue": "LEAD-2025-002"
+      },
+      {
+        "name": "leadSubmissionChannel",
+        "type": "string",
+        "sampleValue": "website"
+      },
+      {
+        "name": "customerRegion",
+        "type": "string",
+        "sampleValue": "London"
+      },
+      {
+        "name": "complianceCheckStatus",
+        "type": "string",
+        "sampleValue": "passed"
+      },
+      {
+        "name": "abandonmentReason",
+        "type": "string",
+        "sampleValue": "None"
+      },
+      {
+        "name": "logisticsStatus",
+        "type": "string",
+        "sampleValue": "scheduled"
+      },
+      {
+        "name": "financeOptionSelected",
+        "type": "string",
+        "sampleValue": "Personal Contract Purchase"
+      },
+      {
+        "name": "afterSalesOfferAccepted",
+        "type": "string",
+        "sampleValue": "Yes"
+      },
+      {
+        "name": "onboardingMaterialType",
+        "type": "string",
+        "sampleValue": "digital"
+      },
+      {
+        "name": "welcomeEmailStatus",
+        "type": "string",
+        "sampleValue": "sent"
+      },
+      {
+        "name": "reservationStatus",
+        "type": "string",
+        "sampleValue": "confirmed"
+      },
+      {
+        "name": "contractGenerationStatus",
+        "type": "string",
+        "sampleValue": "completed"
+      },
+      {
+        "name": "confirmationNotificationStatus",
+        "type": "string",
+        "sampleValue": "delivered"
+      },
+      {
+        "name": "revenuePerSession",
+        "type": "numeric",
+        "sampleValue": 2700
+      },
+      {
+        "name": "averageAccessorySpend",
+        "type": "numeric",
+        "sampleValue": 1600
+      },
+      {
+        "name": "apiLatency",
+        "type": "numeric",
+        "sampleValue": 0.8
+      },
+      {
+        "name": "externalIntegrationStatus",
+        "type": "string",
+        "sampleValue": "success"
       }
     ],
     "services": [
@@ -19372,7 +19502,12 @@
       "QuoteOrTestDriveRequestService",
       "OnlineReservationDepositService",
       "AftersalesAccessoriesPurchaseService",
-      "ConnectedDriveSubscriptionService"
+      "ConnectedDriveSubscriptionService",
+      "VehicleConfiguratorService",
+      "InventoryCheckService",
+      "ReservationAndDepositService",
+      "PurchaseConfirmationService",
+      "PostPurchaseEngagementService"
     ],
     "steps": [
       "VehicleSearch",
@@ -19396,10 +19531,15 @@
       "QuoteOrTestDriveRequest",
       "OnlineReservationDeposit",
       "AftersalesAccessoriesPurchase",
-      "ConnectedDriveSubscription"
+      "ConnectedDriveSubscription",
+      "VehicleConfigurator",
+      "InventoryCheck",
+      "ReservationAndDeposit",
+      "PurchaseConfirmation",
+      "PostPurchaseEngagement"
     ],
-    "lastUpdated": "2026-04-16T17:46:18.116Z",
-    "runCount": 17916
+    "lastUpdated": "2026-04-16T20:31:21.871Z",
+    "runCount": 18597
   },
   "asda|subscription flow": {
     "companyName": "Asda",

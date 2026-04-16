@@ -1645,10 +1645,9 @@ export const HomePage = () => {
   // ── Full AI Generation Pipeline (modal flow) ─────────────
   const runAiGenerationPipeline = async () => {
     type StepObj = { label: string; status: 'pending' | 'running' | 'done' | 'error'; detail?: string };
-    const needsJourneyPick = !requirements.trim();
     const steps: StepObj[] = [
       { label: 'Generating C-Suite Analysis', status: 'pending' },
-      ...(needsJourneyPick ? [{ label: 'Select Journey from Analysis', status: 'pending' as const }] : []),
+      { label: 'Select Journey from Analysis', status: 'pending' },
       { label: 'Generating Journey Config', status: 'pending' },
       { label: 'Validating JSON', status: 'pending' },
       { label: 'Creating Services', status: 'pending' },
@@ -1686,13 +1685,17 @@ export const HomePage = () => {
       updateStep(stepIdx, { status: 'done', detail: g1 ? `${g1.model} · ${g1.totalTokens} tokens · ${(g1.durationMs / 1000).toFixed(1)}s` : `Model: ${res1.data.model}` });
       stepIdx++;
 
-      // If no requirements were given, extract journeys and ask user to pick one
+      // Extract journeys from analysis and let user pick one
       let journeyReqs = requirements;
-      if (needsJourneyPick) {
+      {
         updateStep(stepIdx, { status: 'running' });
         const foundJourneys = extractJourneysFromText(res1.data.content);
         setExtractedJourneys(foundJourneys);
-        setSelectedJourneyName(foundJourneys[0] || '');
+        // If user typed requirements, try to pre-select a matching journey
+        const preselect = requirements.trim()
+          ? foundJourneys.find(j => j.toLowerCase().includes(requirements.trim().toLowerCase())) || foundJourneys[0] || requirements.trim()
+          : foundJourneys[0] || '';
+        setSelectedJourneyName(preselect);
 
         // Show journey picker modal and wait for user selection
         const chosenJourney = await new Promise<string>((resolve) => {
@@ -1819,11 +1822,11 @@ export const HomePage = () => {
     if (classificationMatch) {
       const block = classificationMatch[1];
       // Match quoted strings like "Vehicle Purchase Journey"
-      const quoted = block.match(/"([^"]+)"/g);
+      const quoted = block.match(/[""\u201C\u201D]([^""\u201C\u201D]+)[""\u201C\u201D]/g);
       if (quoted) {
         quoted.forEach(q => {
-          const name = q.replace(/"/g, '').trim();
-          if (name && !name.toLowerCase().includes('industry type')) journeys.push(name);
+          const name = q.replace(/[""\u201C\u201D]/g, '').trim();
+          if (name && !name.toLowerCase().includes('industry type') && !name.toLowerCase().match(/^journey\s*(names?|classification)\s*:?$/)) journeys.push(name);
         });
       }
       // Also match bullet items like - Vehicle Purchase Journey (without quotes)
@@ -1831,10 +1834,20 @@ export const HomePage = () => {
         const bullets = block.match(/[-•]\s+(.+)/g);
         if (bullets) {
           bullets.forEach(b => {
-            const name = b.replace(/^[-•]\s+/, '').replace(/\*\*/g, '').trim();
-            if (name && name.length < 80 && !name.toLowerCase().includes('industry type')) journeys.push(name);
+            const name = b.replace(/^[-•]\s+/, '').replace(/\*\*/g, '').replace(/"/g, '').replace(/:+\s*$/, '').trim();
+            if (name && name.length < 80 && !name.toLowerCase().includes('industry type') && !name.toLowerCase().match(/^journey\s*(names?|classification)\s*:?$/)) journeys.push(name);
           });
         }
+      }
+    }
+    // Broader fallback: scan the entire text for "Journey Names" followed by a bullet list with quoted names
+    if (journeys.length === 0) {
+      const allQuoted = text.match(/[-•*]\s*[""\u201C\u201D]([^""\u201C\u201D]{5,80})[""\u201C\u201D]/g);
+      if (allQuoted) {
+        allQuoted.forEach(m => {
+          const name = m.replace(/^[-•*]\s*[""\u201C\u201D]/, '').replace(/[""\u201C\u201D]$/, '').trim();
+          if (name && !name.toLowerCase().match(/^journey|^industry|^critical/)) journeys.push(name);
+        });
       }
     }
     // Fallback: look for "Critical User Journeys" section
@@ -6302,15 +6315,33 @@ export const HomePage = () => {
             </div>
 
             {/* Footer */}
-            <div style={{ padding: '16px 24px', borderTop: `1px solid ${Colors.Border.Neutral.Default}`, display: 'flex', justifyContent: aiGenComplete || aiGenError ? 'space-between' : 'flex-end' }}>
+            <div style={{ padding: '16px 24px', borderTop: `1px solid ${Colors.Border.Neutral.Default}`, display: 'flex', justifyContent: aiGenComplete || aiGenError ? 'space-between' : 'flex-end', alignItems: 'center' }}>
               {aiGenComplete && (
-                <Button
-                  variant="emphasized"
-                  onClick={() => { setShowAiGenModal(false); setActiveTab('step2'); setStep2Phase('generate'); }}
-                  style={{ padding: '8px 20px' }}
-                >
-                  View Results
-                </Button>
+                <Flex gap={8} alignItems="center">
+                  <Button
+                    variant="emphasized"
+                    onClick={() => { setShowAiGenModal(false); setActiveTab('step2'); setStep2Phase('generate'); }}
+                    style={{ padding: '8px 20px' }}
+                  >
+                    View Results
+                  </Button>
+                  <a
+                    href="https://bko67471.sprint.apps.dynatracelabs.com/ui/apps/dynatrace.genai.observability/prompts?perspective=Prompts+Stream&sort=start_time%3Adescending"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: 'inline-flex', alignItems: 'center', gap: 6,
+                      padding: '8px 16px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+                      background: 'linear-gradient(135deg, rgba(0,161,201,0.1), rgba(108,44,156,0.1))',
+                      border: '1px solid rgba(0,161,201,0.3)',
+                      color: Colors.Text.Neutral.Default,
+                      textDecoration: 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    🔍 View AI Prompts in Dynatrace
+                  </a>
+                </Flex>
               )}
               {aiGenError && (
                 <Button
@@ -6347,7 +6378,9 @@ export const HomePage = () => {
             }}>
               <Strong style={{ color: 'white', fontSize: 18 }}>Select a Journey</Strong>
               <Paragraph style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, marginBottom: 0, marginTop: 4 }}>
-                AI analysed the company and found these journeys — pick one to generate
+                {requirements.trim()
+                  ? `Based on "${requirements.trim()}" — AI found these related journeys`
+                  : 'AI analysed the company and found these journeys — pick one to generate'}
               </Paragraph>
             </div>
             {/* Journey List */}
