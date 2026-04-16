@@ -14,7 +14,12 @@ export interface PromptVariables {
 export const generateCsuitePrompt = (variables: PromptVariables): string => {
   const { companyName, domain, requirements } = variables;
   
-  return `${companyName} at ${domain} is the focus for this chat.
+  const requirementsBlock = requirements?.trim()
+    ? `\n\n🎯 **USER-SPECIFIED FOCUS AREA:** "${requirements.trim()}"
+The user has specifically requested journeys related to "${requirements.trim()}". Your analysis MUST prioritize this area. The Critical User Journeys and Journey Classification sections should focus on journeys directly related to "${requirements.trim()}" for ${companyName}. If the company doesn't obviously have this type of journey, creatively interpret how their business model connects to it.\n`
+    : '';
+
+  return `${companyName} at ${domain} is the focus for this chat.${requirementsBlock}
 
 You are a Business Observability specialist creating realistic customer journey simulations for application monitoring and business analytics platforms.
 
