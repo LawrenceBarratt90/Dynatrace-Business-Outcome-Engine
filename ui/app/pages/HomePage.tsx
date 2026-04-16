@@ -2682,46 +2682,47 @@ export const HomePage = () => {
       <Flex flexDirection="row" gap={20}>
         {/* Left Column: App Overview */}
         <div style={{ flex: 1, padding: 20, background: Colors.Background.Surface.Default, borderRadius: 8 }}>
-          <Heading level={3} style={{ marginBottom: 12 }}>🎯 Application Overview</Heading>
-          <Paragraph style={{ marginBottom: 12, fontSize: 14, lineHeight: 1.5 }}>
-            <Strong style={{ color: Colors.Theme.Primary['70'] }}>Business Observability Demonstrator</Strong> creates realistic customer journey scenarios 
-            for performance testing and business intelligence demonstrations.
+          <Heading level={3} style={{ marginBottom: 12 }}>🚀 Bridge the Gap Between IT and Business</Heading>
+          <Paragraph style={{ marginBottom: 12, fontSize: 14, lineHeight: 1.6 }}>
+            <Strong style={{ color: Colors.Theme.Primary['70'] }}>Business Observability Demonstrator</Strong> uses AI to instantly generate realistic, 
+            end-to-end customer journey simulations — giving your team a powerful way to showcase how Dynatrace connects 
+            <Strong> technical performance</Strong> to <Strong>real business outcomes</Strong>.
           </Paragraph>
           
           <div style={{ background: 'rgba(108, 44, 156, 0.2)', padding: 16, borderRadius: 8, border: '1px solid rgba(108, 44, 156, 0.6)' }}>
-            <Heading level={5} style={{ marginBottom: 10, color: Colors.Theme.Primary['70'] }}>🔧 Core Functionality</Heading>
-            <ul style={{ fontSize: 13, lineHeight: 1.7, color: Colors.Text.Neutral.Default, margin: 0, paddingLeft: 20 }}>
-              <li><Strong>AI-Generated Journeys:</Strong> Realistic customer paths using AI-generated prompts</li>
-              <li><Strong>Business Intelligence:</Strong> Revenue metrics, KPIs, and competitive insights</li>
-              <li><Strong>Performance Testing:</Strong> LoadRunner integration with load profiles</li>
-              <li><Strong>Real-time Simulation:</Strong> Customer journeys with Dynatrace correlation</li>
+            <Heading level={5} style={{ marginBottom: 10, color: Colors.Theme.Primary['70'] }}>✨ What Makes This Different</Heading>
+            <ul style={{ fontSize: 13, lineHeight: 1.8, color: Colors.Text.Neutral.Default, margin: 0, paddingLeft: 20 }}>
+              <li><Strong>AI-Powered in Seconds:</Strong> Enter any company — AI builds a complete journey with services, revenue data, and KPIs</li>
+              <li><Strong>Business Context Built-In:</Strong> Every journey includes conversion funnels, revenue impact, and C-Suite metrics</li>
+              <li><Strong>Any Industry, Any Customer:</Strong> Works for retail, banking, healthcare, travel, SaaS — you name it</li>
+              <li><Strong>Ready to Demo:</Strong> Realistic traffic simulation with full Dynatrace correlation out of the box</li>
             </ul>
           </div>
         </div>
 
-        {/* Right Column: Business Use Cases */}
+        {/* Right Column: Why It Matters */}
         <div style={{ flex: 1, padding: 20, background: Colors.Background.Surface.Default, borderRadius: 8 }}>
-          <Heading level={3} style={{ marginBottom: 12 }}>💼 Business Use Cases</Heading>
+          <Heading level={3} style={{ marginBottom: 12 }}>💡 Why Business Observability?</Heading>
           
           <Flex flexDirection="column" gap={12}>
             <div style={{ background: 'rgba(115, 190, 40, 0.2)', padding: 14, borderRadius: 8, border: '1px solid rgba(115, 190, 40, 0.6)' }}>
-              <Heading level={5} style={{ marginBottom: 6 }}>🛍️ E-Commerce Scenarios</Heading>
+              <Heading level={5} style={{ marginBottom: 6 }}>📈 Speak the Language of Revenue</Heading>
               <Paragraph style={{ fontSize: 13, lineHeight: 1.5, marginBottom: 0 }}>
-                Customer shopping experiences, cart abandonment, payment processing, and seasonal traffic.
+                Show stakeholders how slow page loads, failed payments, or API errors translate directly into lost revenue and abandoned customers.
               </Paragraph>
             </div>
 
             <div style={{ background: 'rgba(0, 161, 201, 0.2)', padding: 14, borderRadius: 8, border: '1px solid rgba(0, 161, 201, 0.6)' }}>
-              <Heading level={5} style={{ marginBottom: 6 }}>🏢 Enterprise Applications</Heading>
+              <Heading level={5} style={{ marginBottom: 6 }}>🎯 Tailored to Every Prospect</Heading>
               <Paragraph style={{ fontSize: 13, lineHeight: 1.5, marginBottom: 0 }}>
-                B2B workflows, employee onboarding, CRM interactions, and resource management.
+                Walk into any meeting with a bespoke demo — AI generates journeys specific to the prospect's industry, brand, and digital services.
               </Paragraph>
             </div>
 
             <div style={{ background: 'rgba(255, 210, 63, 0.2)', padding: 14, borderRadius: 8, border: '1px solid rgba(255, 210, 63, 0.6)' }}>
-              <Heading level={5} style={{ marginBottom: 6 }}>📱 Digital Services</Heading>
+              <Heading level={5} style={{ marginBottom: 6 }}>⚡ From Zero to Demo in Minutes</Heading>
               <Paragraph style={{ fontSize: 13, lineHeight: 1.5, marginBottom: 0 }}>
-                SaaS platforms, mobile app backends, API performance, and multi-tenant architectures.
+                No manual setup, no fake data. AI creates realistic services, user sessions, and business events — ready for a live Dynatrace walkthrough.
               </Paragraph>
             </div>
           </Flex>
