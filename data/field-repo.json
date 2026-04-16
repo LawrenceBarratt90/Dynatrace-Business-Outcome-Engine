@@ -17951,32 +17951,32 @@
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "Premium Product"
+        "sampleValue": "Budget Product"
       },
       {
         "name": "ProductId",
         "type": "string",
-        "sampleValue": "SKU1000"
+        "sampleValue": "SKU1001"
       },
       {
         "name": "ProductType",
         "type": "string",
-        "sampleValue": "Electronics"
+        "sampleValue": "Home & Garden"
       },
       {
         "name": "Price",
         "type": "numeric",
-        "sampleValue": 29.99
+        "sampleValue": 39.99
       },
       {
         "name": "transactionValue",
         "type": "numeric",
-        "sampleValue": 119.16
+        "sampleValue": 191.97
       },
       {
         "name": "orderTotal",
         "type": "numeric",
-        "sampleValue": 364.26
+        "sampleValue": 348.48
       },
       {
         "name": "averageOrderValue",
@@ -17986,7 +17986,7 @@
       {
         "name": "customerLifetimeValue",
         "type": "numeric",
-        "sampleValue": 717.69
+        "sampleValue": 954.42
       },
       {
         "name": "revenuePerCustomer",
@@ -18001,17 +18001,17 @@
       {
         "name": "discountApplied",
         "type": "numeric",
-        "sampleValue": 5.68
+        "sampleValue": 8.63
       },
       {
         "name": "taxAmount",
         "type": "numeric",
-        "sampleValue": 29.14
+        "sampleValue": 27.88
       },
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 15.27
+        "sampleValue": 10.37
       },
       {
         "name": "pricingTier",
@@ -18031,17 +18031,17 @@
       {
         "name": "contractValue",
         "type": "numeric",
-        "sampleValue": 5166.03
+        "sampleValue": 4744.94
       },
       {
         "name": "annualRevenue",
         "type": "numeric",
-        "sampleValue": 1794.23
+        "sampleValue": 2386.05
       },
       {
         "name": "acquisitionCost",
         "type": "numeric",
-        "sampleValue": 49.52
+        "sampleValue": 64.67
       },
       {
         "name": "retentionProbability",
@@ -18056,7 +18056,7 @@
       {
         "name": "upsellPotential",
         "type": "numeric",
-        "sampleValue": 215.31
+        "sampleValue": 286.33
       },
       {
         "name": "crossSellOpportunity",
@@ -18081,7 +18081,7 @@
       {
         "name": "engagementScore",
         "type": "numeric",
-        "sampleValue": 67.17
+        "sampleValue": 75.12
       },
       {
         "name": "satisfactionRating",
@@ -18101,7 +18101,7 @@
       {
         "name": "timeToConversion",
         "type": "numeric",
-        "sampleValue": 5.22
+        "sampleValue": 8.41
       },
       {
         "name": "competitiveAdvantage",
@@ -18126,7 +18126,7 @@
       {
         "name": "processingTime",
         "type": "numeric",
-        "sampleValue": 11.26
+        "sampleValue": 19.41
       },
       {
         "name": "operationalCost",
@@ -18146,7 +18146,7 @@
       {
         "name": "costPerAcquisition",
         "type": "numeric",
-        "sampleValue": 59.42
+        "sampleValue": 77.6
       },
       {
         "name": "riskLevel",
@@ -18171,12 +18171,12 @@
       {
         "name": "growthPotential",
         "type": "numeric",
-        "sampleValue": 179.42
+        "sampleValue": 238.61
       },
       {
         "name": "futureValue",
         "type": "numeric",
-        "sampleValue": 1076.54
+        "sampleValue": 1431.63
       },
       {
         "name": "expansionOpportunity",
@@ -19212,7 +19212,7 @@
       "AftersalesAccessoriesPurchase",
       "ConnectedDriveSubscription"
     ],
-    "lastUpdated": "2026-04-16T10:50:33.696Z",
-    "runCount": 1288
+    "lastUpdated": "2026-04-16T17:46:18.116Z",
+    "runCount": 17916
   }
 }

@@ -280,6 +280,12 @@ export const HomePage = () => {
   const [aiGenComplete, setAiGenComplete] = useState(false);
   const [aiGenError, setAiGenError] = useState('');
 
+  // "Use Your Own AI Prompt" (paste) flow state
+  const [showPasteAiModal, setShowPasteAiModal] = useState(false);
+  const [pastedAiResponse, setPastedAiResponse] = useState('');
+  const [extractedJourneys, setExtractedJourneys] = useState<string[]>([]);
+  const [selectedJourneyName, setSelectedJourneyName] = useState('');
+
   // Toast notification state
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState<'success' | 'error' | 'warning' | 'info'>('info');
@@ -1772,6 +1778,179 @@ export const HomePage = () => {
     }
   };
 
+  // ── Extract journey names from a pasted C-Suite AI response ─────────────
+  const extractJourneysFromText = (text: string): string[] => {
+    const journeys: string[] = [];
+    // Look for quoted journey names after "Journey Names" or "Journey Classification"
+    const classificationMatch = text.match(/Journey (?:Names|Classification)[:\s]*\n([\s\S]*?)(?:\n###|\n##|\n\*\*[A-Z]|\n---|\n$)/i);
+    if (classificationMatch) {
+      const block = classificationMatch[1];
+      // Match quoted strings like "Vehicle Purchase Journey"
+      const quoted = block.match(/"([^"]+)"/g);
+      if (quoted) {
+        quoted.forEach(q => {
+          const name = q.replace(/"/g, '').trim();
+          if (name && !name.toLowerCase().includes('industry type')) journeys.push(name);
+        });
+      }
+      // Also match bullet items like - Vehicle Purchase Journey (without quotes)
+      if (journeys.length === 0) {
+        const bullets = block.match(/[-•]\s+(.+)/g);
+        if (bullets) {
+          bullets.forEach(b => {
+            const name = b.replace(/^[-•]\s+/, '').replace(/\*\*/g, '').trim();
+            if (name && name.length < 80 && !name.toLowerCase().includes('industry type')) journeys.push(name);
+          });
+        }
+      }
+    }
+    // Fallback: look for "Critical User Journeys" section
+    if (journeys.length === 0) {
+      const criticalMatch = text.match(/Critical User (?:Journeys|Flows)[:\s]*\n([\s\S]*?)(?:\n###|\n##|\n\*\*[A-Z]|\n---|\n$)/i);
+      if (criticalMatch) {
+        const block = criticalMatch[1];
+        const bullets = block.match(/[-•]\s+\*\*([^*]+)\*\*/g);
+        if (bullets) {
+          bullets.forEach(b => {
+            const name = b.replace(/^[-•]\s+\*\*/, '').replace(/\*\*$/, '').trim();
+            if (name) journeys.push(name);
+          });
+        }
+      }
+    }
+    return journeys;
+  };
+
+  // ── Pipeline using pasted C-Suite analysis + selected journey ─────────────
+  const runPastedAiPipeline = async (csuiteText: string, journeyName: string) => {
+    type StepObj = { label: string; status: 'pending' | 'running' | 'done' | 'error'; detail?: string };
+    const steps: StepObj[] = [
+      { label: 'Using Pasted C-Suite Analysis', status: 'pending' },
+      { label: `Generating "${journeyName}" Config`, status: 'pending' },
+      { label: 'Validating JSON', status: 'pending' },
+      { label: 'Creating Services', status: 'pending' },
+      { label: 'Saving to My Templates', status: 'pending' },
+    ];
+    setAiGenSteps([...steps]);
+    setAiGenComplete(false);
+    setAiGenError('');
+    setShowPasteAiModal(false);
+    setShowAiGenModal(true);
+
+    const updateStep = (idx: number, update: Partial<StepObj>) => {
+      steps[idx] = { ...steps[idx], ...update };
+      setAiGenSteps([...steps]);
+    };
+
+    try {
+      // Step 1: Use pasted analysis (already have it)
+      updateStep(0, { status: 'running' });
+      setGhResult1(csuiteText);
+      const csuite = `[Pasted from external AI]\n\n${csuiteText.substring(0, 200)}...`;
+      setPrompt1(csuite);
+      updateStep(0, { status: 'done', detail: `${csuiteText.length.toLocaleString()} chars · ${extractedJourneys.length} journeys found` });
+
+      // Step 2: Generate Journey Config with selected journey
+      updateStep(1, { status: 'running' });
+      setGhGenerating2(true);
+      setGhResult2('');
+      // Override requirements with the selected journey name
+      const journeyReqs = `${journeyName} — based on the C-suite analysis provided`;
+      const journey = generateJourneyPrompt({ companyName, domain, requirements: journeyReqs });
+      setPrompt2(journey);
+      const contextPrefix = `Here is the C-suite analysis from the previous step:\n\n${csuiteText}\n\nNow, based on that context, generate the "${journeyName}" journey:\n\n`;
+      const res2 = await callProxyWithRetry({
+        action: 'github-copilot-generate',
+        apiHost: apiSettings.host, apiPort: apiSettings.port, apiProtocol: apiSettings.protocol,
+        body: { prompt: contextPrefix + journey, model: ghCopilotModel },
+      });
+      setGhGenerating2(false);
+      if (!res2.success) {
+        throw new Error(`Journey generation failed: ${res2.error}`);
+      }
+      setGhResult2(res2.data.content);
+      const g2 = res2.data.genai;
+      updateStep(1, { status: 'done', detail: g2 ? `${g2.model} · ${g2.totalTokens} tokens · ${(g2.durationMs / 1000).toFixed(1)}s` : `Model: ${res2.data.model}` });
+
+      // Step 3: Validate JSON
+      updateStep(2, { status: 'running' });
+      let cleanJson = res2.data.content.trim();
+      if (cleanJson.startsWith('```')) {
+        cleanJson = cleanJson.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+      }
+      const parsedResponse = JSON.parse(cleanJson);
+      if (!parsedResponse.journey && !parsedResponse.steps) {
+        throw new Error('Invalid response: missing "journey" or "steps" field');
+      }
+      setCopilotResponse(cleanJson);
+      const journeyConfig = parsedResponse.journey || parsedResponse;
+      const jType = journeyConfig.journeyType || parsedResponse.journey?.journeyType || domain;
+      const stepCount = (journeyConfig.steps || parsedResponse.steps || []).length;
+      updateStep(2, { status: 'done', detail: `${stepCount} steps · ${jType}` });
+
+      // Step 4: Generate Services
+      updateStep(3, { status: 'running' });
+      setIsGeneratingServices(true);
+      const result = await callProxyWithRetry({
+        action: 'simulate-journey',
+        apiHost: apiSettings.host,
+        apiPort: apiSettings.port,
+        apiProtocol: apiSettings.protocol,
+        body: parsedResponse,
+      }, 5, 2000) as any;
+      setIsGeneratingServices(false);
+      if (!result.success) {
+        throw new Error(result.error || `Service creation failed (status ${result.status})`);
+      }
+      const data = result.data as any;
+      const jObj = data?.journey;
+      const jId = jObj?.journeyId || data?.journeyId || 'N/A';
+      const jCompany = jObj?.steps?.[0]?.companyName || data?.companyName || companyName;
+      updateStep(3, { status: 'done', detail: `Journey: ${jId}` });
+
+      // Auto-deploy Business Flow
+      const fullSteps = (journeyConfig.steps || parsedResponse.steps || []).map((s: any) => ({
+        ...s,
+        stepName: s.stepName || s.name,
+        serviceName: s.serviceName || s.service,
+        companyName: s.companyName || jCompany,
+      }));
+      autoDeployBusinessFlow(jCompany, jType, fullSteps);
+
+      // Step 5: Auto-save to My Templates
+      updateStep(4, { status: 'running' });
+      const autoTemplateName = `${companyName} - ${jType}`;
+      const newTemplate: PromptTemplate = {
+        id: `template_${Date.now()}`,
+        name: autoTemplateName,
+        companyName,
+        domain,
+        requirements: journeyReqs,
+        csuitePrompt: csuite,
+        journeyPrompt: journey,
+        response: cleanJson,
+        createdAt: new Date().toISOString(),
+        isPreloaded: false,
+      };
+      const updated = [...savedTemplates, newTemplate];
+      setSavedTemplates(updated);
+      localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(updated));
+      saveTenantField({ promptTemplates: JSON.stringify(updated) });
+      updateStep(4, { status: 'done', detail: `Saved as "${autoTemplateName}"` });
+
+      setAiGenComplete(true);
+      setGenerationStatus(`✅ Services created successfully! Journey ID: ${jId}`);
+      setActiveTab('step2');
+      setStep2Phase('generate');
+    } catch (err: any) {
+      setGhGenerating2(false);
+      setIsGeneratingServices(false);
+      const failedIdx = steps.findIndex(s => s.status === 'running');
+      if (failedIdx >= 0) updateStep(failedIdx, { status: 'error', detail: err.message });
+      setAiGenError(err.message);
+    }
+  };
+
   const loadTemplate = (templateId: string) => {
     const template = savedTemplates.find(t => t.id === templateId);
     if (template) {
@@ -2641,6 +2820,23 @@ export const HomePage = () => {
                   }}
                 >
                   ✨ Generate with AI
+                </Button>
+                {/* Use Your Own AI Prompt — paste from external GenAI */}
+                <Button
+                  disabled={!companyName || !domain || !ghCopilotConfigured}
+                  onClick={() => { setPastedAiResponse(''); setExtractedJourneys([]); setSelectedJourneyName(''); setShowPasteAiModal(true); }}
+                  title={!ghCopilotConfigured ? 'Configure GitHub PAT in Settings first' : 'Paste a C-Suite analysis from ChatGPT, Gemini, Claude, etc.'}
+                  style={{
+                    padding: '10px 20px', opacity: !ghCopilotConfigured ? 0.4 : 1,
+                    fontWeight: 700, fontSize: 14,
+                    background: ghCopilotConfigured ? 'linear-gradient(135deg, rgba(108,44,156,0.9), rgba(0,161,201,0.9))' : undefined,
+                    color: ghCopilotConfigured ? 'white' : undefined,
+                    border: ghCopilotConfigured ? 'none' : undefined,
+                    borderRadius: 10,
+                    boxShadow: ghCopilotConfigured ? '0 4px 16px rgba(108,44,156,0.3)' : undefined,
+                  }}
+                >
+                  📋 Use Your Own AI Prompt
                 </Button>
                 {/* Manual path */}
                 <Button 
@@ -5724,6 +5920,163 @@ export const HomePage = () => {
                   Close
                 </Button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Paste Your Own AI Prompt Modal ───────────────── */}
+      {showPasteAiModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 10003, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.65)' }} onClick={() => setShowPasteAiModal(false)} />
+          <div style={{
+            position: 'relative', width: 620, maxHeight: '85vh', background: Colors.Background.Surface.Default,
+            borderRadius: 20, border: '2px solid rgba(108,44,156,0.4)',
+            boxShadow: '0 24px 64px rgba(0,0,0,0.4)', overflow: 'hidden', display: 'flex', flexDirection: 'column',
+          }}>
+            {/* Header */}
+            <div style={{
+              padding: '20px 24px',
+              background: 'linear-gradient(135deg, rgba(108,44,156,0.9), rgba(0,161,201,0.9))',
+            }}>
+              <Flex alignItems="center" gap={12}>
+                <div style={{ fontSize: 32 }}>📋</div>
+                <div>
+                  <Strong style={{ color: 'white', fontSize: 18 }}>Use Your Own AI Prompt</Strong>
+                  <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 2 }}>
+                    Paste a C-Suite analysis from ChatGPT, Gemini, Claude, or any AI — we'll extract the journeys
+                  </div>
+                </div>
+              </Flex>
+            </div>
+
+            {/* Body */}
+            <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+              <Paragraph style={{ fontSize: 13, marginBottom: 12, lineHeight: 1.5 }}>
+                Paste the AI-generated C-Suite / business analysis below. The app will look for journey names in the
+                <Strong> "Journey Classification"</Strong> or <Strong>"Critical User Journeys"</Strong> section and let you pick one.
+              </Paragraph>
+              <textarea
+                value={pastedAiResponse}
+                onChange={(e) => {
+                  const text = e.target.value;
+                  setPastedAiResponse(text);
+                  const journeys = extractJourneysFromText(text);
+                  setExtractedJourneys(journeys);
+                  setSelectedJourneyName(journeys[0] || '');
+                }}
+                placeholder={'Paste your AI response here...\n\nExample:\n### 3. Journey Classification\n- **Journey Names**:\n    - "Vehicle Purchase Journey"\n    - "Finance Application Journey"'}
+                style={{
+                  width: '100%', minHeight: 200, maxHeight: 300, padding: 14,
+                  background: Colors.Background.Base.Default,
+                  border: `1px solid ${Colors.Border.Neutral.Default}`,
+                  borderRadius: 8, color: Colors.Text.Neutral.Default,
+                  fontFamily: 'monospace', fontSize: 12, lineHeight: 1.5, resize: 'vertical',
+                }}
+              />
+
+              {/* Extracted journeys */}
+              {pastedAiResponse.length > 50 && (
+                <div style={{ marginTop: 16 }}>
+                  {extractedJourneys.length > 0 ? (
+                    <>
+                      <Flex alignItems="center" gap={8} style={{ marginBottom: 8 }}>
+                        <div style={{ fontSize: 18 }}>🎯</div>
+                        <Strong style={{ fontSize: 14 }}>
+                          {extractedJourneys.length} Journey{extractedJourneys.length > 1 ? 's' : ''} Found
+                        </Strong>
+                      </Flex>
+                      <Paragraph style={{ fontSize: 12, marginBottom: 10, opacity: 0.7 }}>
+                        Select which journey to generate the observability configuration for:
+                      </Paragraph>
+                      <select
+                        value={selectedJourneyName}
+                        onChange={(e: any) => setSelectedJourneyName(e.target.value)}
+                        style={{
+                          width: '100%', padding: '10px 14px', borderRadius: 8,
+                          background: Colors.Background.Base.Default,
+                          border: '2px solid rgba(115,190,40,0.5)',
+                          color: Colors.Text.Neutral.Default, fontSize: 14,
+                          cursor: 'pointer', fontWeight: 600,
+                        }}
+                      >
+                        {extractedJourneys.map((j, idx) => (
+                          <option key={idx} value={j}>{j}</option>
+                        ))}
+                      </select>
+                    </>
+                  ) : (
+                    <div style={{
+                      padding: 14, borderRadius: 8,
+                      background: 'rgba(220,180,0,0.1)', border: '1px solid rgba(220,180,0,0.3)',
+                    }}>
+                      <Flex alignItems="center" gap={8}>
+                        <div style={{ fontSize: 16 }}>⚠️</div>
+                        <div>
+                          <Strong style={{ fontSize: 13 }}>No journeys detected</Strong>
+                          <Paragraph style={{ fontSize: 12, marginBottom: 0, marginTop: 4, opacity: 0.8 }}>
+                            Make sure your analysis includes a "Journey Classification" or "Journey Names" section with named journeys.
+                            You can also type a custom journey name below.
+                          </Paragraph>
+                        </div>
+                      </Flex>
+                      <TextInput
+                        value={selectedJourneyName}
+                        onChange={(value) => setSelectedJourneyName(value)}
+                        placeholder="e.g., Purchase Journey, Subscription Flow"
+                        style={{ width: '100%', marginTop: 10 }}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div style={{ padding: '16px 24px', borderTop: `1px solid ${Colors.Border.Neutral.Default}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Button onClick={() => setShowPasteAiModal(false)} style={{ padding: '8px 16px' }}>
+                Cancel
+              </Button>
+              <Flex alignItems="center" gap={12}>
+                {ghCopilotConfigured && (
+                  <select
+                    value={ghCopilotModel}
+                    onChange={(e: any) => setGhCopilotModel(e.target.value)}
+                    style={{
+                      padding: '7px 10px', borderRadius: 6,
+                      background: Colors.Background.Base.Default,
+                      border: `1px solid ${Colors.Border.Neutral.Default}`,
+                      color: Colors.Text.Neutral.Default, fontSize: 12,
+                      cursor: 'pointer', minWidth: 120,
+                    }}
+                  >
+                    {ghAvailableModels.length > 0
+                      ? ghAvailableModels.map(m => (
+                          <option key={m.id} value={m.id}>{m.id}</option>
+                        ))
+                      : ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4o', 'o4-mini', 'claude-sonnet-4'].map(id => (
+                          <option key={id} value={id}>{id}</option>
+                        ))
+                    }
+                  </select>
+                )}
+                <Button
+                  variant="accent"
+                  disabled={!selectedJourneyName || !pastedAiResponse || pastedAiResponse.length < 50 || !ghCopilotConfigured}
+                  onClick={() => runPastedAiPipeline(pastedAiResponse, selectedJourneyName)}
+                  title={!ghCopilotConfigured ? 'Configure GitHub PAT in Settings first' : `Generate "${selectedJourneyName}" config`}
+                  style={{
+                    padding: '10px 24px', fontWeight: 700, fontSize: 14,
+                    background: ghCopilotConfigured && selectedJourneyName ? 'linear-gradient(135deg, rgba(108,44,156,0.9), rgba(0,161,201,0.9))' : undefined,
+                    color: ghCopilotConfigured && selectedJourneyName ? 'white' : undefined,
+                    border: ghCopilotConfigured && selectedJourneyName ? 'none' : undefined,
+                    borderRadius: 10,
+                    opacity: (!selectedJourneyName || !ghCopilotConfigured) ? 0.4 : 1,
+                  }}
+                >
+                  🚀 Generate Journey Config
+                </Button>
+              </Flex>
             </div>
           </div>
         </div>
