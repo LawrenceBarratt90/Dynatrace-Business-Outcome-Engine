@@ -19,6 +19,7 @@ import {
 } from '../librarian/librarianAgent.js';
 import { chat, chatJSON, agentLoop, isOllamaAvailable, ToolDefinition, ChatMessage } from '../../utils/llmClient.js';
 import { createLogger } from '../../utils/logger.js';
+import { withAgentSpan } from '../../utils/otelTracing.js';
 
 const log = createLogger('fixit');
 
@@ -80,6 +81,7 @@ async function getRemediationFlags(): Promise<Record<string, unknown>> {
  * Full autonomous run: detect → diagnose → fix → verify → learn.
  */
 export async function autoFix(problemId?: string): Promise<FixItRunResult> {
+  return withAgentSpan('fixit', 'autoFix', { ...(problemId ? { 'fixit.problem_id': problemId } : {}) }, async () => {
   const runId = `fixit-${Date.now()}`;
   const startTime = Date.now();
   log.info('🔧 Fix-It Agent starting', { runId, problemId });
@@ -171,29 +173,26 @@ export async function autoFix(problemId?: string): Promise<FixItRunResult> {
   log.info('🔧 Fix-It Agent complete', { runId, fixes: fixesExecuted.length, verified, totalDurationMs });
 
   return { runId, problemId: targetProblemId!, diagnosis, fixesExecuted, verified, totalDurationMs };
+  });
 }
 
 /**
  * Diagnose a problem using LLM + Dynatrace data + feature flag state.
  */
 export async function diagnose(problemId: string): Promise<DiagnosisResult> {
+  return withAgentSpan('fixit', 'diagnose', { 'fixit.problem_id': problemId }, async () => {
   log.info('Diagnosing problem', { problemId });
 
-  // Gather context
-  const [problem, errorLogs, metrics, featureFlags, remFlags] = await Promise.all([
-    getProblemDetails(problemId).catch(() => null),
-    getLogs('status="ERROR"', '30m', 20).catch(() => []),
-    getMetrics('builtin:service.response.time:avg', undefined, '30m').catch(() => []),
+  // Gather local context only — DT Workflow sends problem data, no need to call DT API
+  const [featureFlags, remFlags] = await Promise.all([
     getCurrentFeatureFlags(),
     getRemediationFlags(),
   ]);
 
-  // Past incidents
-  const similar = await searchSimilar(
-    `problem ${(problem as any)?.title ?? problemId}`, 3
-  );
+  // Check Librarian for known issues
+  const similar = await searchSimilar(`problem ${problemId}`, 3);
   const pastContext = similar.results.length > 0
-    ? `\n\nSimilar past incidents:\n${similar.results.map(r => `- [score:${r.score.toFixed(2)}] ${r.text}`).join('\n')}`
+    ? `\nKnown issues:\n${similar.results.map(r => `- ${r.text}`).join('\n')}`
     : '';
 
   const ollamaUp = await isOllamaAvailable();
@@ -201,46 +200,28 @@ export async function diagnose(problemId: string): Promise<DiagnosisResult> {
   if (ollamaUp) {
     try {
       // Try LLM diagnosis with a timeout — fall back to rules if it takes too long
-      const llmResult = await Promise.race([
-        llmDiagnose(problemId, problem, errorLogs, metrics, featureFlags, remFlags, pastContext),
-        new Promise<never>((_, reject) => setTimeout(() => reject(new Error('LLM diagnosis timeout')), 30_000)),
-      ]);
+      const llmResult = await llmDiagnose(problemId, featureFlags, remFlags, pastContext);
       return llmResult;
     } catch (err) {
       log.warn('LLM diagnosis failed, falling back to rules', { error: String(err) });
-      return ruleDiagnose(problemId, problem as unknown as Record<string, unknown>, featureFlags, remFlags);
+      return ruleDiagnose(problemId, null, featureFlags, remFlags);
     }
   } else {
-    return ruleDiagnose(problemId, problem as unknown as Record<string, unknown>, featureFlags, remFlags);
+    return ruleDiagnose(problemId, null, featureFlags, remFlags);
   }
+  });
 }
 
 // ─── LLM Diagnosis ───────────────────────────────────────────
 
 async function llmDiagnose(
   problemId: string,
-  problem: unknown,
-  errorLogs: unknown[],
-  metrics: unknown[],
   featureFlags: Record<string, unknown>,
   remFlags: Record<string, unknown>,
   pastContext: string,
 ): Promise<DiagnosisResult> {
-  const context = `
-Problem: ${JSON.stringify(problem, null, 2)}
-
-Current Feature Flags (System B — error rates):
-${JSON.stringify(featureFlags, null, 2)}
-
-Current Feature Flags (System A — toggles):
-${JSON.stringify(remFlags, null, 2)}
-
-Recent Error Logs (${errorLogs.length} entries):
-${JSON.stringify(errorLogs, null, 2).substring(0, 3000)}
-
-Metrics:
-${JSON.stringify(metrics, null, 2).substring(0, 2000)}
-${pastContext}`;
+  return withAgentSpan('fixit', 'llmDiagnose', { 'fixit.problem_id': problemId }, async () => {
+  const context = `Flags: ${JSON.stringify(featureFlags)} Toggles: ${JSON.stringify(remFlags)}${pastContext}`;
 
   const result = await chatJSON<{
     summary: string;
@@ -251,31 +232,10 @@ ${pastContext}`;
   }>([
     {
       role: 'system',
-      content: `You are an expert SRE diagnostician for the BizObs app. This app uses feature flags to control error injection:
-- System A (remediation flags): errorInjectionEnabled, slowResponsesEnabled, circuitBreakerEnabled, cacheEnabled
-- System B (rate flags): errors_per_transaction (0-1.0), errors_per_visit, errors_per_minute
-
-Available fix types:
-- disable_errors: Turn off error injection and set rate to 0
-- reset_feature_flags: Reset all flags to defaults
-- reduce_error_rate: Lower errors_per_transaction
-- enable_circuit_breaker: Enable circuit breaker protection
-- enable_cache: Re-enable caching
-- disable_slow_responses: Turn off latency simulation
-- send_dt_event: Send a custom event to Dynatrace
-
-Analyze the problem AND feature flag state. If the Nemesis Agent changed flags, the fix is to restore them.
-Respond with JSON:
-{
-  "summary": "one-line summary",
-  "rootCause": "detailed root cause — reference which feature flags are misconfigured",
-  "confidence": 0.0-1.0,
-  "evidence": ["evidence item 1", "..."],
-  "proposedFixes": [{"fixType":"...","target":"...","reasoning":"...","risk":"low|medium|high"}]
-}`,
+      content: `Fix-It Agent. Diagnose flag state and prescribe fix.\nFix types: disable_errors, reset_feature_flags, reduce_error_rate, enable_circuit_breaker, enable_cache, disable_slow_responses\nRespond JSON: {"summary":"one line","rootCause":"what is wrong","confidence":0.8,"evidence":["..."],"proposedFixes":[{"fixType":"...","target":"...","reasoning":"one sentence","risk":"low"}]}`,
     },
     { role: 'user', content: context },
-  ], { temperature: 0.2 });
+  ], { temperature: 0.3 });
 
   return {
     problemId,
@@ -290,6 +250,7 @@ Respond with JSON:
       risk: (f.risk as 'low' | 'medium' | 'high') || 'medium',
     })),
   };
+  });
 }
 
 // ─── Rule-based Diagnosis Fallback ───────────────────────────
@@ -411,6 +372,7 @@ async function verifyFix(problemId: string): Promise<boolean> {
 // ─── Agentic Mode (full LLM tool-use loop) ───────────────────
 
 export async function agenticDiagnose(problemDescription: string): Promise<string> {
+  return withAgentSpan('fixit', 'agenticDiagnose', { 'fixit.description': problemDescription }, async () => {
   // ── Fallback when Ollama / LLM is not available ──
   const ollamaUp = await isOllamaAvailable();
   if (!ollamaUp) {
@@ -446,7 +408,6 @@ export async function agenticDiagnose(problemDescription: string): Promise<strin
   }
 
   const allTools: ToolDefinition[] = [
-    ...dynatraceToolDefs,
     ...fixToolDefs,
     {
       type: 'function',
@@ -458,26 +419,7 @@ export async function agenticDiagnose(problemDescription: string): Promise<strin
     },
   ];
 
-  const systemPrompt = `You are Fix-It Agent, an autonomous SRE agent for the BizObs app.
-The app uses two feature flag systems:
-- System A (POST /api/remediation/feature-flag): errorInjectionEnabled, slowResponsesEnabled, circuitBreakerEnabled, cacheEnabled
-- System B (POST /api/feature_flag): errors_per_transaction (0-1.0), errors_per_visit, errors_per_minute
-
-Your fix tools:
-- disableErrors: Turn off all error injection
-- resetFeatureFlags: Reset all flags to defaults
-- reduceErrorRate: Lower error rate
-- enableCircuitBreaker: Enable circuit breaker
-- enableCache: Re-enable caching
-- disableSlowResponses: Turn off latency
-- sendDtEvent: Send Dynatrace custom event
-
-Workflow:
-1. Use getFeatureFlags to see current flag state
-2. Use getProblems/getLogs/getMetrics to gather evidence
-3. Analyze: what flags are misconfigured? What's causing the issue?
-4. Use the appropriate fix tool
-5. Explain what happened and what you fixed`;
+  const systemPrompt = `Fix-It Agent. Check flags with getFeatureFlags, then fix the problem.\nTools: disableErrors, resetFeatureFlags, reduceErrorRate, enableCircuitBreaker, enableCache, disableSlowResponses, sendDtEvent.\nWorkflow: 1) getFeatureFlags 2) identify bad flags 3) call fix tool 4) summarize what you fixed in 2-3 sentences.`;
 
   const messages: ChatMessage[] = [
     { role: 'system', content: systemPrompt },
@@ -490,15 +432,12 @@ Workflow:
       return JSON.stringify({ featureFlags: flags, remediationFlags: remFlags });
     }
 
-    // Try DT tools
-    const dtResult = await executeDynatraceTool(name, args);
-    if (!dtResult.includes('"error"')) return dtResult;
-
-    // Try fix tools
+    // Fix tools only
     return executeFixTool(name, args);
   };
 
   return agentLoop(messages, allTools, executeTool, 8);
+  });
 }
 
 export default { autoFix, diagnose, agenticDiagnose };

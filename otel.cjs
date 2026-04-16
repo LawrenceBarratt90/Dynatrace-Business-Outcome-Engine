@@ -13,6 +13,9 @@
  *   - logs.ingest
  */
 
+// Load .env first so all modules (including config.ts) see env vars at import time
+require('dotenv').config();
+
 const opentelemetry = require("@opentelemetry/api");
 const {
   resourceFromAttributes,

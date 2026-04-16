@@ -5,7 +5,7 @@
 
 import { config } from './config.js';
 import { createLogger } from './logger.js';
-import { initTracing, withGenAISpan, GenAISpanResult } from './otelTracing.js';
+import { initTracing, withGenAISpan, withAgentSpan, GenAISpanResult } from './otelTracing.js';
 
 const log = createLogger('system');
 
@@ -218,8 +218,7 @@ export async function agentLoop(
   executeTool: ToolExecutor,
   maxIterations = 10,
 ): Promise<string> {
-  // Each individual chat() call inside the loop already creates its own GenAI span.
-  // This parent span groups the entire agent loop as one logical operation.
+  return withAgentSpan('llm', 'agentLoop', { 'ai.agent.max_iterations': maxIterations, 'ai.agent.tools': tools.map(t => t.function.name).join(', ') }, async () => {
   const conversation = [...messages];
 
   for (let i = 0; i < maxIterations; i++) {
@@ -261,4 +260,5 @@ export async function agentLoop(
   }
 
   return conversation[conversation.length - 1]?.content ?? 'Agent loop exhausted iterations.';
+  });
 }

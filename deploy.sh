@@ -186,17 +186,18 @@ if [[ ! -f .env ]]; then
   cat > .env << ENVEOF
 PORT=8080
 NODE_ENV=production
-OLLAMA_MODE=disabled
+OLLAMA_MODE=full
 ENVEOF
   ok "Created .env"
 else
-  # Ensure OLLAMA_MODE is disabled in existing .env
+  # Ensure OLLAMA_MODE is set (default to full for AI agent observability)
   if grep -q "OLLAMA_MODE" .env; then
-    sed -i 's/OLLAMA_MODE=.*/OLLAMA_MODE=disabled/' .env
+    # Preserve existing setting
+    ok ".env already exists (OLLAMA_MODE=$(grep OLLAMA_MODE .env | cut -d= -f2))"
   else
-    echo "OLLAMA_MODE=disabled" >> .env
+    echo "OLLAMA_MODE=full" >> .env
+    ok ".env updated with OLLAMA_MODE=full"
   fi
-  ok ".env already exists (OLLAMA_MODE=disabled)"
 fi
 
 # Prompt for DT credentials if not provided

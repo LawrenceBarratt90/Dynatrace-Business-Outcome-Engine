@@ -12,6 +12,7 @@ import { chatJSON, isOllamaAvailable } from '../../utils/llmClient.js';
 import { config } from '../../utils/config.js';
 import { createLogger } from '../../utils/logger.js';
 import { sendChaosEvent, sendChaosRevertEvent } from '../../utils/dtEventHelper.js';
+import { withAgentSpan } from '../../utils/otelTracing.js';
 
 const log = createLogger('nemesis');
 
@@ -168,6 +169,7 @@ export function getAvailableRecipes() {
 // ─── LLM-Driven Recipe Selection ─────────────────────────────
 
 async function llmPickRecipe(target: string): Promise<ChaosType> {
+  return withAgentSpan('nemesis', 'llmPickRecipe', { 'chaos.target': target }, async () => {
   const recipes = getRecipeList();
   const recipeList = recipes.map(r => `- ${r.type}: ${r.description}`).join('\n');
 
@@ -179,17 +181,14 @@ async function llmPickRecipe(target: string): Promise<ChaosType> {
   const result = await chatJSON<{ type: ChaosType; reasoning: string }>([
     {
       role: 'system',
-      content: `You are a chaos engineering advisor for the BizObs app. The app uses feature flags to control error injection, slow responses, caching, and circuit breakers.
-Available chaos recipes:
-${recipeList}
-${historyContext}
-Pick the best recipe to test resilience of the target. Respond with JSON: {"type":"<recipe_type>","reasoning":"<why>"}`,
+      content: `Nemesis Chaos Agent. Pick a chaos recipe for the target.\nRecipes:\n${recipeList}${historyContext}\nRespond JSON: {"type":"<recipe_type>","reasoning":"<one sentence>"}`,
     },
-    { role: 'user', content: `Target: ${target}\nPick the best chaos recipe.` },
+    { role: 'user', content: `Target: ${target}` },
   ]);
 
   log.info(`LLM picked: ${result.type}`, { reasoning: result.reasoning });
   return result.type;
+  });
 }
 
 /**
@@ -197,6 +196,7 @@ Pick the best recipe to test resilience of the target. Respond with JSON: {"type
  * E.g., "cause high errors for Acme Corp" → target_company recipe
  */
 export async function smartChaos(description: string): Promise<ChaosResult> {
+  return withAgentSpan('nemesis', 'smartChaos', { 'chaos.description': description }, async () => {
   const recipes = getRecipeList();
 
   // ── Fallback when Ollama / LLM is not available ──
@@ -247,16 +247,7 @@ export async function smartChaos(description: string): Promise<ChaosResult> {
   }>([
     {
       role: 'system',
-      content: `You are the Nemesis Agent for the BizObs app. Given a natural language description, produce a chaos plan using the app's feature flags.
-Available types: ${recipes.map(r => r.type).join(', ')}
-- enable_errors: turn on error injection globally
-- increase_error_rate: raise errors_per_transaction (intensity 1=10%, 10=100%)
-- slow_responses: enable latency simulation
-- disable_circuit_breaker: remove error cascade protection
-- disable_cache: increase load
-- target_company: focus errors on a specific company (target = company name)
-- custom_flag: set any flag (target = flag name, details.value = value)
-Respond with JSON: {"type":"...","target":"...","intensity":1-10,"durationMs":number,"reasoning":"...","details":{}}`,
+      content: `Nemesis Chaos Agent. Parse the request and pick a chaos plan.\nTypes: enable_errors, increase_error_rate, slow_responses, disable_circuit_breaker, disable_cache, target_company, custom_flag.\nIntensity 1-10 (5=default). Duration 180000ms default.\nRespond JSON: {"type":"...","target":"...","intensity":5,"durationMs":180000,"reasoning":"one sentence","details":{}}`,
     },
     { role: 'user', content: description },
   ]);
@@ -267,6 +258,7 @@ Respond with JSON: {"type":"...","target":"...","intensity":1-10,"durationMs":nu
     type: result.type, target: result.target,
     intensity: result.intensity, durationMs: result.durationMs,
     details: result.details, useLlm: false,
+  });
   });
 }
 

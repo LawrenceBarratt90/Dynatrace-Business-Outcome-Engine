@@ -54,8 +54,8 @@ export const config: AgentConfig = {
   ollama: {
     endpoint: env('OLLAMA_ENDPOINT', 'http://localhost:11434'),
     model: env('OLLAMA_MODEL', 'llama3.2'),
-    timeoutMs: envInt('OLLAMA_TIMEOUT_MS', 60_000),
-    maxRetries: envInt('OLLAMA_MAX_RETRIES', 2),
+    timeoutMs: envInt('OLLAMA_TIMEOUT_MS', 180_000),
+    maxRetries: envInt('OLLAMA_MAX_RETRIES', 1),
     disabled: env('OLLAMA_MODE', 'full').toLowerCase() === 'disabled',
   },
   dynatrace: {

@@ -2296,7 +2296,7 @@
       {
         "name": "orderTotal",
         "type": "numeric",
-        "sampleValue": 244.4
+        "sampleValue": 140.01
       },
       {
         "name": "transactionValue",
@@ -2311,7 +2311,7 @@
       {
         "name": "contractValue",
         "type": "numeric",
-        "sampleValue": 1005.63
+        "sampleValue": 3162.04
       },
       {
         "name": "annualRevenue",
@@ -2341,7 +2341,7 @@
       {
         "name": "acquisitionCost",
         "type": "numeric",
-        "sampleValue": 50.02
+        "sampleValue": 41.14
       },
       {
         "name": "conversionProbability",
@@ -2401,12 +2401,12 @@
       {
         "name": "channel",
         "type": "string",
-        "sampleValue": "airport_kiosk"
+        "sampleValue": "mobile_app"
       },
       {
         "name": "deviceType",
         "type": "string",
-        "sampleValue": "desktop"
+        "sampleValue": "kiosk"
       },
       {
         "name": "region",
@@ -2416,7 +2416,7 @@
       {
         "name": "customerSegmentValue",
         "type": "string",
-        "sampleValue": "premium_passenger"
+        "sampleValue": "tech_savvy"
       },
       {
         "name": "loyaltyTier",
@@ -2426,22 +2426,22 @@
       {
         "name": "segment",
         "type": "string",
-        "sampleValue": "seat_upgrade"
+        "sampleValue": "lounge_access"
       },
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "Extra 23kg Bag"
+        "sampleValue": "Premium Seat Upgrade"
       },
       {
         "name": "ProductId",
         "type": "string",
-        "sampleValue": "AIR-CI-105"
+        "sampleValue": "AIR-CI-103"
       },
       {
         "name": "ProductType",
         "type": "string",
-        "sampleValue": "fast_track"
+        "sampleValue": "standard_checkin"
       },
       {
         "name": "Price",
@@ -2451,17 +2451,17 @@
       {
         "name": "checkInTiming",
         "type": "string",
-        "sampleValue": "24h_before"
+        "sampleValue": "auto_72h"
       },
       {
         "name": "seatAssigned",
         "type": "string",
-        "sampleValue": "3C_extra_leg"
+        "sampleValue": "15D_middle"
       },
       {
         "name": "boardingGroup",
         "type": "numeric",
-        "sampleValue": 3
+        "sampleValue": 1
       },
       {
         "name": "specialAssistance",
@@ -2476,7 +2476,7 @@
       {
         "name": "marketTrend",
         "type": "string",
-        "sampleValue": "auto_check_in"
+        "sampleValue": "digital_wallet"
       },
       {
         "name": "browser",
@@ -2521,17 +2521,17 @@
       {
         "name": "discountApplied",
         "type": "numeric",
-        "sampleValue": 17.11
+        "sampleValue": 8.9
       },
       {
         "name": "taxAmount",
         "type": "numeric",
-        "sampleValue": 19.55
+        "sampleValue": 11.2
       },
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 19.84
+        "sampleValue": 9.37
       },
       {
         "name": "pricingTier",
@@ -2601,7 +2601,7 @@
       {
         "name": "costPerAcquisition",
         "type": "numeric",
-        "sampleValue": 60.02
+        "sampleValue": 49.37
       },
       {
         "name": "riskLevel",
@@ -2655,8 +2655,8 @@
       "BoardingPassGeneration",
       "AirportGuidanceAndNotifications"
     ],
-    "lastUpdated": "2026-04-01T12:44:15.979Z",
-    "runCount": 78220
+    "lastUpdated": "2026-04-15T18:28:00.600Z",
+    "runCount": 81430
   },
   "cybershield security|incident response": {
     "companyName": "CyberShield Security",
@@ -6804,12 +6804,12 @@
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 13.53
+        "sampleValue": 11.85
       },
       {
         "name": "channel",
         "type": "string",
-        "sampleValue": "partner_dealer"
+        "sampleValue": "website"
       },
       {
         "name": "deviceType",
@@ -6819,7 +6819,7 @@
       {
         "name": "region",
         "type": "string",
-        "sampleValue": "Urban"
+        "sampleValue": "Suburban"
       },
       {
         "name": "customerSegmentValue",
@@ -6829,17 +6829,17 @@
       {
         "name": "loyaltyTier",
         "type": "string",
-        "sampleValue": "silver"
+        "sampleValue": "new_customer"
       },
       {
         "name": "segment",
         "type": "string",
-        "sampleValue": "enterprise_5g"
+        "sampleValue": "mobile_postpaid"
       },
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "Unlimited_Pro"
+        "sampleValue": "Family_Bundle"
       },
       {
         "name": "ProductId",
@@ -6849,7 +6849,7 @@
       {
         "name": "ProductType",
         "type": "string",
-        "sampleValue": "enterprise"
+        "sampleValue": "prepaid_plan"
       },
       {
         "name": "Price",
@@ -6859,12 +6859,12 @@
       {
         "name": "dataUsageGB",
         "type": "numeric",
-        "sampleValue": 85
+        "sampleValue": 12
       },
       {
         "name": "networkType",
         "type": "string",
-        "sampleValue": "fibre"
+        "sampleValue": "5G_private"
       },
       {
         "name": "contractLengthMonths",
@@ -6874,7 +6874,7 @@
       {
         "name": "marketTrend",
         "type": "string",
-        "sampleValue": "5g_adoption"
+        "sampleValue": "esim"
       },
       {
         "name": "browser",
@@ -7023,8 +7023,8 @@
       "ActivationSetup",
       "OnboardingEngagement"
     ],
-    "lastUpdated": "2026-04-15T10:31:52.649Z",
-    "runCount": 87266
+    "lastUpdated": "2026-04-15T15:07:20.140Z",
+    "runCount": 95337
   },
   "leonardo|procurement engagement": {
     "companyName": "Leonardo",
@@ -15458,7 +15458,7 @@
       {
         "name": "lapTimeSec",
         "type": "numeric",
-        "sampleValue": 89.2
+        "sampleValue": 89.6
       },
       {
         "name": "lapTimeTargetSec",
@@ -15473,37 +15473,37 @@
       {
         "name": "sectorOneTimeSec",
         "type": "numeric",
-        "sampleValue": 28.5
+        "sampleValue": 28.7
       },
       {
         "name": "sectorTwoTimeSec",
         "type": "numeric",
-        "sampleValue": 30.8
+        "sampleValue": 31.2
       },
       {
         "name": "sectorThreeTimeSec",
         "type": "numeric",
-        "sampleValue": 29.2
+        "sampleValue": 28.2
       },
       {
         "name": "topSpeedMph",
         "type": "numeric",
-        "sampleValue": 209
+        "sampleValue": 211
       },
       {
         "name": "maxGForceLateral",
         "type": "numeric",
-        "sampleValue": 5
+        "sampleValue": 5.4
       },
       {
         "name": "maxGForceBraking",
         "type": "numeric",
-        "sampleValue": 5.5
+        "sampleValue": 5.8
       },
       {
         "name": "tyreSurfaceTempFL",
         "type": "numeric",
-        "sampleValue": 102
+        "sampleValue": 95
       },
       {
         "name": "tyreSurfaceTempFR",
@@ -15518,117 +15518,117 @@
       {
         "name": "tyreSurfaceTempRR",
         "type": "numeric",
-        "sampleValue": 112
+        "sampleValue": 107
       },
       {
         "name": "tyrePressurePsiFL",
         "type": "numeric",
-        "sampleValue": 22.1
+        "sampleValue": 21.2
       },
       {
         "name": "tyrePressurePsiFR",
         "type": "numeric",
-        "sampleValue": 22.3
+        "sampleValue": 21.4
       },
       {
         "name": "tyrePressurePsiRL",
         "type": "numeric",
-        "sampleValue": 20.5
+        "sampleValue": 21.1
       },
       {
         "name": "tyrePressurePsiRR",
         "type": "numeric",
-        "sampleValue": 21
+        "sampleValue": 20.4
       },
       {
         "name": "tyreWearPercentFL",
         "type": "numeric",
-        "sampleValue": 55
+        "sampleValue": 30
       },
       {
         "name": "tyreWearPercentFR",
         "type": "numeric",
-        "sampleValue": 80
+        "sampleValue": 44
       },
       {
         "name": "tyreWearPercentRL",
         "type": "numeric",
-        "sampleValue": 10
+        "sampleValue": 38
       },
       {
         "name": "tyreWearPercentRR",
         "type": "numeric",
-        "sampleValue": 28
+        "sampleValue": 7
       },
       {
         "name": "tyreCompound",
         "type": "string",
-        "sampleValue": "Medium"
+        "sampleValue": "Wet"
       },
       {
         "name": "brakeDiscTempFrontC",
         "type": "numeric",
-        "sampleValue": 870
+        "sampleValue": 900
       },
       {
         "name": "brakeDiscTempRearC",
         "type": "numeric",
-        "sampleValue": 610
+        "sampleValue": 640
       },
       {
         "name": "brakePadWearPercentF",
         "type": "numeric",
-        "sampleValue": 5
+        "sampleValue": 38
       },
       {
         "name": "brakePadWearPercentR",
         "type": "numeric",
-        "sampleValue": 48
+        "sampleValue": 30
       },
       {
         "name": "fuelRemainingKg",
         "type": "numeric",
-        "sampleValue": 55
+        "sampleValue": 100
       },
       {
         "name": "fuelBurnRateKgPerLap",
         "type": "numeric",
-        "sampleValue": 1.72
+        "sampleValue": 1.83
       },
       {
         "name": "ersStateOfChargePercent",
         "type": "numeric",
-        "sampleValue": 68
+        "sampleValue": 92
       },
       {
         "name": "ersDeployKW",
         "type": "numeric",
-        "sampleValue": 340
+        "sampleValue": 200
       },
       {
         "name": "ersHarvestKW",
         "type": "numeric",
-        "sampleValue": 90
+        "sampleValue": 130
       },
       {
         "name": "engineRPM",
         "type": "numeric",
-        "sampleValue": 12800
+        "sampleValue": 14800
       },
       {
         "name": "engineTempCoolantC",
         "type": "numeric",
-        "sampleValue": 110
+        "sampleValue": 116
       },
       {
         "name": "engineTempOilC",
         "type": "numeric",
-        "sampleValue": 133
+        "sampleValue": 138
       },
       {
         "name": "gearNumber",
         "type": "numeric",
-        "sampleValue": 1
+        "sampleValue": 3
       },
       {
         "name": "drsActivated",
@@ -15643,7 +15643,7 @@
       {
         "name": "pitStopTimeSec",
         "type": "numeric",
-        "sampleValue": 1.89
+        "sampleValue": 2.01
       },
       {
         "name": "pitStopTargetSec",
@@ -15658,12 +15658,12 @@
       {
         "name": "positionCar30",
         "type": "numeric",
-        "sampleValue": 7
+        "sampleValue": 4
       },
       {
         "name": "positionCar41",
         "type": "numeric",
-        "sampleValue": 8
+        "sampleValue": 7
       },
       {
         "name": "gapToLeaderSec",
@@ -15673,7 +15673,7 @@
       {
         "name": "gapToCarAheadSec",
         "type": "numeric",
-        "sampleValue": 0.6
+        "sampleValue": 2.1
       },
       {
         "name": "overtakeAttempts",
@@ -15693,27 +15693,27 @@
       {
         "name": "windDirectionDeg",
         "type": "numeric",
-        "sampleValue": 225
+        "sampleValue": 270
       },
       {
         "name": "trackTempC",
         "type": "numeric",
-        "sampleValue": 39
+        "sampleValue": 35
       },
       {
         "name": "ambientTempC",
         "type": "numeric",
-        "sampleValue": 19
+        "sampleValue": 25
       },
       {
         "name": "humidity",
         "type": "numeric",
-        "sampleValue": 58
+        "sampleValue": 70
       },
       {
         "name": "rainProbabilityPercent",
         "type": "numeric",
-        "sampleValue": 15
+        "sampleValue": 25
       },
       {
         "name": "downforceN",
@@ -15723,47 +15723,47 @@
       {
         "name": "dragCoefficientCd",
         "type": "numeric",
-        "sampleValue": 0.86
+        "sampleValue": 0.93
       },
       {
         "name": "suspensionTravelFrontMm",
         "type": "numeric",
-        "sampleValue": 18
+        "sampleValue": 28
       },
       {
         "name": "suspensionTravelRearMm",
         "type": "numeric",
-        "sampleValue": 25
+        "sampleValue": 20
       },
       {
         "name": "rideHeightFrontMm",
         "type": "numeric",
-        "sampleValue": 33
+        "sampleValue": 28
       },
       {
         "name": "rideHeightRearMm",
         "type": "numeric",
-        "sampleValue": 62
+        "sampleValue": 55
       },
       {
         "name": "telemetryChannelsActive",
         "type": "numeric",
-        "sampleValue": 312
+        "sampleValue": 308
       },
       {
         "name": "telemetryLatencyMs",
         "type": "numeric",
-        "sampleValue": 35
+        "sampleValue": 38
       },
       {
         "name": "dataRateGbps",
         "type": "numeric",
-        "sampleValue": 1.1
+        "sampleValue": 1.2
       },
       {
         "name": "sensorHealthPercent",
         "type": "numeric",
-        "sampleValue": 99.2
+        "sampleValue": 99.3
       },
       {
         "name": "warRoomEngineersOnline",
@@ -15773,12 +15773,12 @@
       {
         "name": "simulationRunsCompleted",
         "type": "numeric",
-        "sampleValue": 1150
+        "sampleValue": 750
       },
       {
         "name": "radioTransmissions",
         "type": "numeric",
-        "sampleValue": 28
+        "sampleValue": 30
       },
       {
         "name": "safetyCarDeployed",
@@ -15788,7 +15788,7 @@
       {
         "name": "driverCar",
         "type": "string",
-        "sampleValue": "Lawson #30"
+        "sampleValue": "Lindblad #41"
       },
       {
         "name": "sessionType",
@@ -15798,27 +15798,27 @@
       {
         "name": "circuitName",
         "type": "string",
-        "sampleValue": "Spa"
+        "sampleValue": "Dynatrace Linz"
       },
       {
         "name": "channel",
         "type": "string",
-        "sampleValue": "trackside_pit_wall"
+        "sampleValue": "faenza_war_room"
       },
       {
         "name": "deviceType",
         "type": "string",
-        "sampleValue": "pit_wall_terminal"
+        "sampleValue": "tablet_trackside"
       },
       {
         "name": "region",
         "type": "string",
-        "sampleValue": "Suzuka JP"
+        "sampleValue": "Milton Keynes UK"
       },
       {
         "name": "segment",
         "type": "string",
-        "sampleValue": "pit_operations"
+        "sampleValue": "telemetry"
       },
       {
         "name": "browser",
@@ -15888,12 +15888,12 @@
       {
         "name": "transactionValue",
         "type": "numeric",
-        "sampleValue": 97.79
+        "sampleValue": 106.78
       },
       {
         "name": "orderTotal",
         "type": "numeric",
-        "sampleValue": 238.94
+        "sampleValue": 236.03
       },
       {
         "name": "averageOrderValue",
@@ -15903,7 +15903,7 @@
       {
         "name": "customerLifetimeValue",
         "type": "numeric",
-        "sampleValue": 932.02
+        "sampleValue": 548.18
       },
       {
         "name": "revenuePerCustomer",
@@ -15918,17 +15918,17 @@
       {
         "name": "discountApplied",
         "type": "numeric",
-        "sampleValue": 14.15
+        "sampleValue": 15.6
       },
       {
         "name": "taxAmount",
         "type": "numeric",
-        "sampleValue": 19.12
+        "sampleValue": 18.88
       },
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 8.3
+        "sampleValue": 12.32
       },
       {
         "name": "pricingTier",
@@ -15948,17 +15948,17 @@
       {
         "name": "contractValue",
         "type": "numeric",
-        "sampleValue": 1136.49
+        "sampleValue": 1964.96
       },
       {
         "name": "annualRevenue",
         "type": "numeric",
-        "sampleValue": 2330.05
+        "sampleValue": 1370.45
       },
       {
         "name": "acquisitionCost",
         "type": "numeric",
-        "sampleValue": 25.94
+        "sampleValue": 28
       },
       {
         "name": "retentionProbability",
@@ -15973,7 +15973,7 @@
       {
         "name": "upsellPotential",
         "type": "numeric",
-        "sampleValue": 279.61
+        "sampleValue": 164.45
       },
       {
         "name": "crossSellOpportunity",
@@ -15998,7 +15998,7 @@
       {
         "name": "engagementScore",
         "type": "numeric",
-        "sampleValue": 60.49
+        "sampleValue": 82.15
       },
       {
         "name": "satisfactionRating",
@@ -16018,7 +16018,7 @@
       {
         "name": "timeToConversion",
         "type": "numeric",
-        "sampleValue": 11.56
+        "sampleValue": 8.72
       },
       {
         "name": "competitiveAdvantage",
@@ -16043,7 +16043,7 @@
       {
         "name": "processingTime",
         "type": "numeric",
-        "sampleValue": 19.43
+        "sampleValue": 22.19
       },
       {
         "name": "operationalCost",
@@ -16063,7 +16063,7 @@
       {
         "name": "costPerAcquisition",
         "type": "numeric",
-        "sampleValue": 31.13
+        "sampleValue": 33.6
       },
       {
         "name": "riskLevel",
@@ -16088,12 +16088,12 @@
       {
         "name": "growthPotential",
         "type": "numeric",
-        "sampleValue": 233.01
+        "sampleValue": 137.04
       },
       {
         "name": "futureValue",
         "type": "numeric",
-        "sampleValue": 1398.03
+        "sampleValue": 822.27
       },
       {
         "name": "expansionOpportunity",
@@ -16131,8 +16131,8 @@
       "LinzPitStops",
       "LinzPostRaceDebrief"
     ],
-    "lastUpdated": "2026-04-10T17:11:46.041Z",
-    "runCount": 42701
+    "lastUpdated": "2026-04-15T15:07:20.466Z",
+    "runCount": 48381
   },
   "defence systems|fleet maintenance": {
     "companyName": "Defence Systems",
@@ -16505,12 +16505,12 @@
       {
         "name": "orderTotal",
         "type": "numeric",
-        "sampleValue": 154.01
+        "sampleValue": 98.45
       },
       {
         "name": "transactionValue",
         "type": "numeric",
-        "sampleValue": 169.61
+        "sampleValue": 67.11
       },
       {
         "name": "averageOrderValue",
@@ -16625,17 +16625,17 @@
       {
         "name": "discountApplied",
         "type": "numeric",
-        "sampleValue": 7.18
+        "sampleValue": 10.71
       },
       {
         "name": "taxAmount",
         "type": "numeric",
-        "sampleValue": 12.32
+        "sampleValue": 7.88
       },
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 18.56
+        "sampleValue": 10.82
       },
       {
         "name": "channel",
@@ -16645,7 +16645,7 @@
       {
         "name": "deviceType",
         "type": "string",
-        "sampleValue": "desktop"
+        "sampleValue": "mobile"
       },
       {
         "name": "region",
@@ -16655,17 +16655,17 @@
       {
         "name": "customerSegmentValue",
         "type": "string",
-        "sampleValue": "charity"
+        "sampleValue": "private_company"
       },
       {
         "name": "loyaltyTier",
         "type": "string",
-        "sampleValue": "new_client"
+        "sampleValue": "annual_client"
       },
       {
         "name": "segment",
         "type": "string",
-        "sampleValue": "regulatory_audit"
+        "sampleValue": "it_audit"
       },
       {
         "name": "Productname",
@@ -16675,22 +16675,22 @@
       {
         "name": "ProductId",
         "type": "string",
-        "sampleValue": "AUD-INT-002"
+        "sampleValue": "AUD-IT-004"
       },
       {
         "name": "ProductType",
         "type": "string",
-        "sampleValue": "statutory"
+        "sampleValue": "compliance"
       },
       {
         "name": "Price",
         "type": "numeric",
-        "sampleValue": 65000
+        "sampleValue": 35000
       },
       {
         "name": "auditRiskLevel",
         "type": "string",
-        "sampleValue": "critical"
+        "sampleValue": "high"
       },
       {
         "name": "materialityThreshold",
@@ -16705,7 +16705,7 @@
       {
         "name": "marketTrend",
         "type": "string",
-        "sampleValue": "esg_assurance"
+        "sampleValue": "crypto_audit"
       },
       {
         "name": "browser",
@@ -16854,8 +16854,8 @@
       "WorkpaperGeneration",
       "AuditReporting"
     ],
-    "lastUpdated": "2026-04-15T10:31:53.803Z",
-    "runCount": 134544
+    "lastUpdated": "2026-04-15T15:07:20.737Z",
+    "runCount": 148153
   },
   "asda|purchase journey": {
     "companyName": "Asda",
@@ -16914,7 +16914,7 @@
       {
         "name": "Productname",
         "type": "string",
-        "sampleValue": "Standard Product"
+        "sampleValue": "Premium Product"
       },
       {
         "name": "ProductId",
@@ -16924,22 +16924,22 @@
       {
         "name": "ProductType",
         "type": "string",
-        "sampleValue": "Home & Garden"
+        "sampleValue": "Electronics"
       },
       {
         "name": "Price",
         "type": "numeric",
-        "sampleValue": 39.99
+        "sampleValue": 49.99
       },
       {
         "name": "transactionValue",
         "type": "numeric",
-        "sampleValue": 155.11
+        "sampleValue": 131.67
       },
       {
         "name": "orderTotal",
         "type": "numeric",
-        "sampleValue": 88.63
+        "sampleValue": 295.27
       },
       {
         "name": "averageOrderValue",
@@ -16949,7 +16949,7 @@
       {
         "name": "customerLifetimeValue",
         "type": "numeric",
-        "sampleValue": 1371
+        "sampleValue": 502.42
       },
       {
         "name": "revenuePerCustomer",
@@ -16964,17 +16964,17 @@
       {
         "name": "discountApplied",
         "type": "numeric",
-        "sampleValue": 19.42
+        "sampleValue": 14.35
       },
       {
         "name": "taxAmount",
         "type": "numeric",
-        "sampleValue": 7.09
+        "sampleValue": 23.62
       },
       {
         "name": "shippingCost",
         "type": "numeric",
-        "sampleValue": 16.77
+        "sampleValue": 12.25
       },
       {
         "name": "pricingTier",
@@ -16994,17 +16994,17 @@
       {
         "name": "contractValue",
         "type": "numeric",
-        "sampleValue": 3929.27
+        "sampleValue": 2330.23
       },
       {
         "name": "annualRevenue",
         "type": "numeric",
-        "sampleValue": 3427.5
+        "sampleValue": 1256.05
       },
       {
         "name": "acquisitionCost",
         "type": "numeric",
-        "sampleValue": 55.82
+        "sampleValue": 28.83
       },
       {
         "name": "retentionProbability",
@@ -17019,7 +17019,7 @@
       {
         "name": "upsellPotential",
         "type": "numeric",
-        "sampleValue": 411.3
+        "sampleValue": 150.73
       },
       {
         "name": "crossSellOpportunity",
@@ -17044,7 +17044,7 @@
       {
         "name": "engagementScore",
         "type": "numeric",
-        "sampleValue": 65.91
+        "sampleValue": 63.24
       },
       {
         "name": "satisfactionRating",
@@ -17064,7 +17064,7 @@
       {
         "name": "timeToConversion",
         "type": "numeric",
-        "sampleValue": 8.62
+        "sampleValue": 6.14
       },
       {
         "name": "competitiveAdvantage",
@@ -17089,7 +17089,7 @@
       {
         "name": "processingTime",
         "type": "numeric",
-        "sampleValue": 13.92
+        "sampleValue": 18.45
       },
       {
         "name": "operationalCost",
@@ -17109,7 +17109,7 @@
       {
         "name": "costPerAcquisition",
         "type": "numeric",
-        "sampleValue": 66.98
+        "sampleValue": 34.6
       },
       {
         "name": "riskLevel",
@@ -17134,12 +17134,12 @@
       {
         "name": "growthPotential",
         "type": "numeric",
-        "sampleValue": 342.75
+        "sampleValue": 125.61
       },
       {
         "name": "futureValue",
         "type": "numeric",
-        "sampleValue": 2056.5
+        "sampleValue": 753.63
       },
       {
         "name": "expansionOpportunity",
@@ -17199,7 +17199,7 @@
       {
         "name": "paymentMethod",
         "type": "string",
-        "sampleValue": "Visa Card"
+        "sampleValue": "Mastercard"
       },
       {
         "name": "orderCompletionRate",
@@ -17239,22 +17239,22 @@
       {
         "name": "productName",
         "type": "string",
-        "sampleValue": "Warburtons Toastie White Bread 800g"
+        "sampleValue": "Asda Organic Milk 2L"
       },
       {
         "name": "productSKU",
         "type": "string",
-        "sampleValue": "SKU-TOILET-2345"
+        "sampleValue": "SKU-CH-400"
       },
       {
         "name": "productPrice",
         "type": "numeric",
-        "sampleValue": 6.5
+        "sampleValue": 15
       },
       {
         "name": "productCategory",
         "type": "string",
-        "sampleValue": "Laundry"
+        "sampleValue": "Cheese"
       },
       {
         "name": "productQuantity",
@@ -17299,7 +17299,7 @@
       {
         "name": "deliverySlotType",
         "type": "string",
-        "sampleValue": "Standard"
+        "sampleValue": "Next Day"
       },
       {
         "name": "deliverySlotLeadTimeHours",
@@ -17344,12 +17344,12 @@
       {
         "name": "customerRegion",
         "type": "string",
-        "sampleValue": "West Yorkshire"
+        "sampleValue": "Leeds"
       },
       {
         "name": "sessionDurationMinutes",
         "type": "numeric",
-        "sampleValue": 18
+        "sampleValue": 15
       },
       {
         "name": "addressVerificationStatus",
@@ -17370,6 +17370,186 @@
         "name": "orderConfirmedTimestamp",
         "type": "string",
         "sampleValue": "2025-11-21T00:20:00.000Z"
+      },
+      {
+        "name": "basketItemCount",
+        "type": "numeric",
+        "sampleValue": 5
+      },
+      {
+        "name": "checkoutCompletionRate",
+        "type": "numeric",
+        "sampleValue": 0.96
+      },
+      {
+        "name": "cartAbandonmentRate",
+        "type": "numeric",
+        "sampleValue": 0.19
+      },
+      {
+        "name": "averagePageLoadTime",
+        "type": "numeric",
+        "sampleValue": 2.3
+      },
+      {
+        "name": "checkoutLatency",
+        "type": "numeric",
+        "sampleValue": 1.8
+      },
+      {
+        "name": "paymentGatewayLatency",
+        "type": "numeric",
+        "sampleValue": 1.1
+      },
+      {
+        "name": "orderFulfillmentAccuracy",
+        "type": "numeric",
+        "sampleValue": 0.985
+      },
+      {
+        "name": "customerSatisfactionScore",
+        "type": "numeric",
+        "sampleValue": 88
+      },
+      {
+        "name": "deliveryFee",
+        "type": "numeric",
+        "sampleValue": 3.5
+      },
+      {
+        "name": "orderCancellationRate",
+        "type": "numeric",
+        "sampleValue": 0.012
+      },
+      {
+        "name": "paymentFailureRate",
+        "type": "numeric",
+        "sampleValue": 0.007
+      },
+      {
+        "name": "orderStatus",
+        "type": "string",
+        "sampleValue": "Confirmed"
+      },
+      {
+        "name": "fulfillmentChannel",
+        "type": "string",
+        "sampleValue": "Store Pick"
+      },
+      {
+        "name": "repeatPurchaseRate",
+        "type": "numeric",
+        "sampleValue": 0.77
+      },
+      {
+        "name": "firstTimeBuyer",
+        "type": "string",
+        "sampleValue": "false"
+      },
+      {
+        "name": "addressValidationStatus",
+        "type": "string",
+        "sampleValue": "Success"
+      },
+      {
+        "name": "emailNotificationSent",
+        "type": "string",
+        "sampleValue": "true"
+      },
+      {
+        "name": "smsNotificationSent",
+        "type": "string",
+        "sampleValue": "false"
+      },
+      {
+        "name": "clickAndCollectAvailable",
+        "type": "string",
+        "sampleValue": "true"
+      },
+      {
+        "name": "inventoryOutOfStockItems",
+        "type": "numeric",
+        "sampleValue": 0
+      },
+      {
+        "name": "basketPromotionApplied",
+        "type": "string",
+        "sampleValue": "true"
+      },
+      {
+        "name": "promotionCode",
+        "type": "string",
+        "sampleValue": "SAVEMORE20"
+      },
+      {
+        "name": "orderDiscountValue",
+        "type": "numeric",
+        "sampleValue": 5
+      },
+      {
+        "name": "productBrand",
+        "type": "string",
+        "sampleValue": "George"
+      },
+      {
+        "name": "paymentMethodsAvailable",
+        "type": "string",
+        "sampleValue": "Mastercard"
+      },
+      {
+        "name": "deliveryOptions",
+        "type": "string",
+        "sampleValue": "Click & Collect"
+      },
+      {
+        "name": "supportContacted",
+        "type": "string",
+        "sampleValue": "false"
+      },
+      {
+        "name": "customerFeedbackSubmitted",
+        "type": "string",
+        "sampleValue": "false"
+      },
+      {
+        "name": "aBTestGroup",
+        "type": "string",
+        "sampleValue": "B"
+      },
+      {
+        "name": "analyticsTrackingId",
+        "type": "string",
+        "sampleValue": "UA-123456-ASDA"
+      },
+      {
+        "name": "orderModificationAllowed",
+        "type": "string",
+        "sampleValue": "true"
+      },
+      {
+        "name": "postOrderSurveySent",
+        "type": "string",
+        "sampleValue": "true"
+      },
+      {
+        "name": "orderPlacedHour",
+        "type": "numeric",
+        "sampleValue": 21
+      },
+      {
+        "name": "peakOrderPeriod",
+        "type": "string",
+        "sampleValue": "false"
+      },
+      {
+        "name": "mobileAppVersion",
+        "type": "string",
+        "sampleValue": "5.3.8"
+      },
+      {
+        "name": "repeatBasketUsed",
+        "type": "string",
+        "sampleValue": "true"
       }
     ],
     "services": [
@@ -17378,7 +17558,12 @@
       "SelectDeliverySlotService",
       "CheckoutInitiationService",
       "PaymentAuthorizationService",
-      "OrderConfirmationService"
+      "OrderConfirmationService",
+      "AccountAuthenticationService",
+      "ProductBrowsingService",
+      "AddToCartService",
+      "SlotBookingService",
+      "CheckoutAndPaymentService"
     ],
     "steps": [
       "BrowseProducts",
@@ -17386,9 +17571,327 @@
       "SelectDeliverySlot",
       "CheckoutInitiation",
       "PaymentAuthorization",
-      "OrderConfirmation"
+      "OrderConfirmation",
+      "AccountAuthentication",
+      "ProductBrowsing",
+      "AddToCart",
+      "SlotBooking",
+      "CheckoutAndPayment"
     ],
-    "lastUpdated": "2026-04-15T10:31:53.741Z",
-    "runCount": 2063
+    "lastUpdated": "2026-04-15T15:07:15.581Z",
+    "runCount": 16972
+  },
+  "testchain corp|chain_test": {
+    "companyName": "TestChain Corp",
+    "journeyType": "chain_test",
+    "fields": [
+      {
+        "name": "deviceType",
+        "type": "string",
+        "sampleValue": "mobile"
+      },
+      {
+        "name": "browser",
+        "type": "string",
+        "sampleValue": "Chrome"
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "sampleValue": "London, UK"
+      },
+      {
+        "name": "entryChannel",
+        "type": "string",
+        "sampleValue": "organic"
+      },
+      {
+        "name": "customerIntent",
+        "type": "string",
+        "sampleValue": "purchase"
+      },
+      {
+        "name": "loyaltyStatus",
+        "type": "string",
+        "sampleValue": "new"
+      },
+      {
+        "name": "abandonmentRisk",
+        "type": "string",
+        "sampleValue": "high"
+      },
+      {
+        "name": "conversionProbability",
+        "type": "numeric",
+        "sampleValue": 0.6
+      },
+      {
+        "name": "sessionDuration",
+        "type": "numeric",
+        "sampleValue": 300
+      },
+      {
+        "name": "pageViews",
+        "type": "numeric",
+        "sampleValue": 3
+      },
+      {
+        "name": "Productname",
+        "type": "string",
+        "sampleValue": "Premium Product"
+      },
+      {
+        "name": "ProductId",
+        "type": "string",
+        "sampleValue": "SKU1001"
+      },
+      {
+        "name": "ProductType",
+        "type": "string",
+        "sampleValue": "Clothing"
+      },
+      {
+        "name": "Price",
+        "type": "numeric",
+        "sampleValue": 39.99
+      },
+      {
+        "name": "transactionValue",
+        "type": "numeric",
+        "sampleValue": 74.15
+      },
+      {
+        "name": "orderTotal",
+        "type": "numeric",
+        "sampleValue": 353.65
+      },
+      {
+        "name": "averageOrderValue",
+        "type": "numeric",
+        "sampleValue": 85
+      },
+      {
+        "name": "customerLifetimeValue",
+        "type": "numeric",
+        "sampleValue": 1008.61
+      },
+      {
+        "name": "revenuePerCustomer",
+        "type": "numeric",
+        "sampleValue": 200
+      },
+      {
+        "name": "profitMargin",
+        "type": "numeric",
+        "sampleValue": 0.15
+      },
+      {
+        "name": "discountApplied",
+        "type": "numeric",
+        "sampleValue": 11.93
+      },
+      {
+        "name": "taxAmount",
+        "type": "numeric",
+        "sampleValue": 28.29
+      },
+      {
+        "name": "shippingCost",
+        "type": "numeric",
+        "sampleValue": 6.63
+      },
+      {
+        "name": "pricingTier",
+        "type": "string",
+        "sampleValue": "Bronze"
+      },
+      {
+        "name": "subscriptionLevel",
+        "type": "string",
+        "sampleValue": "Basic"
+      },
+      {
+        "name": "membershipStatus",
+        "type": "string",
+        "sampleValue": "Regular"
+      },
+      {
+        "name": "contractValue",
+        "type": "numeric",
+        "sampleValue": 2634.68
+      },
+      {
+        "name": "annualRevenue",
+        "type": "numeric",
+        "sampleValue": 2521.53
+      },
+      {
+        "name": "acquisitionCost",
+        "type": "numeric",
+        "sampleValue": 40.07
+      },
+      {
+        "name": "retentionProbability",
+        "type": "numeric",
+        "sampleValue": 0.7
+      },
+      {
+        "name": "churnRisk",
+        "type": "string",
+        "sampleValue": "high"
+      },
+      {
+        "name": "upsellPotential",
+        "type": "numeric",
+        "sampleValue": 302.58
+      },
+      {
+        "name": "crossSellOpportunity",
+        "type": "string",
+        "sampleValue": "high"
+      },
+      {
+        "name": "customerSegmentValue",
+        "type": "string",
+        "sampleValue": "High-Value"
+      },
+      {
+        "name": "marketSegment",
+        "type": "string",
+        "sampleValue": "Enterprise"
+      },
+      {
+        "name": "conversionRate",
+        "type": "numeric",
+        "sampleValue": 0.05
+      },
+      {
+        "name": "engagementScore",
+        "type": "numeric",
+        "sampleValue": 62.36
+      },
+      {
+        "name": "satisfactionRating",
+        "type": "numeric",
+        "sampleValue": 3.5
+      },
+      {
+        "name": "netPromoterScore",
+        "type": "numeric",
+        "sampleValue": 40
+      },
+      {
+        "name": "purchaseFrequency",
+        "type": "numeric",
+        "sampleValue": 2
+      },
+      {
+        "name": "timeToConversion",
+        "type": "numeric",
+        "sampleValue": 8.53
+      },
+      {
+        "name": "competitiveAdvantage",
+        "type": "string",
+        "sampleValue": "Price"
+      },
+      {
+        "name": "marketShare",
+        "type": "numeric",
+        "sampleValue": 0.05
+      },
+      {
+        "name": "brandLoyalty",
+        "type": "string",
+        "sampleValue": "Low"
+      },
+      {
+        "name": "competitorComparison",
+        "type": "string",
+        "sampleValue": "Better"
+      },
+      {
+        "name": "processingTime",
+        "type": "numeric",
+        "sampleValue": 14.96
+      },
+      {
+        "name": "operationalCost",
+        "type": "numeric",
+        "sampleValue": 80
+      },
+      {
+        "name": "efficiencyRating",
+        "type": "numeric",
+        "sampleValue": 70
+      },
+      {
+        "name": "resourceUtilization",
+        "type": "numeric",
+        "sampleValue": 0.6
+      },
+      {
+        "name": "costPerAcquisition",
+        "type": "numeric",
+        "sampleValue": 48.08
+      },
+      {
+        "name": "riskLevel",
+        "type": "string",
+        "sampleValue": "Low"
+      },
+      {
+        "name": "complianceScore",
+        "type": "numeric",
+        "sampleValue": 85
+      },
+      {
+        "name": "fraudRisk",
+        "type": "string",
+        "sampleValue": "high"
+      },
+      {
+        "name": "securityRating",
+        "type": "string",
+        "sampleValue": "A"
+      },
+      {
+        "name": "growthPotential",
+        "type": "numeric",
+        "sampleValue": 252.15
+      },
+      {
+        "name": "futureValue",
+        "type": "numeric",
+        "sampleValue": 1512.92
+      },
+      {
+        "name": "expansionOpportunity",
+        "type": "string",
+        "sampleValue": "Limited"
+      },
+      {
+        "name": "marketTrend",
+        "type": "string",
+        "sampleValue": "Declining"
+      },
+      {
+        "name": "seasonalImpact",
+        "type": "numeric",
+        "sampleValue": 0.1
+      }
+    ],
+    "services": [
+      "DiscoveryService",
+      "EvaluationService",
+      "PurchaseService"
+    ],
+    "steps": [
+      "Discovery",
+      "Evaluation",
+      "Purchase"
+    ],
+    "lastUpdated": "2026-04-15T17:12:12.902Z",
+    "runCount": 6041
   }
 }

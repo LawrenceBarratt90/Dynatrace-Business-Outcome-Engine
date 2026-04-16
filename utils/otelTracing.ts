@@ -120,6 +120,45 @@ export async function withGenAISpan<T>(
   });
 }
 
+// ─── Agent Operation Span Wrapper ────────────────────────────
+
+/**
+ * Wrap an agent operation in a named span so all child GenAI spans
+ * (from chat/chatJSON calls) appear grouped under a single trace.
+ * e.g. "nemesis.smartChaos" → "chatJSON llama3.2" → HTTP to Ollama
+ */
+export async function withAgentSpan<T>(
+  agent: string,
+  operation: string,
+  attributes: Record<string, string | number | boolean> = {},
+  fn: () => Promise<T>,
+): Promise<T> {
+  const tracer = getTracer();
+  const spanName = `${agent}.${operation}`;
+
+  return tracer.startActiveSpan(spanName, {
+    kind: SpanKind.INTERNAL,
+    attributes: {
+      'ai.agent.name': agent,
+      'ai.agent.operation': operation,
+      ...attributes,
+    },
+  }, async (span: Span) => {
+    try {
+      const result = await fn();
+      span.setStatus({ code: SpanStatusCode.OK });
+      span.end();
+      return result;
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      span.setStatus({ code: SpanStatusCode.ERROR, message: errMsg });
+      span.setAttribute('error.message', errMsg);
+      span.end();
+      throw err;
+    }
+  });
+}
+
 // ─── Graceful shutdown ───────────────────────────────────────
 
 export async function shutdownTracing(): Promise<void> {

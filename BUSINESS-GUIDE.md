@@ -35,7 +35,11 @@ All we need to do is choose a journey (or describe one in plain language). The D
 
 Then an AI agent diagnoses and fixes it — automatically, in seconds.
 
-110+ ready-made templates across 55+ industry verticals — from healthcare, banking, retail, insurance, and telecoms to aerospace, gaming, energy, logistics, pharmaceuticals, and many more — or generate a bespoke journey for any customer using AI.
+110+ ready-made templates across 55+ industry verticals — or describe any customer's journey in plain language and let AI generate a bespoke configuration instantly.
+
+**Pre-built industries:** Healthcare, Banking, Retail, Insurance, Telecom, Manufacturing, Automotive, Travel, Education, Energy, Government, Airlines, Logistics, Pharmaceuticals, Gaming, Media, Cybersecurity, Fashion, Food & Beverage, Real Estate, and many more.
+
+**AI-generated journeys:** Don't see your customer's industry? Just describe their business process — the AI builds the full journey configuration, company profile, services, and KPIs tailored to their exact operations.
 
 ---
 
@@ -135,7 +139,7 @@ For full setup instructions, see the [Technical Guide](TECHNICAL-GUIDE.md).
 
 ## Industry Coverage
 
-110+ pre-built templates across 55+ industry verticals in 11 categories:
+110+ pre-built templates across 55+ industry verticals in 11 categories — plus AI-generated journeys for any customer not covered below:
 
 | Category | Verticals |
 |----------|-----------|
@@ -150,6 +154,7 @@ For full setup instructions, see the [Technical Guide](TECHNICAL-GUIDE.md).
 | **Professional Services** | Consulting, Legal, HR, Advertising, Nonprofit |
 | **Government & Public** | Government, Defence, Smart City, ESG |
 | **Real Estate & Hospitality** | Real Estate, Hospitality, Space, Agriculture, Fitness |
+| **AI-Generated** | Describe any customer journey in plain language — the AI builds a complete configuration with company profile, services, journey steps, and industry-specific KPIs |
 
 Each vertical includes 2 pre-built demo journeys tailored to that industry's business processes.
 

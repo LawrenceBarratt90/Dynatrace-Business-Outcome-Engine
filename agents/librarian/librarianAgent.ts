@@ -10,6 +10,7 @@ import { VectorStore } from '../../memory/vector/vectorStore.js';
 import { HistoryStore, HistoryEvent, EventKind } from '../../memory/history/historyStore.js';
 import { createLogger } from '../../utils/logger.js';
 import { chatJSON } from '../../utils/llmClient.js';
+import { withAgentSpan } from '../../utils/otelTracing.js';
 import type { AgentName } from '../../utils/logger.js';
 
 const log = createLogger('librarian');
@@ -220,6 +221,7 @@ export function getStats(): {
 
 /** Use LLM to generate a learning summary from an incident chain */
 export async function generateLearning(incidentId: string): Promise<string> {
+  return withAgentSpan('librarian', 'generateLearning', { 'librarian.incident_id': incidentId }, async () => {
   const timeline = getIncidentTimeline(incidentId);
   if (timeline.length === 0) return 'No events found for this incident.';
 
@@ -231,9 +233,7 @@ export async function generateLearning(incidentId: string): Promise<string> {
     const result = await chatJSON<{ learning: string; tags: string[] }>([
       {
         role: 'system',
-        content: `You are an SRE analyst reviewing a BizObs incident. The app uses feature flags (errorInjectionEnabled, slowResponsesEnabled, errors_per_transaction, etc.) to control error injection. 
-Given the timeline, extract: what feature flags were changed, what errors occurred, what fixed it, and how to prevent recurrence.
-Respond with JSON: {"learning":"...","tags":["..."]}`,
+        content: `Librarian Agent. Summarize this incident timeline: what broke, what fixed it, is it a repeat?\nRespond JSON: {"learning":"2-3 sentences: cause, fix, prevention","tags":["tag1","tag2"]}`,
       },
       { role: 'user', content: timelineText },
     ]);
@@ -259,6 +259,7 @@ Respond with JSON: {"learning":"...","tags":["..."]}`,
     const summary = `Incident ${incidentId}: ${timeline.length} events. ${timeline.map(e => e.kind).join(' → ')}`;
     return summary;
   }
+  });
 }
 
 /** Analyze full history and generate a structured dashboard summary via Ollama */
@@ -269,6 +270,7 @@ export async function analyzeHistory(): Promise<{
   insights: { category: string; title: string; detail: string; severity: 'info' | 'warning' | 'critical' }[];
   patterns: { pattern: string; frequency: number; recommendation: string }[];
 }> {
+  return withAgentSpan('librarian', 'analyzeHistory', {}, async () => {
   const allEvents = historyStore.readAll();
   const stats = getStats();
 
@@ -306,21 +308,25 @@ export async function analyzeHistory(): Promise<{
     }>([
       {
         role: 'system',
-        content: `You are an SRE analyst reviewing the operational history of a Business Observability platform.
-The platform uses feature flags (errorInjectionEnabled, slowResponsesEnabled, etc.) for chaos engineering.
-AI agents (Nemesis for chaos, Fix-It for remediation) interact with services.
+        content: `You are the Librarian Agent — an SRE analyst reviewing the operational history of a Business Observability platform.
 
-Analyze the event timeline and provide:
-1. "summary": A 2-3 sentence executive summary of what has happened
-2. "insights": Array of notable findings, each with:
+The platform uses feature flags (errorInjectionEnabled, slowResponsesEnabled, errors_per_transaction, circuitBreakerEnabled, cacheEnabled) for controlled chaos engineering. AI agents interact with the system:
+- **Nemesis Agent**: Injects chaos by manipulating feature flags to simulate failures
+- **Fix-It Agent**: Detects and remediates problems by restoring flags to safe states
+- **Librarian Agent**: Records events and generates learnings from incident timelines
+
+Analyze the event timeline and provide a comprehensive operational summary:
+
+1. **summary**: A 2-3 sentence executive summary covering system health, recent activity, and overall resilience posture
+2. **insights**: Array of notable findings, each with:
    - "category": one of "chaos", "remediation", "performance", "reliability", "audit"
-   - "title": short title (5-8 words)
-   - "detail": 1-2 sentence explanation
-   - "severity": "info", "warning", or "critical"
-3. "patterns": Array of recurring patterns detected, each with:
-   - "pattern": description of the pattern
-   - "frequency": estimated occurrence count
-   - "recommendation": actionable recommendation
+   - "title": concise title (5-8 words)
+   - "detail": 1-2 sentence explanation with specific data points
+   - "severity": "info" | "warning" | "critical"
+3. **patterns**: Array of recurring patterns, each with:
+   - "pattern": description of the observed pattern
+   - "frequency": estimated occurrence count from the data
+   - "recommendation": specific, actionable recommendation
 
 Respond ONLY with valid JSON matching this schema.`,
       },
@@ -331,7 +337,7 @@ Respond ONLY with valid JSON matching this schema.`,
     ]);
 
     const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('LLM analysis timed out')), 65_000)
+      setTimeout(() => reject(new Error('LLM analysis timed out')), 180_000)
     );
 
     const result = await Promise.race([llmPromise, timeoutPromise]);
@@ -383,6 +389,7 @@ Respond ONLY with valid JSON matching this schema.`,
       patterns: [],
     };
   }
+  });
 }
 
 export default {
