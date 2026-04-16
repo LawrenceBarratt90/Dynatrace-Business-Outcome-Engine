@@ -285,6 +285,7 @@ export const HomePage = () => {
   const [pastedAiResponse, setPastedAiResponse] = useState('');
   const [extractedJourneys, setExtractedJourneys] = useState<string[]>([]);
   const [selectedJourneyName, setSelectedJourneyName] = useState('');
+  const [ownAiPhase, setOwnAiPhase] = useState<'details' | 'paste' | 'generate'>('details');
 
   // Toast notification state
   const [toastMessage, setToastMessage] = useState('');
@@ -2687,32 +2688,439 @@ export const HomePage = () => {
         </div>
       </Flex>
 
-      {/* Getting Started Section */}
-      <div style={{ padding: 20, background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(108, 44, 156, 0.1))', borderRadius: 8, border: `1px solid ${Colors.Theme.Primary['70']}` }}>
-        <Heading level={3} style={{ marginBottom: 20 }}>🚀 Getting Started</Heading>
-        <Flex gap={24} justifyContent="space-between">
-          <div style={{ textAlign: 'center', flex: 1 }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>🤖</div>
-            <Heading level={5} style={{ marginBottom: 6, color: Colors.Theme.Primary['70'] }}>1. Generate AI Prompts</Heading>
-            <Paragraph style={{ fontSize: 13, lineHeight: 1.5 }}>Start with company details to create intelligent AI prompts</Paragraph>
+      {/* ── Choose Your Pathway ───────────────── */}
+      <div style={{ padding: 24, background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.08), rgba(108, 44, 156, 0.08))', borderRadius: 12, border: `1px solid ${Colors.Theme.Primary['70']}` }}>
+        <Heading level={3} style={{ marginBottom: 8, textAlign: 'center' }}>🚀 Choose Your Pathway</Heading>
+        <Paragraph style={{ textAlign: 'center', fontSize: 13, marginBottom: 24, opacity: 0.8 }}>
+          Two ways to create business observability journeys — pick the one that fits your workflow
+        </Paragraph>
+
+        <Flex gap={20}>
+          {/* Pathway 1: Generate with GitHub Copilot AI */}
+          <div
+            onClick={() => setActiveTab('step1')}
+            style={{
+              flex: 1, padding: 24, borderRadius: 16, cursor: 'pointer',
+              background: 'linear-gradient(135deg, rgba(115,190,40,0.08), rgba(0,161,201,0.08))',
+              border: '2px solid rgba(115,190,40,0.4)',
+              boxShadow: '0 4px 16px rgba(115,190,40,0.1)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(115,190,40,0.8)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(115,190,40,0.4)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <div style={{
+                width: 64, height: 64, borderRadius: '50%', margin: '0 auto 12px',
+                background: 'linear-gradient(135deg, rgba(115,190,40,0.2), rgba(0,161,201,0.2))',
+                border: '2px solid rgba(115,190,40,0.5)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32,
+              }}>✨</div>
+              <Heading level={4} style={{ marginBottom: 4 }}>Generate with GitHub Copilot AI</Heading>
+              <Paragraph style={{ fontSize: 12, opacity: 0.7, marginBottom: 0 }}>Fully automated — AI generates everything</Paragraph>
+            </div>
+            <Flex flexDirection="column" gap={10}>
+              <Flex alignItems="center" gap={8}>
+                <div style={{ fontSize: 14, width: 24, textAlign: 'center' }}>1️⃣</div>
+                <Paragraph style={{ fontSize: 13, marginBottom: 0 }}>Enter company name &amp; domain</Paragraph>
+              </Flex>
+              <Flex alignItems="center" gap={8}>
+                <div style={{ fontSize: 14, width: 24, textAlign: 'center' }}>2️⃣</div>
+                <Paragraph style={{ fontSize: 13, marginBottom: 0 }}>AI generates C-Suite analysis</Paragraph>
+              </Flex>
+              <Flex alignItems="center" gap={8}>
+                <div style={{ fontSize: 14, width: 24, textAlign: 'center' }}>3️⃣</div>
+                <Paragraph style={{ fontSize: 13, marginBottom: 0 }}>AI generates journey config &amp; deploys</Paragraph>
+              </Flex>
+            </Flex>
+            <div style={{ marginTop: 16, textAlign: 'center' }}>
+              <div style={{
+                display: 'inline-block', padding: '10px 24px', borderRadius: 10, fontWeight: 700, fontSize: 14,
+                background: 'linear-gradient(135deg, rgba(115,190,40,0.9), rgba(0,161,201,0.9))',
+                color: 'white',
+              }}>
+                Start with AI →
+              </div>
+            </div>
           </div>
-          <div style={{ textAlign: 'center', flex: 1 }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>🎯</div>
-            <Heading level={5} style={{ marginBottom: 6, color: Colors.Theme.Primary['70'] }}>2. Build Customer Journey</Heading>
-            <Paragraph style={{ fontSize: 13, lineHeight: 1.5 }}>Use AI-generated prompts to create realistic business workflows</Paragraph>
-          </div>
-          <div style={{ textAlign: 'center', flex: 1 }}>
-            <div style={{ fontSize: 32, marginBottom: 8 }}>📊</div>
-            <Heading level={5} style={{ marginBottom: 6, color: Colors.Theme.Primary['70'] }}>3. Test & Simulate</Heading>
-            <Paragraph style={{ fontSize: 13, lineHeight: 1.5 }}>Execute load tests and customer simulations with business intelligence</Paragraph>
+
+          {/* Pathway 2: Use Your Own AI Prompt */}
+          <div
+            onClick={() => { setOwnAiPhase('details'); setPastedAiResponse(''); setExtractedJourneys([]); setSelectedJourneyName(''); setActiveTab('ownai'); }}
+            style={{
+              flex: 1, padding: 24, borderRadius: 16, cursor: 'pointer',
+              background: 'linear-gradient(135deg, rgba(108,44,156,0.08), rgba(0,161,201,0.08))',
+              border: '2px solid rgba(108,44,156,0.4)',
+              boxShadow: '0 4px 16px rgba(108,44,156,0.1)',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = 'rgba(108,44,156,0.8)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(108,44,156,0.4)'; e.currentTarget.style.transform = 'translateY(0)'; }}
+          >
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <div style={{
+                width: 64, height: 64, borderRadius: '50%', margin: '0 auto 12px',
+                background: 'linear-gradient(135deg, rgba(108,44,156,0.2), rgba(0,161,201,0.2))',
+                border: '2px solid rgba(108,44,156,0.5)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32,
+              }}>📋</div>
+              <Heading level={4} style={{ marginBottom: 4 }}>Use Your Own AI Prompt</Heading>
+              <Paragraph style={{ fontSize: 12, opacity: 0.7, marginBottom: 0 }}>Already have a GenAI analysis? Paste it here</Paragraph>
+            </div>
+            <Flex flexDirection="column" gap={10}>
+              <Flex alignItems="center" gap={8}>
+                <div style={{ fontSize: 14, width: 24, textAlign: 'center' }}>1️⃣</div>
+                <Paragraph style={{ fontSize: 13, marginBottom: 0 }}>Enter company name &amp; domain</Paragraph>
+              </Flex>
+              <Flex alignItems="center" gap={8}>
+                <div style={{ fontSize: 14, width: 24, textAlign: 'center' }}>2️⃣</div>
+                <Paragraph style={{ fontSize: 13, marginBottom: 0 }}>Paste your ChatGPT / Gemini / Claude response</Paragraph>
+              </Flex>
+              <Flex alignItems="center" gap={8}>
+                <div style={{ fontSize: 14, width: 24, textAlign: 'center' }}>3️⃣</div>
+                <Paragraph style={{ fontSize: 13, marginBottom: 0 }}>Pick a journey &amp; AI generates the config</Paragraph>
+              </Flex>
+            </Flex>
+            <div style={{ marginTop: 16, textAlign: 'center' }}>
+              <div style={{
+                display: 'inline-block', padding: '10px 24px', borderRadius: 10, fontWeight: 700, fontSize: 14,
+                background: 'linear-gradient(135deg, rgba(108,44,156,0.9), rgba(0,161,201,0.9))',
+                color: 'white',
+              }}>
+                Paste Your Analysis →
+              </div>
+            </div>
           </div>
         </Flex>
-        <div style={{ marginTop: 20, textAlign: 'center' }}>
-          <Button color="primary" variant="emphasized" onClick={() => setActiveTab('step1')} style={{ padding: '12px 28px', fontSize: 15, fontWeight: 600 }}>
-            Start Building Your Journey →
-          </Button>
-        </div>
       </div>
+    </Flex>
+  );
+
+  // ── "Use Your Own AI Prompt" stepped flow ─────────────
+  const renderOwnAiTab = () => (
+    <Flex flexDirection="column" gap={20}>
+      {/* Phase indicator */}
+      <Flex justifyContent="center" alignItems="center" gap={0}>
+        {[
+          { id: 'details' as const, label: 'Company Details', icon: '👤', num: 1 },
+          { id: 'paste' as const, label: 'Paste AI Analysis', icon: '📋', num: 2 },
+          { id: 'generate' as const, label: 'Pick Journey & Generate', icon: '🚀', num: 3 },
+        ].map((phase, index) => (
+          <React.Fragment key={phase.id}>
+            <Flex
+              alignItems="center" gap={8}
+              style={{
+                padding: '8px 18px', borderRadius: 8,
+                background: ownAiPhase === phase.id
+                  ? 'linear-gradient(135deg, rgba(108,44,156,0.9), rgba(0,161,201,0.8))'
+                  : 'transparent',
+                opacity: ownAiPhase === phase.id ? 1 : 0.5,
+                cursor: 'pointer',
+              }}
+              onClick={() => {
+                if (phase.id === 'details') setOwnAiPhase('details');
+                else if (phase.id === 'paste' && companyName && domain) setOwnAiPhase('paste');
+                else if (phase.id === 'generate' && pastedAiResponse.length > 50 && selectedJourneyName) setOwnAiPhase('generate');
+              }}
+            >
+              <div style={{ fontSize: 16 }}>{phase.icon}</div>
+              <Strong style={{ fontSize: 13, color: ownAiPhase === phase.id ? 'white' : Colors.Text.Neutral.Default }}>
+                {phase.label}
+              </Strong>
+            </Flex>
+            {index < 2 && (
+              <div style={{
+                width: 40, height: 2, margin: '0 4px',
+                background: ['details', 'paste', 'generate'].indexOf(ownAiPhase) > index
+                  ? 'rgba(108,44,156,0.7)' : Colors.Border.Neutral.Default,
+              }} />
+            )}
+          </React.Fragment>
+        ))}
+      </Flex>
+
+      {/* Phase 1: Company Details */}
+      {ownAiPhase === 'details' && (
+        <Flex gap={24}>
+          <div style={{ flex: 3, padding: 20, background: Colors.Background.Surface.Default, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Flex alignItems="center" gap={12} style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 28 }}>📋</div>
+              <div>
+                <Heading level={3} style={{ marginBottom: 0 }}>Step 1 — Company Details</Heading>
+                <Paragraph style={{ fontSize: 12, marginBottom: 0, marginTop: 4, opacity: 0.7 }}>Enter the company you've already analysed with your own AI</Paragraph>
+              </div>
+            </Flex>
+            <Flex flexDirection="column" gap={16}>
+              <div>
+                <Heading level={5} style={{ marginBottom: 8 }}>🏢 Company Name</Heading>
+                <TextInput
+                  value={companyName}
+                  onChange={(value) => setCompanyName(value)}
+                  placeholder="e.g., BMW, ShopMart, HealthPlus"
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div>
+                <Heading level={5} style={{ marginBottom: 8 }}>🌐 Website Domain</Heading>
+                <TextInput
+                  value={domain}
+                  onChange={(value) => setDomain(value)}
+                  placeholder="e.g., bmw.co.uk, shopmart.com"
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <Flex justifyContent="space-between" alignItems="center" style={{ marginTop: 16 }}>
+                <Button onClick={() => setActiveTab('welcome')} style={{ padding: '8px 16px' }}>← Back</Button>
+                <Button
+                  variant="accent"
+                  disabled={!companyName || !domain}
+                  onClick={() => setOwnAiPhase('paste')}
+                  style={{
+                    padding: '10px 24px', fontWeight: 700, fontSize: 14, borderRadius: 10,
+                    background: companyName && domain ? 'linear-gradient(135deg, rgba(108,44,156,0.9), rgba(0,161,201,0.9))' : undefined,
+                    color: companyName && domain ? 'white' : undefined,
+                    border: companyName && domain ? 'none' : undefined,
+                  }}
+                >
+                  Next: Paste AI Analysis →
+                </Button>
+              </Flex>
+            </Flex>
+          </div>
+          <div style={{ flex: 2, padding: 20, background: Colors.Background.Surface.Default, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Heading level={4} style={{ marginBottom: 12 }}>💡 How This Works</Heading>
+            <Flex flexDirection="column" gap={12}>
+              <div style={{ padding: 14, background: 'rgba(108,44,156,0.1)', borderRadius: 8, border: '1px solid rgba(108,44,156,0.3)' }}>
+                <Strong style={{ fontSize: 13 }}>Already used ChatGPT, Gemini, or Claude?</Strong>
+                <Paragraph style={{ fontSize: 12, marginBottom: 0, marginTop: 6, lineHeight: 1.5 }}>
+                  If you've generated a C-Suite business analysis with any AI tool, paste it in the next step.
+                  We'll extract the journey names and let you pick which one to build.
+                </Paragraph>
+              </div>
+              <div style={{ padding: 14, background: 'rgba(0,161,201,0.1)', borderRadius: 8, border: '1px solid rgba(0,161,201,0.3)' }}>
+                <Strong style={{ fontSize: 13 }}>What happens next?</Strong>
+                <Paragraph style={{ fontSize: 12, marginBottom: 0, marginTop: 6, lineHeight: 1.5 }}>
+                  GitHub Copilot AI reads your pasted analysis and generates the journey configuration JSON — then automatically deploys the services.
+                </Paragraph>
+              </div>
+            </Flex>
+          </div>
+        </Flex>
+      )}
+
+      {/* Phase 2: Paste AI Analysis */}
+      {ownAiPhase === 'paste' && (
+        <Flex gap={24}>
+          <div style={{ flex: 3, padding: 20, background: Colors.Background.Surface.Default, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Flex alignItems="center" gap={12} style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 28 }}>📋</div>
+              <div>
+                <Heading level={3} style={{ marginBottom: 0 }}>Step 2 — Paste Your AI Analysis</Heading>
+                <Paragraph style={{ fontSize: 12, marginBottom: 0, marginTop: 4, opacity: 0.7 }}>
+                  Paste the C-Suite / business analysis from your AI tool below
+                </Paragraph>
+              </div>
+            </Flex>
+            <textarea
+              value={pastedAiResponse}
+              onChange={(e) => {
+                const text = e.target.value;
+                setPastedAiResponse(text);
+                const journeys = extractJourneysFromText(text);
+                setExtractedJourneys(journeys);
+                setSelectedJourneyName(journeys[0] || '');
+              }}
+              placeholder={'Paste your AI response here...\n\nExample output from ChatGPT / Gemini / Claude:\n\n### 3. Journey Classification\n- **Industry Type**: Automotive Retail & Services\n- **Journey Names**:\n    - "Vehicle Purchase Journey"\n    - "Finance Application Journey"\n    - "Aftersales Purchase Journey"'}
+              style={{
+                width: '100%', minHeight: 280, padding: 14,
+                background: Colors.Background.Base.Default,
+                border: `1px solid ${Colors.Border.Neutral.Default}`,
+                borderRadius: 8, color: Colors.Text.Neutral.Default,
+                fontFamily: 'monospace', fontSize: 12, lineHeight: 1.5, resize: 'vertical',
+              }}
+            />
+            <Flex justifyContent="space-between" alignItems="center" style={{ marginTop: 16 }}>
+              <Button onClick={() => setOwnAiPhase('details')} style={{ padding: '8px 16px' }}>← Back</Button>
+              <Button
+                variant="accent"
+                disabled={pastedAiResponse.length < 50}
+                onClick={() => setOwnAiPhase('generate')}
+                style={{
+                  padding: '10px 24px', fontWeight: 700, fontSize: 14, borderRadius: 10,
+                  background: pastedAiResponse.length >= 50 ? 'linear-gradient(135deg, rgba(108,44,156,0.9), rgba(0,161,201,0.9))' : undefined,
+                  color: pastedAiResponse.length >= 50 ? 'white' : undefined,
+                  border: pastedAiResponse.length >= 50 ? 'none' : undefined,
+                }}
+              >
+                Next: Pick Journey →
+              </Button>
+            </Flex>
+          </div>
+          <div style={{ flex: 2, padding: 20, background: Colors.Background.Surface.Default, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Heading level={4} style={{ marginBottom: 12 }}>📊 Analysis Preview</Heading>
+            {pastedAiResponse.length > 50 ? (
+              <Flex flexDirection="column" gap={12}>
+                <div style={{ padding: 12, background: 'rgba(115,190,40,0.1)', borderRadius: 8, border: '1px solid rgba(115,190,40,0.3)' }}>
+                  <Strong style={{ fontSize: 13 }}>📝 {pastedAiResponse.length.toLocaleString()} characters pasted</Strong>
+                </div>
+                {extractedJourneys.length > 0 && (
+                  <div style={{ padding: 12, background: 'rgba(108,44,156,0.1)', borderRadius: 8, border: '1px solid rgba(108,44,156,0.3)' }}>
+                    <Strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>🎯 Journeys Detected:</Strong>
+                    {extractedJourneys.map((j, i) => (
+                      <div key={i} style={{ fontSize: 13, padding: '4px 0', paddingLeft: 8, borderLeft: '3px solid rgba(108,44,156,0.5)' }}>
+                        {j}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Flex>
+            ) : (
+              <Paragraph style={{ fontSize: 13, opacity: 0.5, fontStyle: 'italic' }}>
+                Paste your AI analysis on the left to see a preview...
+              </Paragraph>
+            )}
+          </div>
+        </Flex>
+      )}
+
+      {/* Phase 3: Pick Journey & Generate */}
+      {ownAiPhase === 'generate' && (
+        <Flex gap={24}>
+          <div style={{ flex: 3, padding: 20, background: Colors.Background.Surface.Default, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Flex alignItems="center" gap={12} style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 28 }}>🚀</div>
+              <div>
+                <Heading level={3} style={{ marginBottom: 0 }}>Step 3 — Pick Journey &amp; Generate</Heading>
+                <Paragraph style={{ fontSize: 12, marginBottom: 0, marginTop: 4, opacity: 0.7 }}>
+                  Select which journey to build, then let AI generate the full configuration
+                </Paragraph>
+              </div>
+            </Flex>
+
+            {/* Journey Selection */}
+            <div style={{ marginBottom: 20 }}>
+              <Heading level={5} style={{ marginBottom: 10 }}>🎯 Select Journey</Heading>
+              {extractedJourneys.length > 0 ? (
+                <Flex flexDirection="column" gap={8}>
+                  {extractedJourneys.map((j, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => setSelectedJourneyName(j)}
+                      style={{
+                        padding: '12px 16px', borderRadius: 10, cursor: 'pointer',
+                        background: selectedJourneyName === j
+                          ? 'linear-gradient(135deg, rgba(108,44,156,0.15), rgba(0,161,201,0.15))'
+                          : Colors.Background.Base.Default,
+                        border: `2px solid ${selectedJourneyName === j ? 'rgba(108,44,156,0.6)' : Colors.Border.Neutral.Default}`,
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      <Flex alignItems="center" gap={10}>
+                        <div style={{
+                          width: 24, height: 24, borderRadius: '50%',
+                          border: `2px solid ${selectedJourneyName === j ? 'rgba(108,44,156,0.8)' : Colors.Border.Neutral.Default}`,
+                          background: selectedJourneyName === j ? 'rgba(108,44,156,0.8)' : 'transparent',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          color: 'white', fontSize: 12, fontWeight: 700,
+                        }}>
+                          {selectedJourneyName === j ? '✓' : ''}
+                        </div>
+                        <Strong style={{ fontSize: 14 }}>{j}</Strong>
+                      </Flex>
+                    </div>
+                  ))}
+                </Flex>
+              ) : (
+                <div style={{ padding: 14, background: 'rgba(220,180,0,0.1)', borderRadius: 8, border: '1px solid rgba(220,180,0,0.3)' }}>
+                  <Paragraph style={{ fontSize: 13, marginBottom: 8 }}>
+                    No journeys were auto-detected. Type a journey name:
+                  </Paragraph>
+                  <TextInput
+                    value={selectedJourneyName}
+                    onChange={(value) => setSelectedJourneyName(value)}
+                    placeholder="e.g., Purchase Journey, Subscription Flow"
+                    style={{ width: '100%' }}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Model selector + Generate button */}
+            <Flex justifyContent="space-between" alignItems="center">
+              <Button onClick={() => setOwnAiPhase('paste')} style={{ padding: '8px 16px' }}>← Back</Button>
+              <Flex alignItems="center" gap={12}>
+                {ghCopilotConfigured && (
+                  <select
+                    value={ghCopilotModel}
+                    onChange={(e: any) => setGhCopilotModel(e.target.value)}
+                    style={{
+                      padding: '7px 10px', borderRadius: 6,
+                      background: Colors.Background.Base.Default,
+                      border: `1px solid ${Colors.Border.Neutral.Default}`,
+                      color: Colors.Text.Neutral.Default, fontSize: 12,
+                      cursor: 'pointer', minWidth: 140,
+                    }}
+                  >
+                    {ghAvailableModels.length > 0
+                      ? ghAvailableModels.map(m => (
+                          <option key={m.id} value={m.id}>{m.id}</option>
+                        ))
+                      : ['gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4o', 'o4-mini', 'claude-sonnet-4'].map(id => (
+                          <option key={id} value={id}>{id}</option>
+                        ))
+                    }
+                  </select>
+                )}
+                <Button
+                  variant="accent"
+                  disabled={!selectedJourneyName || !ghCopilotConfigured}
+                  onClick={() => runPastedAiPipeline(pastedAiResponse, selectedJourneyName)}
+                  title={!ghCopilotConfigured ? 'Configure GitHub PAT in Settings first' : `Generate "${selectedJourneyName}" journey config`}
+                  style={{
+                    padding: '12px 28px', fontWeight: 700, fontSize: 15, borderRadius: 10,
+                    background: selectedJourneyName && ghCopilotConfigured
+                      ? 'linear-gradient(135deg, rgba(108,44,156,0.9), rgba(0,161,201,0.9))' : undefined,
+                    color: selectedJourneyName && ghCopilotConfigured ? 'white' : undefined,
+                    border: selectedJourneyName && ghCopilotConfigured ? 'none' : undefined,
+                    boxShadow: selectedJourneyName && ghCopilotConfigured ? '0 4px 16px rgba(108,44,156,0.3)' : undefined,
+                    opacity: (!selectedJourneyName || !ghCopilotConfigured) ? 0.4 : 1,
+                  }}
+                >
+                  🚀 Generate &amp; Deploy Journey
+                </Button>
+              </Flex>
+            </Flex>
+            {!ghCopilotConfigured && (
+              <Paragraph style={{ fontSize: 12, marginTop: 12, color: 'rgba(220,50,47,0.8)' }}>
+                ⚠️ Configure your GitHub PAT in Settings → GitHub Copilot to enable generation
+              </Paragraph>
+            )}
+          </div>
+          <div style={{ flex: 2, padding: 20, background: Colors.Background.Surface.Default, borderRadius: 12, boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+            <Heading level={4} style={{ marginBottom: 12 }}>📋 Summary</Heading>
+            <Flex flexDirection="column" gap={10}>
+              <div style={{ padding: 12, background: 'rgba(0,161,201,0.1)', borderRadius: 8 }}>
+                <Paragraph style={{ fontSize: 11, marginBottom: 4, opacity: 0.7 }}>Company</Paragraph>
+                <Strong style={{ fontSize: 14 }}>{companyName}</Strong>
+              </div>
+              <div style={{ padding: 12, background: 'rgba(0,161,201,0.1)', borderRadius: 8 }}>
+                <Paragraph style={{ fontSize: 11, marginBottom: 4, opacity: 0.7 }}>Domain</Paragraph>
+                <Strong style={{ fontSize: 14 }}>{domain}</Strong>
+              </div>
+              <div style={{ padding: 12, background: 'rgba(108,44,156,0.1)', borderRadius: 8 }}>
+                <Paragraph style={{ fontSize: 11, marginBottom: 4, opacity: 0.7 }}>Analysis</Paragraph>
+                <Strong style={{ fontSize: 14 }}>{pastedAiResponse.length.toLocaleString()} chars · {extractedJourneys.length} journeys</Strong>
+              </div>
+              {selectedJourneyName && (
+                <div style={{ padding: 12, background: 'rgba(115,190,40,0.1)', borderRadius: 8, border: '2px solid rgba(115,190,40,0.4)' }}>
+                  <Paragraph style={{ fontSize: 11, marginBottom: 4, opacity: 0.7 }}>Selected Journey</Paragraph>
+                  <Strong style={{ fontSize: 14, color: '#73be28' }}>{selectedJourneyName}</Strong>
+                </div>
+              )}
+            </Flex>
+          </div>
+        </Flex>
+      )}
     </Flex>
   );
 
@@ -3583,9 +3991,10 @@ export const HomePage = () => {
             <Flex justifyContent="center" alignItems="center" gap={0}>
               {[
                 { id: 'welcome', label: 'Welcome', icon: '🏠', step: 0 },
-                { id: 'step1', label: 'Customer Details', icon: '👤', step: 1 },
+                { id: 'step1', label: 'AI Generate', icon: '✨', step: 1 },
+                { id: 'ownai', label: 'Own AI Prompt', icon: '📋', step: 1 },
                 { id: 'step2', label: 'Generate Prompts', icon: '🤖', step: 2 }
-              ].map((item, index) => (
+              ].map((item, index, arr) => (
                 <React.Fragment key={item.id}>
                   <Flex 
                     alignItems="center" 
@@ -3614,11 +4023,11 @@ export const HomePage = () => {
                       {item.label}
                     </Strong>
                   </Flex>
-                  {index < 2 && (
+                  {index < arr.length - 1 && (
                     <div style={{ 
                       width: 40, 
                       height: 2, 
-                      background: index < (activeTab === 'welcome' ? 0 : activeTab === 'step1' ? 1 : 2) 
+                      background: index < (['welcome', 'step1', 'ownai', 'step2'].indexOf(activeTab)) 
                         ? Colors.Theme.Primary['70'] 
                         : Colors.Border.Neutral.Default,
                       margin: '0 4px',
@@ -3634,6 +4043,7 @@ export const HomePage = () => {
           <div style={{ flex: 1, overflow: 'auto', padding: '20px 24px' }}>
           {activeTab === 'welcome' && renderWelcomeTab()}
           {activeTab === 'step1' && renderStep1Tab()}
+          {activeTab === 'ownai' && renderOwnAiTab()}
           {activeTab === 'step2' && renderStep2Tab()}
           </div>
           </div>
